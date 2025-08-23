@@ -2,8 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Modal } from './Modal';
 import { useCredits } from '../contexts/CreditContext';
 import * as audioService from '../services/audioService';
-import { AD_REWARD_AMOUNT, DAILY_CREDIT_AMOUNT } from '../contexts/CreditContext';
-import { AdPlayer } from './AdPlayer';
+import { DAILY_CREDIT_AMOUNT } from '../contexts/CreditContext';
 
 interface EarnCreditsModalProps {
     isOpen: boolean;
@@ -20,7 +19,6 @@ const QUICK_REFILL_STORAGE_KEY = 'ai-studio-last-quick-refill';
 
 export const EarnCreditsModal: React.FC<EarnCreditsModalProps> = ({ isOpen, onClose }) => {
     const { addCredits, lastRefresh } = useCredits();
-    const [isWatchingAd, setIsWatchingAd] = useState(false);
     const [refillCooldown, setRefillCooldown] = useState<number | null>(null);
     const [quickRefillCooldown, setQuickRefillCooldown] = useState<number | null>(null);
 
@@ -72,17 +70,6 @@ export const EarnCreditsModal: React.FC<EarnCreditsModalProps> = ({ isOpen, onCl
 
     }, [isOpen]);
 
-    const handleWatchAd = () => {
-        setIsWatchingAd(true);
-    };
-    
-    const onAdComplete = () => {
-        addCredits(AD_REWARD_AMOUNT);
-        setIsWatchingAd(false);
-        onClose();
-    };
-
-
     const handleStandardRefill = () => {
         if (refillCooldown === null) {
             audioService.playCreditAdd();
@@ -118,29 +105,12 @@ export const EarnCreditsModal: React.FC<EarnCreditsModalProps> = ({ isOpen, onCl
     };
 
     const today = new Date().toDateString();
-    
-    if (isWatchingAd) {
-        return <AdPlayer onComplete={onAdComplete} />;
-    }
 
     return (
         <Modal isOpen={isOpen} onClose={onClose} title="รับเครดิตเพิ่ม">
             <div className="space-y-6 text-center font-sans">
                 <>
                     <div>
-                        <h3 className="font-press-start text-lg text-brand-yellow">ดูโฆษณาเพื่อรับเครดิต</h3>
-                        <p className="mt-2 text-sm text-brand-light/80">
-                            ดูโฆษณาสั้นๆ เพื่อรับ <strong className="text-brand-yellow">{AD_REWARD_AMOUNT} เครดิต</strong> ทันที!
-                        </p>
-                        <button
-                            onClick={handleWatchAd}
-                            className="w-full mt-4 p-4 bg-brand-lime text-black border-4 border-brand-light shadow-pixel text-base font-press-start transition-all hover:bg-brand-yellow active:shadow-pixel-active active:translate-y-[2px] active:translate-x-[2px]"
-                        >
-                            ดูโฆษณา
-                        </button>
-                    </div>
-                    
-                    <div className="pt-6 border-t-2 border-brand-light/30">
                         <h3 className="font-press-start text-lg text-brand-lime">เติมเครดิตมาตรฐาน</h3>
                         <p className="mt-2 text-sm text-brand-light/80">
                             หากเครดิตใกล้หมด รับ <strong className="text-brand-lime">{REFILL_AMOUNT} เครดิต</strong> ฟรี! (รับได้ชั่วโมงละครั้ง)

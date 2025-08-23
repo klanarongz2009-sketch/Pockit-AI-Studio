@@ -1,7 +1,3 @@
-
-
-
-
 import React, { createContext, useState, useEffect, useCallback, useContext, ReactNode } from 'react';
 import * as audioService from '../services/audioService';
 
@@ -29,7 +25,6 @@ export const CREDIT_COSTS = {
 
 
 export const DAILY_CREDIT_AMOUNT = 250;
-export const AD_REWARD_AMOUNT = 50;
 const INITIAL_CREDITS = 500;
 
 interface CreditContextType {
