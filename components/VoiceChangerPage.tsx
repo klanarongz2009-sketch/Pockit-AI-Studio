@@ -397,20 +397,13 @@ export const VoiceChangerPage: React.FC<VoiceChangerPageProps> = ({ playSound, o
 
     const renderFilePreview = () => {
         if (!uploadedFile || !filePreview) return null;
-    
-        const isVideo = uploadedFile.type.startsWith('video/');
-    
         return (
             <div className="w-full">
                 <div className="flex items-center gap-3 p-3 bg-black/30">
                     <MusicNoteIcon className="w-8 h-8 text-brand-cyan flex-shrink-0" />
                     <p className="truncate text-sm">{uploadedFile.name}</p>
                 </div>
-                {isVideo ? (
-                    <video src={filePreview} controls className="w-full mt-2 max-h-40 object-contain bg-black" aria-label="ไฟล์วิดีโอต้นฉบับที่อัปโหลด" />
-                ) : (
-                    <audio src={filePreview} controls className="w-full mt-2" aria-label="ไฟล์เสียงต้นฉบับที่อัปโหลด" />
-                )}
+                <audio src={filePreview} controls className="w-full mt-2" aria-label="ไฟล์เสียงต้นฉบับที่อัปโหลด" />
             </div>
         );
     };
@@ -423,12 +416,9 @@ export const VoiceChangerPage: React.FC<VoiceChangerPageProps> = ({ playSound, o
             case 'radioFrequency': return `ความถี่: ${value} Hz`;
             case 'clarityLevel': return `ความชัด: ${value}`;
             case 'bitCrushLevel': return `ความลึก: ${value}-bit`;
-            case 'sampleRateCrushLevel': return `อัตราสุ่ม: ระดับ ${value}`;
-            case 'sunoVersion': return `เวอร์ชัน: ${value.toFixed(1)}`;
+            case 'sampleRateCrushLevel': return `อัตราสุ่ม: ${value}`;
             case 'bassBoostLevel': return `ระดับเสียงเบส: ${value} dB`;
             case 'vibratoDepth': return `ความแรง: ${value}`;
-            case 'snareBoost': return `เน้นเสียงสแนร์: ${value} dB`;
-            case 'humFrequency': return `ความถี่: ${value} Hz`;
             case 'chorusDepth': return `ความหนา: ${value}`;
             case 'reverbRoomSize': return `ขนาด: ${value}`;
             case 'reverbWet': return `ความก้อง: ${(value * 100).toFixed(0)}%`;
@@ -496,7 +486,7 @@ export const VoiceChangerPage: React.FC<VoiceChangerPageProps> = ({ playSound, o
                             onMouseEnter={() => playSound(audioService.playHover)}
                             title="ปุ่มลัด: Alt+U"
                             className="w-full flex items-center justify-center gap-3 p-4 bg-brand-magenta text-white border-4 border-brand-light shadow-pixel text-base transition-all hover:bg-brand-yellow hover:text-black active:shadow-pixel-active active:translate-y-[2px] active:translate-x-[2px]">
-                            <UploadIcon className="w-6 h-6" /> อัปโหลดเสียง/วิดีโอ
+                            <UploadIcon className="w-6 h-6" /> อัปโหลดไฟล์
                         </button>
                     </div>
                 ) : (
