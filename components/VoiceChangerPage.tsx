@@ -10,7 +10,7 @@ import { StopIcon } from './icons/StopIcon';
 import { MusicNoteIcon } from './icons/MusicNoteIcon';
 import { DownloadIcon } from './icons/DownloadIcon';
 import type { EffectParameters } from '../services/audioService';
-import { useCredits } from '../contexts/CreditContext';
+import { useCredits, CREDIT_COSTS } from '../contexts/CreditContext';
 
 
 interface VoiceChangerPageProps {
@@ -183,7 +183,7 @@ export const VoiceChangerPage: React.FC<VoiceChangerPageProps> = ({ playSound, o
 
     const fileInputRef = useRef<HTMLInputElement>(null);
     const activeAudioSourceRef = useRef<AudioBufferSourceNode | null>(null);
-    const { addCredits } = useCredits();
+    const { credits, spendCredits } = useCredits();
 
     // Effect to reset params when effect changes
     useEffect(() => {
@@ -280,7 +280,11 @@ export const VoiceChangerPage: React.FC<VoiceChangerPageProps> = ({ playSound, o
     const handleGenerate = useCallback(async () => {
         if (!uploadedFile || isLoading) return;
 
-        addCredits(550);
+        if (!spendCredits(CREDIT_COSTS.VOICE_EFFECT_AI)) {
+            setError(`เครดิตไม่เพียงพอ! ต้องการ ${CREDIT_COSTS.VOICE_EFFECT_AI} เครดิต แต่คุณมี ${credits.toFixed(0)} เครดิต`);
+            playSound(audioService.playError);
+            return;
+        }
 
         // Clear previous results, but keep the file
         stopPlayback();
@@ -311,7 +315,7 @@ export const VoiceChangerPage: React.FC<VoiceChangerPageProps> = ({ playSound, o
         } finally {
             setIsLoading(false);
         }
-    }, [uploadedFile, isLoading, stopPlayback, playSound, selectedEffect.effect, effectParams, addCredits]);
+    }, [uploadedFile, isLoading, stopPlayback, playSound, selectedEffect.effect, effectParams, credits, spendCredits]);
 
 
     const handlePlaybackToggle = useCallback(() => {
@@ -511,7 +515,7 @@ export const VoiceChangerPage: React.FC<VoiceChangerPageProps> = ({ playSound, o
                                 disabled={isLoading}
                                 title="ปุ่มลัด: Ctrl+Enter"
                                 className="w-full flex items-center justify-center gap-3 p-4 bg-brand-magenta text-white border-4 border-brand-light shadow-pixel text-base hover:bg-brand-yellow hover:text-black active:shadow-pixel-active active:translate-y-[2px] active:translate-x-[2px] disabled:bg-gray-500">
-                                <SparklesIcon className="w-6 h-6" /> {isLoading ? 'กำลังประมวลผล...' : 'ใช้เอฟเฟกต์'}
+                                <SparklesIcon className="w-6 h-6" /> {isLoading ? 'กำลังประมวลผล...' : `ใช้เอฟเฟกต์ (${CREDIT_COSTS.VOICE_EFFECT_AI} เครดิต)`}
                             </button>
 
                             {isLoading && <LoadingSpinner text="กำลังเปลี่ยนเสียง..." />}

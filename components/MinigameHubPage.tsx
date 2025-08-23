@@ -1,3 +1,4 @@
+
 import React, { useState, useCallback } from 'react';
 import { PageHeader, PageWrapper } from './PageComponents';
 import { LoadingSpinner } from './LoadingSpinner';
@@ -133,6 +134,8 @@ export const MinigameHubPage: React.FC<MinigameHubPageProps> = ({ onClose, playS
     }
 
 
+    const pixelDodgeCost = CREDIT_COSTS.MINIGAME_ASSET * 2;
+
     return (
         <PageWrapper>
             <PageHeader title="ฟีเจอร์เสริม & มินิเกม" onBack={onClose} />
@@ -177,7 +180,7 @@ export const MinigameHubPage: React.FC<MinigameHubPageProps> = ({ onClose, playS
                             <GameButton
                                 icon={<GamepadIcon className="w-16 h-16" />}
                                 title="Pixel Dodge"
-                                description="เกมหลบหลีกสิ่งกีดขวางที่สร้างตัวละครโดย AI! (ต้องใช้ 20 เครดิต)"
+                                description={`เกมหลบหลีกสิ่งกีดขวางที่สร้างตัวละครโดย AI! (ต้องใช้ ${pixelDodgeCost} เครดิต)`}
                                 onClick={handleLaunchPixelDodge}
                                 disabled={!isOnline}
                             />

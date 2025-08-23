@@ -1,3 +1,4 @@
+
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import * as audioService from '../services/audioService';
 import { 
@@ -229,7 +230,7 @@ export const VideoEditorPage: React.FC<VideoEditorPageProps> = ({ onClose, playS
             return (
                  <video key={generatedVideoUrl} controls autoPlay loop className="w-full h-full object-contain" crossOrigin="anonymous">
                     <source src={videoUrlWithKey} type="video/mp4" />
-                    {subtitleVttUrl && <track label="Generated Subs" kind="subtitles" srcLang="th" src={subtitleVttUrl} default />}
+                    {subtitleVttUrl && <track label="Generated Subs" kind="subtitles" srcLang={subtitleLanguage.split('-')[0]} src={subtitleVttUrl} default />}
                 </video>
             );
         }
@@ -257,7 +258,7 @@ export const VideoEditorPage: React.FC<VideoEditorPageProps> = ({ onClose, playS
                 return (
                      <video key={filePreview} controls autoPlay loop className="w-full h-full object-contain" crossOrigin="anonymous">
                         <source src={filePreview} type={uploadedFile?.type} />
-                        <track label="Generated Subs" kind="subtitles" srcLang="th" src={subtitleVttUrl} default />
+                        <track label="Generated Subs" kind="subtitles" srcLang={subtitleLanguage.split('-')[0]} src={subtitleVttUrl} default />
                     </video>
                 );
             }
