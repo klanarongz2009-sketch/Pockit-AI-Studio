@@ -1,9 +1,4 @@
 
-
-
-
-
-
 import { GoogleGenAI, Type, Chat } from "@google/genai";
 
 const API_KEY = process.env.API_KEY;
@@ -1001,5 +996,25 @@ export const analyzeAudioFromMedia = async (base64Data: string, mimeType: string
     } catch (error) {
         console.error("Error analyzing audio from media:", error);
         throw new Error(`ไม่สามารถวิเคราะห์เสียงได้: ${parseApiError(error)}`);
+    }
+};
+
+export const correctText = async (text: string): Promise<string> => {
+    if (!ai) {
+        throw new Error("ไม่ได้กำหนดค่า API_KEY ไม่สามารถเรียกใช้ Gemini API ได้");
+    }
+
+    try {
+        const response = await ai.models.generateContent({
+            model: "gemini-2.5-flash",
+            contents: `Please correct the following Thai text for grammar, spelling, typos, and replace any nonsensical words with appropriate ones. Text: "${text}"`,
+            config: {
+                systemInstruction: "You are an expert Thai language proofreader. Your task is to correct the provided text. Return only the fully corrected text without any preamble, explanation, or markdown formatting.",
+            },
+        });
+        return response.text.trim();
+    } catch (error) {
+        console.error("Error correcting text:", error);
+        throw new Error(`ไม่สามารถแก้ไขข้อความได้: ${parseApiError(error)}`);
     }
 };
