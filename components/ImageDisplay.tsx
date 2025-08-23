@@ -1,0 +1,89 @@
+
+
+import React, { useState, useEffect } from 'react';
+import { LoadingSpinner } from './LoadingSpinner';
+
+type GenerationMode = 'image' | 'gif' | 'video' | 'spritesheet';
+
+interface OutputDisplayProps {
+  isLoading: boolean;
+  error: string | null;
+  generatedImage: string | null;
+  generatedFrames: string[] | null;
+  generatedVideoUrl: string | null;
+  prompt: string;
+  generationMode: GenerationMode;
+  fps: number;
+  loadingText: string;
+  videoLoadingMessages?: string[];
+  currentFrame: number;
+}
+export const OutputDisplay: React.FC<OutputDisplayProps> = ({ isLoading, error, generatedImage, generatedFrames, generatedVideoUrl, prompt, generationMode, fps, loadingText, videoLoadingMessages, currentFrame }) => {
+  const [currentVideoMessage, setCurrentVideoMessage] = useState(0);
+
+  useEffect(() => {
+    if (isLoading && generationMode === 'video' && videoLoadingMessages && videoLoadingMessages.length > 0) {
+        const intervalId = setInterval(() => {
+            setCurrentVideoMessage(prev => (prev + 1) % videoLoadingMessages.length);
+        }, 3500);
+        return () => clearInterval(intervalId);
+    }
+  }, [isLoading, generationMode, videoLoadingMessages]);
+
+
+  const getAltText = () => {
+      if (!generatedImage && !generatedFrames && !generatedVideoUrl) return "พื้นที่แสดงผลลัพธ์ว่างเปล่า";
+      const baseText = {
+        image: 'ภาพพิกเซลอาร์ต',
+        gif: 'แอนิเมชัน GIF พิกเซลอาร์ตแบบวนลูป',
+        video: 'วิดีโอพิกเซลอาร์ต',
+        spritesheet: 'สไปรต์ชีตแอนิเมชันพิกเซลอาร์ต'
+      }[generationMode];
+      return `${baseText}ที่สร้างจากคำสั่ง: ${prompt}`;
+  }
+
+  const hasContent = generatedImage || (generatedFrames && generatedFrames.length > 0) || generatedVideoUrl;
+  const imageSource = generationMode === 'gif' && generatedFrames && generatedFrames.length > 0 ? generatedFrames[currentFrame] : generatedImage;
+
+  const renderContent = () => {
+    if (isLoading) {
+        const text = (generationMode === 'video' && videoLoadingMessages) 
+            ? videoLoadingMessages[currentVideoMessage] 
+            : loadingText;
+        return <LoadingSpinner text={text}/>;
+    }
+    if (error) {
+        return (
+            <div role="alert">
+                <div className="text-center text-brand-magenta font-press-start p-4">
+                  <p className="text-lg">ข้อผิดพลาด</p>
+                  <p className="text-xs mt-4 break-words font-sans">{error}</p>
+                </div>
+            </div>
+        );
+    }
+    if (generationMode === 'video' && generatedVideoUrl) {
+        const videoUrlWithKey = `${generatedVideoUrl}&key=${process.env.API_KEY}`;
+        return (
+            <video src={videoUrlWithKey} controls autoPlay loop className="w-full h-full object-contain" aria-label={getAltText()}>
+                เบราว์เซอร์ของคุณไม่รองรับแท็กวิดีโอ
+            </video>
+        );
+    }
+    if (hasContent && imageSource) {
+        return <img src={imageSource} alt={getAltText()} className="w-full h-full object-contain" style={{ imageRendering: 'pixelated' }} />;
+    }
+    return (
+        <div className="text-center text-brand-cyan font-press-start p-4" aria-label="พื้นที่เริ่มต้นใช้งาน">
+          <h2 className="text-lg">ยินดีต้อนรับ!</h2>
+          <p className="text-xs mt-4">ป้อนคำสั่ง หรือ อัปโหลดภาพเพื่อเริ่มต้น!</p>
+        </div>
+    );
+  };
+
+  return (
+    <div role="region" aria-label="พื้นที่แสดงผลลัพธ์" aria-live="polite" className="w-full max-w-lg h-auto aspect-square bg-black/50 border-4 border-brand-light flex items-center justify-center p-2 shadow-pixel">
+      {renderContent()}
+    </div>
+  );
+};

@@ -1,0 +1,30 @@
+{
+  "short_name": "Ai Studio",
+  "name": "Ai Studio แบบพกพา",
+  "description": "สตูดิโอ AI สร้างสรรค์ครบวงจรในมือคุณ สร้างภาพ, วิดีโอ, เพลง, และแปลงเสียงได้อย่างอิสระด้วยพลัง AI ขับเคลื่อนโดย Google AI",
+  "icons": [
+    {
+      "src": "/assets/icon-192.png",
+      "type": "image/png",
+      "sizes": "192x192",
+      "purpose": "any"
+    },
+    {
+      "src": "/assets/icon-512.png",
+      "type": "image/png",
+      "sizes": "512x512",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/assets/icon.svg",
+      "type": "image/svg+xml",
+      "sizes": "any",
+      "purpose": "any"
+    }
+  ],
+  "start_url": ".",
+  "display": "standalone",
+  "scope": "/",
+  "theme_color": "#000000",
+  "background_color": "#000000"
+}
