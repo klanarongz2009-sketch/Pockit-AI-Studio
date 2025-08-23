@@ -170,7 +170,68 @@ export const playSong = (song: Song, bpm: number = 120, onEnd?: () => void) => {
     }
 };
 
-export const exportSongToWav = async (song: Song, bpm: number): Promise<Blob | null> => { /* Full implementation */ return null; };
+const playNoteInContext = (context: BaseAudioContext, frequency: number, startTime: number, duration: number, type: SoundType = 'square', volume: number = 0.5) => {
+    if (frequency <= 0) return;
+    const oscillator = context.createOscillator();
+    const gainNode = context.createGain();
+    oscillator.connect(gainNode);
+    gainNode.connect(context.destination);
+
+    oscillator.type = type;
+    oscillator.frequency.setValueAtTime(frequency, startTime);
+    
+    gainNode.gain.setValueAtTime(0, startTime);
+    gainNode.gain.linearRampToValueAtTime(volume * 0.5, startTime + 0.01);
+    gainNode.gain.exponentialRampToValueAtTime(0.0001, startTime + duration);
+
+    oscillator.start(startTime);
+    oscillator.stop(startTime + duration);
+};
+
+export const exportSongToWav = async (song: Song, bpm: number): Promise<Blob | null> => {
+    if (!song || song.length === 0) return null;
+
+    // Calculate total duration
+    let totalDurationSeconds = 0;
+    song.forEach(track => {
+        let trackDuration = 0;
+        track.forEach(note => {
+            trackDuration += durationToSeconds(note.duration, bpm);
+        });
+        if (trackDuration > totalDurationSeconds) {
+            totalDurationSeconds = trackDuration;
+        }
+    });
+
+    if (totalDurationSeconds === 0) return null;
+    
+    const sampleRate = 44100;
+    // Using an OfflineAudioContext to render the audio to a buffer
+    const offlineCtx = new OfflineAudioContext(2, Math.ceil(sampleRate * totalDurationSeconds), sampleRate);
+
+    const trackVolumes = [0.5, 0.4, 0.3, 0.45, 0.6, 0.35, 0.3, 0.25, 0.7, 0.5];
+    const trackTypes: SoundType[] = ['square', 'triangle', 'sine', 'sawtooth', 'square', 'sine', 'triangle', 'sawtooth', 'square', 'sine'];
+    
+    song.forEach((track, trackIndex) => {
+        let currentTime = 0;
+        track.forEach((note: SongNote) => {
+            const freq = noteToFrequency(note.pitch);
+            const dur = durationToSeconds(note.duration, bpm);
+            if (freq > 0) {
+                playNoteInContext(offlineCtx, freq, currentTime, dur * 0.95, trackTypes[trackIndex % trackTypes.length] || 'square', trackVolumes[trackIndex % trackVolumes.length] || 0.3);
+            }
+            currentTime += dur;
+        });
+    });
+
+    try {
+        const renderedBuffer = await offlineCtx.startRendering();
+        return bufferToWav(renderedBuffer);
+    } catch (e) {
+        console.error("Error rendering song to WAV:", e);
+        return null;
+    }
+};
 
 // --- Voice Changer & Audio Processing ---
 export interface EffectParameters {
@@ -641,4 +702,41 @@ export const bufferToWav = (buffer: AudioBuffer): Blob => {
 export const playSoundFromParams = (params: SoundEffectParameters) => {
     playSoundInternal(params.waveType, params.startFrequency, params.endFrequency, params.duration, params.volume);
 };
-export const exportSoundEffectToWav = async (params: SoundEffectParameters): Promise<Blob | null> => { /* Full implementation */ return null; };
+
+const playSoundInContext = (context: OfflineAudioContext, type: SoundType, startFreq: number, endFreq: number, duration: number, volume: number = 0.3) => {
+    const oscillator = context.createOscillator();
+    const gainNode = context.createGain();
+    const currentTime = 0; // Offline context starts at 0
+
+    oscillator.type = type;
+    gainNode.gain.setValueAtTime(0, currentTime);
+    gainNode.gain.linearRampToValueAtTime(volume, currentTime + 0.01);
+    
+    oscillator.frequency.setValueAtTime(startFreq, currentTime);
+    oscillator.frequency.exponentialRampToValueAtTime(endFreq, currentTime + duration);
+    
+    gainNode.gain.exponentialRampToValueAtTime(0.0001, currentTime + duration);
+
+    oscillator.connect(gainNode);
+    gainNode.connect(context.destination);
+    oscillator.start(currentTime);
+    oscillator.stop(currentTime + duration);
+};
+
+export const exportSoundEffectToWav = async (params: SoundEffectParameters): Promise<Blob | null> => {
+    const { waveType, startFrequency, endFrequency, duration, volume } = params;
+    if (duration <= 0) return null;
+
+    const sampleRate = 44100;
+    const offlineCtx = new OfflineAudioContext(1, Math.ceil(sampleRate * duration), sampleRate);
+
+    playSoundInContext(offlineCtx, waveType, startFrequency, endFrequency, duration, volume);
+
+    try {
+        const renderedBuffer = await offlineCtx.startRendering();
+        return bufferToWav(renderedBuffer);
+    } catch (e) {
+        console.error("Error rendering sound effect to WAV:", e);
+        return null;
+    }
+};
