@@ -22,8 +22,6 @@ import { OracleIcon } from './icons/OracleIcon';
 import { AiOraclePage } from './AiOraclePage';
 import { WordMatchIcon } from './icons/WordMatchIcon';
 import { WordMatchPage } from './WordMatchPage';
-import { UrlDownloaderIcon } from './icons/UrlDownloaderIcon';
-import { UrlDownloaderPage } from './UrlDownloaderPage';
 import { BugIcon } from './icons/BugIcon';
 import { AiBugSquasherPage } from './AiBugSquasherPage';
 
@@ -33,7 +31,7 @@ interface MinigameHubPageProps {
     isOnline: boolean;
 }
 
-type ActiveGame = 'hub' | 'pixelDodge' | 'ticTacToe' | 'snake' | 'platformer' | 'brickBreaker' | 'calculator' | 'aiOracle' | 'wordMatch' | 'urlDownloader' | 'aiBugSquasher';
+type ActiveGame = 'hub' | 'pixelDodge' | 'ticTacToe' | 'snake' | 'platformer' | 'brickBreaker' | 'calculator' | 'aiOracle' | 'wordMatch' | 'aiBugSquasher';
 
 const GameButton: React.FC<{ icon: React.ReactNode; title: string; description: string; onClick?: () => void; disabled?: boolean; comingSoon?: boolean }> = ({ icon, title, description, onClick, disabled, comingSoon }) => (
     <div className="relative">
@@ -126,9 +124,6 @@ export const MinigameHubPage: React.FC<MinigameHubPageProps> = ({ onClose, playS
     if (activeGame === 'wordMatch') {
         return <WordMatchPage onClose={() => setActiveGame('hub')} playSound={playSound} isOnline={isOnline} />;
     }
-    if (activeGame === 'urlDownloader') {
-        return <UrlDownloaderPage onClose={() => setActiveGame('hub')} playSound={playSound} />;
-    }
     if (activeGame === 'aiBugSquasher') {
         return <AiBugSquasherPage onClose={() => setActiveGame('hub')} playSound={playSound} isOnline={isOnline} />;
     }
@@ -156,12 +151,6 @@ export const MinigameHubPage: React.FC<MinigameHubPageProps> = ({ onClose, playS
                                 description="พิมพ์ข้อความ แล้วให้ AI แก้ไขไวยากรณ์และคำผิด พร้อมลุ้นรับเครดิตคืน!"
                                 onClick={() => handleLaunchGame('aiBugSquasher')}
                                 disabled={!isOnline}
-                            />
-                             <GameButton
-                                icon={<UrlDownloaderIcon className="w-16 h-16" />}
-                                title="ดาวน์โหลดจาก URL"
-                                description="ดาวน์โหลดวิดีโอหรือสื่ออื่นๆโดยตรงจากลิงก์"
-                                onClick={() => handleLaunchGame('urlDownloader')}
                             />
                             <GameButton
                                 icon={<WordMatchIcon className="w-16 h-16" />}
