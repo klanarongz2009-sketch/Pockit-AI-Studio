@@ -25,8 +25,6 @@ import { UrlDownloaderIcon } from './icons/UrlDownloaderIcon';
 import { UrlDownloaderPage } from './UrlDownloaderPage';
 import { BugIcon } from './icons/BugIcon';
 import { AiBugSquasherPage } from './AiBugSquasherPage';
-import { BasketballIcon } from './icons/BasketballIcon';
-import { BasketballGame } from './BasketballGame';
 
 interface MinigameHubPageProps {
     onClose: () => void;
@@ -34,7 +32,7 @@ interface MinigameHubPageProps {
     isOnline: boolean;
 }
 
-type ActiveGame = 'hub' | 'pixelDodge' | 'ticTacToe' | 'snake' | 'platformer' | 'brickBreaker' | 'calculator' | 'aiOracle' | 'wordMatch' | 'urlDownloader' | 'aiBugSquasher' | 'basketball';
+type ActiveGame = 'hub' | 'pixelDodge' | 'ticTacToe' | 'snake' | 'platformer' | 'brickBreaker' | 'calculator' | 'aiOracle' | 'wordMatch' | 'urlDownloader' | 'aiBugSquasher';
 
 const GameButton: React.FC<{ icon: React.ReactNode; title: string; description: string; onClick?: () => void; disabled?: boolean; comingSoon?: boolean }> = ({ icon, title, description, onClick, disabled, comingSoon }) => (
     <div className="relative">
@@ -98,39 +96,6 @@ export const MinigameHubPage: React.FC<MinigameHubPageProps> = ({ onClose, playS
         }
     }, [isOnline, spendCredits, credits, playSound, addCredits]);
 
-    const handleLaunchBasketball = useCallback(async () => {
-        if (!isOnline) {
-            setError("เกมนี้ต้องการการเชื่อมต่ออินเทอร์เน็ตเพื่อสร้างตัวละคร");
-            return;
-        }
-    
-        const cost = CREDIT_COSTS.MINIGAME_ASSET * 2;
-        if (!spendCredits(cost)) {
-            setError(`เครดิตไม่เพียงพอ! ต้องการ ${cost} เครดิต แต่คุณมี ${Math.floor(credits)} เครดิต`);
-            return;
-        }
-    
-        playSound(audioService.playGenerate);
-        setIsLoadingAssets(true);
-        setError(null);
-    
-        try {
-            const [player, hoop] = await Promise.all([
-                geminiService.generatePixelArt("a cool pixel art shark wearing basketball shorts and sneakers, side view, character for a game"),
-                geminiService.generatePixelArt("a pixel art basketball hoop with a backboard, side view")
-            ]);
-            setGameAssets({ player, obstacle: hoop });
-            setActiveGame('basketball');
-        } catch (err) {
-            playSound(audioService.playError);
-            addCredits(cost); // Refund credits on failure
-            const errorMessage = err instanceof Error ? err.message : 'เกิดข้อผิดพลาดในการสร้างทรัพย์สินเกม';
-            setError(errorMessage);
-        } finally {
-            setIsLoadingAssets(false);
-        }
-    }, [isOnline, spendCredits, addCredits, credits, playSound]);
-
     const handleLaunchGame = (game: ActiveGame) => {
         playSound(audioService.playClick);
         setActiveGame(game);
@@ -138,9 +103,6 @@ export const MinigameHubPage: React.FC<MinigameHubPageProps> = ({ onClose, playS
 
     if (activeGame === 'pixelDodge' && gameAssets.player && gameAssets.obstacle) {
         return <Minigame playerImageUrl={gameAssets.player} obstacleImageUrl={gameAssets.obstacle} onClose={() => setActiveGame('hub')} playSound={playSound} />;
-    }
-    if (activeGame === 'basketball' && gameAssets.player && gameAssets.obstacle) {
-        return <BasketballGame playerImageUrl={gameAssets.player} hoopImageUrl={gameAssets.obstacle} onClose={() => setActiveGame('hub')} playSound={playSound} addCredits={addCredits} />;
     }
     if (activeGame === 'ticTacToe') {
         return <TicTacToePage onClose={() => setActiveGame('hub')} playSound={playSound} isOnline={isOnline} />;
@@ -210,13 +172,6 @@ export const MinigameHubPage: React.FC<MinigameHubPageProps> = ({ onClose, playS
                                 title="AI พยากรณ์"
                                 description="ถาม AI เกี่ยวกับความลับของจักรวาล แล้วรับคำทำนายที่คาดไม่ถึง"
                                 onClick={() => handleLaunchGame('aiOracle')}
-                                disabled={!isOnline}
-                            />
-                             <GameButton
-                                icon={<BasketballIcon className="w-16 h-16" />}
-                                title="ชาร์ค ชู้ตเตอร์"
-                                description="เกมชู้ตบาสเกตบอลสุดท้าทาย! ชู้ตให้ลงห่วงที่กำลังเคลื่อนที่เพื่อทำคะแนนและรับเครดิต! (ต้องใช้ 20 เครดิต)"
-                                onClick={handleLaunchBasketball}
                                 disabled={!isOnline}
                             />
                             <GameButton
