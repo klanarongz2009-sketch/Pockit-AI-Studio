@@ -5,10 +5,9 @@ interface ModalProps {
   onClose: () => void;
   title: string;
   children: React.ReactNode;
-  size?: 'default' | 'large';
 }
 
-export const Modal: React.FC<ModalProps> = ({ isOpen, onClose, title, children, size = 'default' }) => {
+export const Modal: React.FC<ModalProps> = ({ isOpen, onClose, title, children }) => {
   const modalRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -86,23 +85,18 @@ export const Modal: React.FC<ModalProps> = ({ isOpen, onClose, title, children, 
     return null;
   }
 
-  const sizeClasses = {
-      default: 'sm:max-w-2xl max-h-[90vh] sm:max-h-[80vh]',
-      large: 'sm:max-w-4xl lg:max-w-6xl max-h-[95vh]',
-  }[size];
-
   return (
     <div
       role="dialog"
       aria-modal="true"
       aria-labelledby="modal-title"
-      className="fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-2 sm:p-4 font-press-start"
+      className="fixed inset-0 bg-black/80 z-50 flex items-center justify-center font-press-start"
       onClick={onClose}
     >
       <div
         ref={modalRef}
         tabIndex={-1}
-        className={`bg-black w-full flex flex-col border-4 border-brand-light shadow-pixel outline-none ${sizeClasses}`}
+        className={`bg-black w-full h-full flex flex-col border-4 border-brand-light outline-none`}
         onClick={(e) => e.stopPropagation()} // Prevent closing when clicking inside the modal
       >
         <header className="flex items-center justify-between p-3 border-b-4 border-brand-light bg-black/20 flex-shrink-0">

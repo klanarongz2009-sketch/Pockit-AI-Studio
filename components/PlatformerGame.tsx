@@ -144,16 +144,7 @@ export const PlatformerGame: React.FC<PlatformerGameProps> = ({ onClose, playSou
         ctx.font = '16px "Press Start 2P"';
         ctx.textAlign = 'left';
         ctx.fillText(`LIVES: ${'♥'.repeat(lives)}`, 10, 25);
-
-        if (gameState !== 'playing') {
-            ctx.fillStyle = 'rgba(0, 0, 0, 0.5)';
-            ctx.fillRect(0, 0, GAME_WIDTH, GAME_HEIGHT);
-            ctx.fillStyle = gameState === 'won' ? '#00ff00' : '#ff00ff';
-            ctx.font = '48px "Press Start 2P"';
-            ctx.textAlign = 'center';
-            ctx.fillText(gameState === 'won' ? 'YOU WIN!' : 'GAME OVER', GAME_WIDTH / 2, GAME_HEIGHT / 2);
-        }
-    }, [cameraX, lives, gameState]);
+    }, [cameraX, lives]);
 
     const gameLoop = useCallback(() => {
         if (gameState !== 'playing') {
@@ -268,25 +259,35 @@ export const PlatformerGame: React.FC<PlatformerGameProps> = ({ onClose, playSou
 
     return (
         <PageWrapper>
-             <div className="w-full max-w-2xl mx-auto flex flex-col items-center">
-                 <header className="w-full flex items-center justify-between mb-4">
+             <div className="w-full h-full flex flex-col bg-black">
+                 <header className="w-full flex items-center justify-between p-2 flex-shrink-0 z-10">
                      <button onClick={onClose} className="text-sm underline hover:text-brand-yellow transition-colors pr-4 font-sans">
                         &#x2190; กลับ
                     </button>
                     <h2 className="text-xl text-brand-yellow font-press-start">Platformer</h2>
                 </header>
-                 <div className="relative w-full">
+                 <main className="relative flex-grow w-full h-full">
                     <canvas
                         ref={canvasRef}
                         width={GAME_WIDTH}
                         height={GAME_HEIGHT}
-                        className="border-4 border-brand-light w-full max-w-full bg-black"
-                        style={{ aspectRatio: `${GAME_WIDTH}/${GAME_HEIGHT}`}}
+                        className="w-full h-full object-contain"
+                        style={{ imageRendering: 'pixelated' }}
                         aria-label="Platformer game canvas"
                     />
+                    {gameState !== 'playing' && (
+                         <div className="absolute inset-0 bg-black/70 flex flex-col items-center justify-center gap-6 z-20">
+                            <h2 className={`font-press-start text-5xl text-center ${gameState === 'won' ? 'text-brand-lime' : 'text-brand-magenta'}`}>
+                                {gameState === 'won' ? 'YOU WIN!' : 'GAME OVER'}
+                            </h2>
+                            <button onClick={handleRestart} className="w-full max-w-xs p-3 bg-brand-cyan text-black border-4 border-brand-light shadow-pixel transition-all hover:bg-brand-yellow active:shadow-pixel-active active:translate-y-[2px] active:translate-x-[2px] font-press-start">
+                                เล่นอีกครั้ง
+                            </button>
+                        </div>
+                    )}
                     {isTouchDevice && (
                         <>
-                            <div className="absolute bottom-5 left-5 grid grid-cols-3 grid-rows-3 w-36 h-36 select-none">
+                            <div className="absolute bottom-5 left-5 grid grid-cols-3 grid-rows-3 w-36 h-36 select-none z-10">
                                 <div className="col-start-2 row-start-1">
                                     <button
                                         onTouchStart={() => handleButtonPress('JUMP')}
@@ -338,7 +339,7 @@ export const PlatformerGame: React.FC<PlatformerGameProps> = ({ onClose, playSou
                                 </div>
                             </div>
 
-                            <div className="absolute bottom-5 right-5">
+                            <div className="absolute bottom-5 right-5 z-10">
                                 <button
                                     onTouchStart={() => handleButtonPress('JUMP')}
                                     onMouseDown={(e) => { e.preventDefault(); handleButtonPress('JUMP'); }}
@@ -351,14 +352,7 @@ export const PlatformerGame: React.FC<PlatformerGameProps> = ({ onClose, playSou
                             </div>
                         </>
                     )}
-                </div>
-                 <div className="w-full flex justify-center gap-4 mt-4">
-                    {gameState !== 'playing' && (
-                         <button onClick={handleRestart} className="w-full max-w-xs p-3 bg-brand-cyan text-black border-4 border-brand-light shadow-pixel transition-all hover:bg-brand-yellow active:shadow-pixel-active active:translate-y-[2px] active:translate-x-[2px] font-press-start">
-                             เล่นอีกครั้ง
-                         </button>
-                    )}
-                 </div>
+                </main>
              </div>
         </PageWrapper>
     );

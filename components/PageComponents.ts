@@ -2,7 +2,7 @@ import React from 'react';
 
 export const PageWrapper: React.FC<{ children: React.ReactNode; className?: string }> = ({ children, className = '' }) => (
     React.createElement('div', {
-        className: `min-h-screen bg-black font-press-start text-brand-light p-4 sm:p-8 flex flex-col items-center ${className}`
+        className: `h-screen bg-black font-press-start text-brand-light flex flex-col items-center ${className}`
     }, children)
 );
 

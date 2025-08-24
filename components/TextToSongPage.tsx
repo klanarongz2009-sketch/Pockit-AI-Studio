@@ -79,6 +79,13 @@ export const TextToSongPage: React.FC<TextToSongPageProps> = ({
     const [currentlyPlayingId, setCurrentlyPlayingId] = useState<string | null>(null);
     const { credits, spendCredits } = useCredits();
     const cancellationRequested = useRef(false);
+    const [notificationPermission, setNotificationPermission] = useState<'default' | 'granted' | 'denied'>('default');
+
+    useEffect(() => {
+        if ('Notification' in window) {
+            setNotificationPermission(Notification.permission);
+        }
+    }, []);
     
     // Load history from localStorage on mount
     useEffect(() => {
@@ -122,6 +129,17 @@ export const TextToSongPage: React.FC<TextToSongPageProps> = ({
         setError("การสร้างเพลงถูกยกเลิกโดยผู้ใช้");
     }, [playSound]);
 
+    const handleRequestNotificationPermission = useCallback(async () => {
+        if (!('Notification' in window)) return;
+        playSound(audioService.playClick);
+        try {
+            const permission = await Notification.requestPermission();
+            setNotificationPermission(permission);
+        } catch (e) {
+            console.error("Error requesting notification permission", e);
+        }
+    }, [playSound]);
+
     const handleGenerateSong = useCallback(async () => {
         if (!inputText.trim() || isLoading || !isOnline) return;
 
@@ -131,10 +149,6 @@ export const TextToSongPage: React.FC<TextToSongPageProps> = ({
                 playSound(audioService.playError);
                 return;
             }
-        }
-        
-        if ('Notification' in window && Notification.permission !== "granted" && Notification.permission !== "denied") {
-            await Notification.requestPermission();
         }
 
         cancellationRequested.current = false;
@@ -269,6 +283,19 @@ export const TextToSongPage: React.FC<TextToSongPageProps> = ({
                 <p className="text-sm text-center text-brand-light/80">
                     พิมพ์เรื่องราว, บทกวี, หรือเนื้อเพลงของคุณ แล้วให้ AI แปลงตัวอักษรให้กลายเป็นเพลง 8-bit สุดสร้างสรรค์!
                 </p>
+
+                {isOnline && notificationPermission === 'default' && (
+                    <div className="w-full p-3 bg-black/20 border-2 border-brand-cyan/50 flex flex-col sm:flex-row items-center justify-between gap-3 text-center">
+                        <p className="text-xs text-brand-light/90">เปิดการแจ้งเตือนเพื่อรับการแจ้งเตือนเมื่อเพลงของคุณพร้อม</p>
+                        <button
+                            onClick={handleRequestNotificationPermission}
+                            onMouseEnter={() => playSound(audioService.playHover)}
+                            className="px-3 py-2 bg-brand-cyan text-black border-2 border-brand-light shadow-sm text-xs font-press-start hover:bg-brand-yellow"
+                        >
+                            อนุญาตการแจ้งเตือน
+                        </button>
+                    </div>
+                )}
 
                  <div className="w-full flex flex-col gap-4 bg-black/40 p-4 border-4 border-brand-light shadow-pixel">
                     <textarea
