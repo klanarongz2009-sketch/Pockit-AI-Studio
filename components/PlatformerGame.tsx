@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { PageWrapper } from './PageComponents';
 import * as audioService from '../services/audioService';
+import { useCredits, CREDIT_COSTS } from '../contexts/CreditContext';
 
 interface PlatformerGameProps {
     onClose: () => void;
@@ -55,6 +56,8 @@ export const PlatformerGame: React.FC<PlatformerGameProps> = ({ onClose, playSou
     const [lives, setLives] = useState(INITIAL_LIVES);
     const [cameraX, setCameraX] = useState(0);
     const [isTouchDevice, setIsTouchDevice] = useState(false);
+    const { credits, spendCredits } = useCredits();
+    const CONTINUE_COST = CREDIT_COSTS.PLATFORMER_CONTINUE;
 
     const playerPos = useRef({ x: 50, y: 400 });
     const playerVel = useRef({ x: 0, y: 0 });
@@ -70,11 +73,10 @@ export const PlatformerGame: React.FC<PlatformerGameProps> = ({ onClose, playSou
         setCameraX(Math.max(0, Math.min(LEVEL_WIDTH - GAME_WIDTH, targetCameraX)));
 
         const newLives = lives - 1;
+        setLives(newLives);
         if (newLives <= 0) {
             playSound(audioService.playGameOver);
             setGameState('lost');
-        } else {
-            setLives(newLives);
         }
     }, [lives, playSound]);
 
@@ -143,7 +145,7 @@ export const PlatformerGame: React.FC<PlatformerGameProps> = ({ onClose, playSou
         ctx.fillStyle = '#ffff00';
         ctx.font = '16px "Press Start 2P"';
         ctx.textAlign = 'left';
-        ctx.fillText(`LIVES: ${'♥'.repeat(lives)}`, 10, 25);
+        ctx.fillText(`LIVES: ${'♥'.repeat(Math.max(0, lives))}`, 10, 25);
     }, [cameraX, lives]);
 
     const gameLoop = useCallback(() => {
@@ -246,6 +248,19 @@ export const PlatformerGame: React.FC<PlatformerGameProps> = ({ onClose, playSou
         setCameraX(0);
     };
 
+    const handleContinue = () => {
+        if (spendCredits(CONTINUE_COST)) {
+            playSound(audioService.playGenerate);
+            setLives(1);
+            setGameState('playing');
+            playerPos.current = { ...lastSafePos.current };
+            playerVel.current = { x: 0, y: 0 };
+            onGround.current = false;
+        } else {
+            playSound(audioService.playError);
+        }
+    };
+
     const handleButtonPress = (action: 'LEFT' | 'RIGHT' | 'JUMP') => {
         if (action === 'LEFT') touchControlState.current.left = true;
         if (action === 'RIGHT') touchControlState.current.right = true;
@@ -280,8 +295,17 @@ export const PlatformerGame: React.FC<PlatformerGameProps> = ({ onClose, playSou
                             <h2 className={`font-press-start text-5xl text-center ${gameState === 'won' ? 'text-brand-lime' : 'text-brand-magenta'}`}>
                                 {gameState === 'won' ? 'YOU WIN!' : 'GAME OVER'}
                             </h2>
+                            {gameState === 'lost' && (
+                                <button
+                                    onClick={handleContinue}
+                                    disabled={credits < CONTINUE_COST}
+                                    className="w-full max-w-xs p-3 bg-brand-lime text-black border-4 border-brand-light shadow-pixel transition-all hover:bg-brand-yellow active:shadow-pixel-active active:translate-y-[2px] active:translate-x-[2px] font-press-start disabled:bg-gray-500 disabled:cursor-not-allowed"
+                                >
+                                    เล่นต่อ ({CONTINUE_COST} เครดิต)
+                                </button>
+                            )}
                             <button onClick={handleRestart} className="w-full max-w-xs p-3 bg-brand-cyan text-black border-4 border-brand-light shadow-pixel transition-all hover:bg-brand-yellow active:shadow-pixel-active active:translate-y-[2px] active:translate-x-[2px] font-press-start">
-                                เล่นอีกครั้ง
+                                {gameState === 'lost' ? 'ลองอีกครั้ง' : 'เล่นอีกครั้ง'}
                             </button>
                         </div>
                     )}
