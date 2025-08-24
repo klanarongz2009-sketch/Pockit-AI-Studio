@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useCallback } from 'react';
 import type { Song } from '../services/geminiService';
 import { generateSongFromText } from '../services/geminiService';
@@ -286,7 +287,7 @@ export const TextToSongPage: React.FC<TextToSongPageProps> = ({
                                 />
                                 <div className="font-sans">
                                     <span className="text-sm">V2.0 Beta - <span className="text-brand-yellow">10 เครดิต</span></span>
-                                    <p className="text-xs text-brand-light/70">เพลงยาวพิเศษ, 10 แทร็ก, อาจใช้เวลาสร้างนาน</p>
+                                    <p className="text-xs text-brand-light/70">สร้างเร็วพิเศษ, ความยาวประมาณ 3 นาที, 6 แทร็ก</p>
                                 </div>
                                 <div className="absolute top-0 right-0 bg-brand-magenta text-white text-[8px] font-press-start px-1 border border-black" aria-hidden="true">ทดลอง</div>
                             </label>
