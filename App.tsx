@@ -25,6 +25,8 @@ import { VideoEditorPage } from './components/VideoEditorPage';
 import { AnalyzeIcon } from './components/icons/AnalyzeIcon';
 import { AnalyzeMediaPage } from './components/AnalyzeMediaPage';
 import { BookmarkIcon } from './components/icons/BookmarkIcon';
+import { SearchMusicIcon } from './components/icons/SearchMusicIcon';
+import { SongSearchPage } from './components/SongSearchPage';
 
 
 type CurrentPage = 'main' | 'imageGenerator' | 'aiNarrator' | 'soundLibrary' | 'tts' | 'about' | 'minigameHub' | 'textToSong' | 'videoEditor' | 'analyzeMedia';
@@ -285,7 +287,7 @@ export const App: React.FC = () => {
                     </section>
                 )}
 
-                 <div className="w-full grid grid-cols-2 gap-2 text-brand-light text-sm">
+                 <div className="w-full grid grid-cols-2 sm:grid-cols-3 gap-2 text-brand-light text-sm">
                     {features.map(feature => (
                         <FeatureButton
                             key={feature.pageKey}

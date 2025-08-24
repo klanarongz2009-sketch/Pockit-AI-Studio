@@ -71,7 +71,7 @@ export const playPlayerHit = () => playSoundInternal('square', 200, 50, 0.2, 0.4
 export const playGameOver = () => playSoundInternal('sawtooth', 300, 50, 0.8, 0.3);
 export const playTrash = () => playSoundInternal('square', 200, 100, 0.15, 0.2);
 export const playCreditAdd = () => playSoundInternal('sine', 1046.50, 1567.98, 0.2, 0.3);
-export const playCreditSpend = () => playSoundInternal('square', 300, 200, 0.1, 0.15);
+export const playCreditSpend = () => playSoundInternal('square', 200, 100, 0.15, 0.2);
 
 // Intro Sounds
 export const playIntro1 = () => playSoundInternal('sine', 440, 660, 0.3, 0.3);
@@ -85,11 +85,62 @@ export const playWallHit = () => playSoundInternal('sine', 200, 200, 0.05, 0.1);
 export const playMiss = () => playSoundInternal('sawtooth', 200, 100, 0.3, 0.3);
 
 
-export const startBackgroundMusic = async () => { /* Logic to create and play background music */ };
+export const startBackgroundMusic = async () => { 
+    if (!audioContext || musicSource) return;
+    try {
+        const lengthSeconds = 16;
+        const sampleRate = audioContext.sampleRate;
+        const buffer = audioContext.createBuffer(1, sampleRate * lengthSeconds, sampleRate);
+        const data = buffer.getChannelData(0);
+
+        const bpm = 130;
+        const beat = 60 / bpm;
+        const notes = [
+            { f: NOTE_FREQUENCIES['C3'], d: beat / 2 }, { f: NOTE_FREQUENCIES['E3'], d: beat / 2 },
+            { f: NOTE_FREQUENCIES['G3'], d: beat / 2 }, { f: NOTE_FREQUENCIES['C4'], d: beat / 2 },
+            { f: NOTE_FREQUENCIES['G3'], d: beat }, { f: NOTE_FREQUENCIES['E3'], d: beat },
+            { f: NOTE_FREQUENCIES['D3'], d: beat / 2 }, { f: NOTE_FREQUENCIES['F3'], d: beat / 2 },
+            { f: NOTE_FREQUENCIES['A3'], d: beat / 2 }, { f: NOTE_FREQUENCIES['D4'], d: beat / 2 },
+            { f: NOTE_FREQUENCIES['A3'], d: beat }, { f: NOTE_FREQUENCIES['F3'], d: beat },
+        ];
+
+        let currentTime = 0;
+        for (let i = 0; i < 4; i++) { // Repeat pattern to fill buffer
+            for (const note of notes) {
+                const startSample = Math.floor(currentTime * sampleRate);
+                const endSample = Math.floor((currentTime + note.d) * sampleRate);
+                for (let j = startSample; j < endSample; j++) {
+                    if (j >= data.length) break;
+                    const t = (j - startSample) / sampleRate;
+                    // Square wave simulation with quick decay
+                    const wave = Math.sin(2 * Math.PI * note.f * t) > 0 ? 0.2 : -0.2;
+                    const decay = Math.exp(-t * 5);
+                    data[j] = wave * decay;
+                }
+                currentTime += note.d;
+            }
+        }
+        
+        musicSource = audioContext.createBufferSource();
+        musicSource.buffer = buffer;
+        musicSource.loop = true;
+
+        musicGain = audioContext.createGain();
+        musicGain.gain.setValueAtTime(0, audioContext.currentTime);
+        musicGain.gain.setTargetAtTime(desiredMusicVolume, audioContext.currentTime, 0.5);
+
+        musicSource.connect(musicGain);
+        musicGain.connect(audioContext.destination);
+        musicSource.start(0);
+
+    } catch (e) {
+        console.error("Could not start background music:", e);
+    }
+};
 export const setMusicVolume = (volume: number) => {
     desiredMusicVolume = volume;
-    if (musicGain) {
-        musicGain.gain.setTargetAtTime(volume, audioContext?.currentTime ?? 0, 0.1);
+    if (musicGain && audioContext) {
+        musicGain.gain.setTargetAtTime(volume, audioContext.currentTime, 0.1);
     }
 };
 
@@ -448,6 +499,31 @@ export const applyVoiceEffect = async (file: File, effect: string, params: Effec
             
             const distortion = offlineContext.createWaveShaper();
             distortion.curve = createDistortionCurve(150); // More distortion
+            lastNode.connect(distortion);
+            lastNode = distortion;
+            break;
+        }
+        case 'old-computer': {
+            // Hum
+            const hum = offlineContext.createOscillator();
+            hum.type = 'sine';
+            hum.frequency.value = params.humFrequency ?? 60;
+            const humGain = offlineContext.createGain();
+            humGain.gain.value = 0.05; // very low volume
+            hum.connect(humGain);
+            humGain.connect(masterGain);
+            hum.start(0);
+            
+            // Main signal path
+            const filter = offlineContext.createBiquadFilter();
+            filter.type = 'bandpass';
+            filter.frequency.value = 2000;
+            filter.Q.value = 8;
+            lastNode.connect(filter);
+            lastNode = filter;
+            
+            const distortion = offlineContext.createWaveShaper();
+            distortion.curve = createDistortionCurve(50);
             lastNode.connect(distortion);
             lastNode = distortion;
             break;

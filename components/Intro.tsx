@@ -7,13 +7,30 @@ interface IntroProps {
   onComplete: () => void;
 }
 
-const introSteps = [
-  { text: 'ยินดีต้อนรับสู่', sound: audioService.playIntro1, duration: 2000 },
-  { text: 'Ai Studio แบบพกพา', sound: audioService.playIntro2, duration: 2000 },
-  { text: 'ขับเคลื่อนโดย Google AI', sound: audioService.playIntro3, icon: true, duration: 2500 },
+const introSequences = [
+  // Sequence 1: Original
+  [
+    { text: 'ยินดีต้อนรับสู่', sound: audioService.playIntro1, duration: 2000 },
+    { text: 'Ai Studio แบบพกพา', sound: audioService.playIntro2, duration: 2000 },
+    { text: 'ขับเคลื่อนโดย Google AI', sound: audioService.playIntro3, icon: true, duration: 2500 },
+  ],
+  // Sequence 2: Creative focus
+  [
+    { text: 'ปลดปล่อยจินตนาการ', sound: audioService.playScore, duration: 2000 },
+    { text: 'สร้างสรรค์ผลงานของคุณ', sound: audioService.playSuccess, duration: 2000 },
+    { text: 'ด้วยพลังแห่ง AI', sound: audioService.playGenerate, icon: true, duration: 2500 },
+  ],
+  // Sequence 3: Quick and punchy
+  [
+    { text: 'คิด.', sound: audioService.playClick, duration: 1500 },
+    { text: 'สร้าง.', sound: audioService.playHover, duration: 1500 },
+    { text: 'เล่น.', sound: audioService.playSelection, icon: true, duration: 2000 },
+  ]
 ];
 
+
 export const Intro: React.FC<IntroProps> = ({ onComplete }) => {
+  const [introSteps] = useState(() => introSequences[Math.floor(Math.random() * introSequences.length)]);
   const [step, setStep] = useState(0);
   const [visible, setVisible] = useState(false);
 
@@ -43,7 +60,7 @@ export const Intro: React.FC<IntroProps> = ({ onComplete }) => {
       clearTimeout(animationTimeout);
       clearTimeout(stepTimeout);
     };
-  }, [step, onComplete]);
+  }, [step, onComplete, introSteps]);
 
   const currentStep = introSteps[step];
 

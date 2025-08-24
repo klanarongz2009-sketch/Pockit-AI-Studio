@@ -1,4 +1,5 @@
 
+
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import * as audioService from '../services/audioService';
 import { PageHeader, PageWrapper } from './PageComponents';
@@ -25,6 +26,7 @@ type VoiceEffect =
     | 'old-radio'
     | 'clarity-adjust'
     | '8-bit-classic'
+    | 'old-computer'
     | 'telephone'
     | 'underwater'
     | 'bass-boost'
@@ -71,6 +73,14 @@ const voiceSections: VoiceSection[] = [
         effect: 'old-radio', 
         description: 'จำลองเสียงจากวิทยุ AM แบบโบราณ ทำให้เสียงแตกพร่าและมีสัญญาณรบกวน',
         controls: [{ type: 'slider', param: 'radioFrequency', label: 'ปรับคลื่น', min: 500, max: 4000, step: 50, defaultValue: 1500 }]
+      },
+       { 
+        label: 'คอมพิวเตอร์เก่า', 
+        effect: 'old-computer', 
+        description: 'จำลองเสียงจากลำโพงคอมพิวเตอร์รุ่นเก่า พร้อมเสียงฮัม',
+        controls: [
+          { type: 'slider', param: 'humFrequency', label: 'ความถี่ฮัม', min: 40, max: 120, step: 1, defaultValue: 60 }
+        ]
       },
       { 
         label: 'โทรศัพท์', 
@@ -423,6 +433,7 @@ export const VoiceChangerPage: React.FC<VoiceChangerPageProps> = ({ playSound, o
             case 'reverbRoomSize': return `ขนาด: ${value}`;
             case 'reverbWet': return `ความก้อง: ${(value * 100).toFixed(0)}%`;
             case 'lofiVintage': return `ความเก่า: ${value}`;
+            case 'humFrequency': return `ความถี่ฮัม: ${value} Hz`;
             default: return String(value);
         }
     };

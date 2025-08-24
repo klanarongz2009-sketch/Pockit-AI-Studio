@@ -13,6 +13,7 @@ export const CREDIT_COSTS = {
   SONG_V1: 0,
   // Song V1.5 is dynamic: 1 per note
   SONG_V2_BETA: 10,
+  SONG_SEARCH: 15,
   VIDEO_SUBTITLES: 20,
   VOICE_EFFECT_AI: 10,
   SOUND_EFFECT_IDEAS: 5,

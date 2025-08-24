@@ -24,6 +24,8 @@ import { WordMatchIcon } from './icons/WordMatchIcon';
 import { WordMatchPage } from './WordMatchPage';
 import { BugIcon } from './icons/BugIcon';
 import { AiBugSquasherPage } from './AiBugSquasherPage';
+import { SearchMusicIcon } from './icons/SearchMusicIcon';
+import { SongSearchPage } from './SongSearchPage';
 
 interface MinigameHubPageProps {
     onClose: () => void;
@@ -31,10 +33,10 @@ interface MinigameHubPageProps {
     isOnline: boolean;
 }
 
-type ActiveGame = 'hub' | 'pixelDodge' | 'ticTacToe' | 'snake' | 'platformer' | 'brickBreaker' | 'calculator' | 'aiOracle' | 'wordMatch' | 'aiBugSquasher';
+type ActiveGame = 'hub' | 'pixelDodge' | 'ticTacToe' | 'snake' | 'platformer' | 'brickBreaker' | 'calculator' | 'aiOracle' | 'wordMatch' | 'aiBugSquasher' | 'songSearch';
 
-const GameButton: React.FC<{ icon: React.ReactNode; title: string; description: string; onClick?: () => void; disabled?: boolean; comingSoon?: boolean }> = ({ icon, title, description, onClick, disabled, comingSoon }) => (
-    <div className="relative">
+const GameButton: React.FC<{ icon: React.ReactNode; title: string; description: string; onClick?: () => void; disabled?: boolean; comingSoon?: boolean; beta?: boolean; }> = ({ icon, title, description, onClick, disabled, comingSoon, beta }) => (
+    <div className="relative group">
         <button
             onClick={onClick}
             disabled={disabled || comingSoon}
@@ -50,6 +52,9 @@ const GameButton: React.FC<{ icon: React.ReactNode; title: string; description: 
              <div className="absolute inset-0 bg-black/70 flex flex-col items-center justify-center p-1" aria-hidden="true">
                 <p className="text-xs font-press-start text-brand-yellow drop-shadow-[2px_2px_0_#000]">เร็วๆ นี้</p>
             </div>
+        )}
+         {beta && (
+            <div className="absolute top-2 right-2 bg-brand-magenta text-white text-[8px] font-press-start px-1 border border-black" aria-hidden="true">ทดลอง</div>
         )}
     </div>
 );
@@ -127,6 +132,9 @@ export const MinigameHubPage: React.FC<MinigameHubPageProps> = ({ onClose, playS
     if (activeGame === 'aiBugSquasher') {
         return <AiBugSquasherPage onClose={() => setActiveGame('hub')} playSound={playSound} isOnline={isOnline} />;
     }
+    if (activeGame === 'songSearch') {
+        return <SongSearchPage onClose={() => setActiveGame('hub')} playSound={playSound} isOnline={isOnline} />;
+    }
 
 
     const pixelDodgeCost = CREDIT_COSTS.MINIGAME_ASSET * 2;
@@ -145,6 +153,14 @@ export const MinigameHubPage: React.FC<MinigameHubPageProps> = ({ onClose, playS
                             </div>
                         )}
                         <div className="space-y-4">
+                             <GameButton
+                                icon={<SearchMusicIcon className="w-16 h-16" />}
+                                title="ค้นหาเพลง/เสียง"
+                                description="อัปโหลดเสียง แล้วให้ AI ช่วยค้นหาว่าเป็นเพลงอะไร"
+                                onClick={() => handleLaunchGame('songSearch')}
+                                disabled={!isOnline}
+                                beta={true}
+                            />
                              <GameButton
                                 icon={<BugIcon className="w-16 h-16" />}
                                 title="AI แก้ไขคำผิด"

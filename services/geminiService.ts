@@ -1,4 +1,5 @@
 
+
 import { GoogleGenAI, Type, Chat } from "@google/genai";
 
 const API_KEY = process.env.API_KEY;
@@ -74,9 +75,9 @@ const throttleImageGeneration = async () => {
 
 // --- Throttling for Video Generation ---
 let lastVideoGenerationTime = 0;
-// Video models have very strict rate limits, often 1-2 RPM.
-// 65 seconds allows for <1 RPM, a safe value.
-const MIN_VIDEO_GENERATION_INTERVAL_MS = 65000;
+// Video models have very strict rate limits, often less than 1 RPM on free tiers.
+// We'll set a conservative delay to avoid hitting the quota.
+const MIN_VIDEO_GENERATION_INTERVAL_MS = 70000; // Increased to 70 seconds
 
 /**
  * Ensures that video generation requests are spaced out to avoid hitting API rate limits.
@@ -141,6 +142,15 @@ export interface WordMatch {
     match: string;
 }
 
+export interface SearchResult {
+    identificationType: 'direct' | 'similarity';
+    overview: string;
+    sources: {
+        uri: string;
+        title: string;
+    }[];
+}
+
 export const getTicTacToeMove = async (board: string[][], aiPlayer: 'X' | 'O'): Promise<{row: number, col: number}> => {
     if (!ai) {
         throw new Error("ไม่ได้กำหนดค่า API_KEY ไม่สามารถเรียกใช้ Gemini API ได้");
@@ -197,7 +207,7 @@ export const generateSongFromText = async (text: string, modelVersion: 'v1' | 'v
         description = "An array of 6 tracks for a long-form song.";
     } else { // v1 - default
         contents = `Analyze the mood, rhythm, structure, and emotional arc of the following text. Compose a moderately complex, looping, 8-bit chiptune song with 3 tracks (a lead melody, a harmony/counter-melody, and a simple bassline). The song should reflect the text's content. Text: "${text}"`;
-        systemInstruction = "You are a chiptune music composer. Create an 8-bit song based on the provided text. The song should have three tracks. Notes can be 'C2' through 'B7' or 'Rest'. Durations can be 'whole', 'half', 'quarter', 'eighth', or 'sixteenth'. Ensure the song has a clear structure and is at least 16 bars long.";
+        systemInstruction = "You are a chiptune music composer. Create an 8-bit song based on the provided text. The song should have three tracks. Notes can be 'C2' through 'B7' or 'Rest'. Durations can be 'whole', 'half', 'quarter', 'eighth', 'sixteenth'. Ensure the song has a clear structure and is at least 16 bars long.";
         description = "An array of 3 tracks for the song.";
     }
 
@@ -981,7 +991,7 @@ export const analyzeAudioFromMedia = async (base64Data: string, mimeType: string
     };
 
     const textPart = {
-        text: "Analyze the audio track of this video. Describe all sounds you hear, including any spoken dialogue (and transcribe it if present), musical elements (like genre, mood, and instrumentation), and ambient sound effects. Provide a comprehensive summary of the audio landscape.",
+        text: "Analyze the audio track of this media file. Describe all sounds you hear, including any spoken dialogue (and transcribe it if present), musical elements (like genre, mood, and instrumentation), and ambient sound effects. Provide a comprehensive summary of the audio landscape.",
     };
 
     try {
@@ -989,7 +999,7 @@ export const analyzeAudioFromMedia = async (base64Data: string, mimeType: string
             model: 'gemini-2.5-flash',
             contents: { parts: [mediaPart, textPart] },
             config: {
-                systemInstruction: "You are an expert audio analyst. Your task is to listen to the audio from a video file and provide a detailed breakdown of its components in clear, descriptive Thai.",
+                systemInstruction: "You are an expert audio analyst. Your task is to listen to the audio from a media file (which could be audio or video) and provide a detailed breakdown of its components in clear, descriptive Thai.",
             },
         });
         return response.text;
@@ -1016,5 +1026,105 @@ export const correctText = async (text: string): Promise<string> => {
     } catch (error) {
         console.error("Error correcting text:", error);
         throw new Error(`ไม่สามารถแก้ไขข้อความได้: ${parseApiError(error)}`);
+    }
+};
+
+export const identifyAndSearchMusic = async (base64Data: string, mimeType: string): Promise<SearchResult> => {
+    if (!ai) {
+        throw new Error("ไม่ได้กำหนดค่า API_KEY ไม่สามารถเรียกใช้ Gemini API ได้");
+    }
+
+    const mediaPart = {
+        inlineData: {
+            data: base64Data,
+            mimeType: mimeType,
+        },
+    };
+
+    const textPart = {
+        text: `You are a world-class media analysis expert. Your task is to analyze the provided audio and respond in Thai. Follow this two-part process STRICTLY:
+
+**Part 1: Direct Identification**
+If you can identify the specific media (e.g., song, instrumental piece, broadcast clip, sound effect), your response MUST be a JSON object like this:
+{"identificationType": "direct", "overview": "นี่คือ [ประเภทสื่อ] ชื่อ '[ชื่อ]' โดย [ผู้สร้าง/ศิลปิน/แหล่งที่มา]."}
+Examples:
+- {"identificationType": "direct", "overview": "เพลงนี้คือ 'Clair de Lune' โดย Claude Debussy."}
+- {"identificationType": "direct", "overview": "นี่คือส่วนหนึ่งของรายการข่าวภาคค่ำจากช่อง ABC News."}
+
+**Part 2: Descriptive Analysis (FALLBACK)**
+If you cannot identify the media directly, you MUST provide a detailed descriptive analysis.
+- DO NOT state that you cannot identify it.
+- Describe what you hear: genre, mood, instrumentation, content type (speech, music, sfx), potential context, and any similar artists or works.
+- Your response MUST be a JSON object like this:
+{"identificationType": "similarity", "overview": "[คำอธิบายโดยละเอียดของเสียงที่ได้ยิน]."}
+Example:
+- {"identificationType": "similarity", "overview": "เป็นเพลงบรรเลงเปียโนสไตล์คลาสสิก มีอารมณ์เศร้าและเชื่องช้า คล้ายกับผลงานของ Chopin."}
+- {"identificationType": "similarity", "overview": "เสียงร้องเพลงของผู้หญิงที่ไม่มีดนตรีประกอบ มีสไตล์คล้ายกับศิลปิน Taylor Swift ในยุคแรก."}
+
+**Constraint:** Your final output MUST be only the JSON object. Do not add any other text.`,
+    };
+
+    try {
+        const response = await ai.models.generateContent({
+            model: "gemini-2.5-flash",
+            contents: { parts: [mediaPart, textPart] },
+            config: {
+                systemInstruction: "You are a media identification expert. Your goal is to identify content and return a JSON object plus web sources. Respond in Thai.",
+                tools: [{ googleSearch: {} }],
+            },
+        });
+        
+        let parsedResult: { identificationType: 'direct' | 'similarity'; overview: string };
+        const rawText = response.text.trim();
+        
+        try {
+            // The model may return markdown with a JSON block. Extract it.
+            const jsonRegex = /```(?:json)?\s*([\s\S]*?)\s*```/;
+            const match = rawText.match(jsonRegex);
+
+            let jsonString: string | null = null;
+            if (match && match[1]) {
+                jsonString = match[1];
+            } else {
+                // If no markdown block, try to find a raw JSON object
+                const jsonStart = rawText.indexOf('{');
+                const jsonEnd = rawText.lastIndexOf('}');
+                if (jsonStart !== -1 && jsonEnd > jsonStart) {
+                    jsonString = rawText.substring(jsonStart, jsonEnd + 1);
+                }
+            }
+
+            if (jsonString) {
+                parsedResult = JSON.parse(jsonString);
+            } else {
+                // If no JSON found at all, treat the whole response as the overview.
+                console.warn("Could not find a JSON block in the response. Using raw text as overview.");
+                parsedResult = { identificationType: 'similarity', overview: rawText };
+            }
+        } catch (e) {
+            console.error("Failed to parse JSON from Gemini response. Raw text:", rawText);
+            // If parsing fails, treat the whole text as the overview.
+            parsedResult = { identificationType: 'similarity', overview: rawText };
+        }
+        
+        const groundingChunks = response.candidates?.[0]?.groundingMetadata?.groundingChunks || [];
+        const sources = groundingChunks
+            .map((chunk: any) => chunk?.web)
+            .filter((web: any) => web?.uri && web?.title)
+            .slice(0, 8); 
+
+        if (!parsedResult.overview && sources.length === 0) {
+            throw new Error("AI ไม่สามารถระบุสื่อหรือค้นหาแหล่งข้อมูลใดๆ ได้");
+        }
+
+        return { 
+            identificationType: parsedResult.identificationType || 'similarity',
+            overview: parsedResult.overview, 
+            sources 
+        };
+
+    } catch (error) {
+        console.error("Error identifying music:", error);
+        throw new Error(`ไม่สามารถค้นหาเพลงได้: ${parseApiError(error)}`);
     }
 };

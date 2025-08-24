@@ -35,6 +35,7 @@ export const AnalyzeMediaPage: React.FC<AnalyzeMediaPageProps> = ({ onClose, pla
     const fileInputRef = useRef<HTMLInputElement>(null);
     const isVideo = uploadedFile?.type.startsWith('video/') ?? false;
     const isImage = uploadedFile?.type.startsWith('image/') ?? false;
+    const isAudio = uploadedFile?.type.startsWith('audio/') ?? false;
 
     const resetState = (clearFile: boolean = false) => {
         setIsLoading(false);
@@ -54,8 +55,8 @@ export const AnalyzeMediaPage: React.FC<AnalyzeMediaPageProps> = ({ onClose, pla
         const file = event.target.files?.[0];
         if (!file) return;
 
-        if (!file.type.startsWith('video/') && !file.type.startsWith('image/')) {
-            setError('กรุณาเลือกไฟล์วิดีโอหรือไฟล์รูปภาพ');
+        if (!file.type.startsWith('video/') && !file.type.startsWith('image/') && !file.type.startsWith('audio/')) {
+            setError('กรุณาเลือกไฟล์วิดีโอ, รูปภาพ, หรือไฟล์เสียง');
             return;
         }
         resetState(true);
@@ -159,19 +160,25 @@ export const AnalyzeMediaPage: React.FC<AnalyzeMediaPageProps> = ({ onClose, pla
 
     return (
         <PageWrapper className="justify-start">
-            <input type="file" ref={fileInputRef} onChange={handleFileChange} accept="video/*,image/*" className="hidden" aria-hidden="true" />
+            <input type="file" ref={fileInputRef} onChange={handleFileChange} accept="video/*,image/*,audio/*" className="hidden" aria-hidden="true" />
             <PageHeader title="AI Media Analyzer" onBack={onClose} />
             <main id="main-content" className="w-full max-w-2xl flex-grow flex flex-col items-center gap-4 font-sans">
                 <div className="w-full h-auto aspect-video bg-black/50 border-4 border-brand-light flex items-center justify-center shadow-pixel p-2">
                     {!uploadedFile ? (
                         <div className="text-center space-y-4">
-                            <p className="text-sm text-brand-light/80">อัปโหลดรูปภาพหรือวิดีโอเพื่อเริ่มต้น</p>
+                            <p className="text-sm text-brand-light/80">อัปโหลดรูปภาพ, วิดีโอ, หรือเสียงเพื่อเริ่มต้น</p>
                             <button onClick={handleUploadClick} className="flex items-center justify-center gap-3 p-4 bg-brand-magenta text-white border-4 border-brand-light shadow-pixel text-base transition-all hover:bg-brand-yellow hover:text-black active:shadow-pixel-active active:translate-y-[2px] active:translate-x-[2px]">
                                 <UploadIcon className="w-6 h-6" /> อัปโหลดไฟล์
                             </button>
                         </div>
                     ) : isVideo ? (
                         <video src={previewUrl!} controls loop className="w-full h-full object-contain" />
+                    ) : isAudio ? (
+                        <div className="text-center space-y-4 flex flex-col items-center justify-center w-full">
+                            <MusicNoteIcon className="w-24 h-24 text-brand-cyan" />
+                            <p className="font-press-start text-sm truncate max-w-full" title={uploadedFile.name}>{uploadedFile.name}</p>
+                            <audio src={previewUrl!} controls className="w-full max-w-md" />
+                        </div>
                     ) : (
                         <img src={previewUrl!} alt="Preview" className="w-full h-full object-contain" style={{ imageRendering: 'pixelated' }} />
                     )}
@@ -180,10 +187,10 @@ export const AnalyzeMediaPage: React.FC<AnalyzeMediaPageProps> = ({ onClose, pla
                 {uploadedFile && (
                     <>
                         <div className="w-full grid grid-cols-3 sm:grid-cols-5 gap-2 p-2 bg-black/30 border-2 border-brand-light/50">
-                            <ToolButton label="วิเคราะห์ฉาก" icon={<PaletteIcon className="w-6 h-6" />} tool="scene" />
+                            <ToolButton label="วิเคราะห์ฉาก" icon={<PaletteIcon className="w-6 h-6" />} tool="scene" disabled={isAudio} />
                             <ToolButton label="ปรับปรุงคุณภาพ" icon={<SparklesIcon className="w-6 h-6" />} tool="enhance" disabled={!isImage} />
                             <ToolButton label="บีบอัดไฟล์" icon={<DownloadIcon className="w-6 h-6" />} tool="compress" disabled={!isImage} />
-                            <ToolButton label="วิเคราะห์เสียง" icon={<SoundWaveIcon className="w-6 h-6" />} tool="audio" disabled={!isVideo} />
+                            <ToolButton label="วิเคราะห์เสียง" icon={<SoundWaveIcon className="w-6 h-6" />} tool="audio" disabled={!isVideo && !isAudio} />
                             <ToolButton label="ปรับปรุงวิดีโอ" icon={<SparklesIcon className="w-6 h-6" />} tool="enhance" disabled={true} comingSoon={true} />
                         </div>
 

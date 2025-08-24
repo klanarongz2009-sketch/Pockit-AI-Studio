@@ -377,7 +377,7 @@ export const ImageGeneratorPage: React.FC<{
                            <label key={mode} className="flex items-center gap-2 cursor-pointer">
                                <input type="radio" name="generationMode" value={mode}
                                    checked={generationMode === mode}
-                                   onChange={() => setGenerationMode(mode as GenerationMode)}
+                                   onChange={() => { playSound(audioService.playToggle); setGenerationMode(mode as GenerationMode); }}
                                    disabled={isLoading || !isOnline}
                                    className="w-4 h-4 accent-brand-magenta"
                                />
