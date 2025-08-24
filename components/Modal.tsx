@@ -5,9 +5,10 @@ interface ModalProps {
   onClose: () => void;
   title: string;
   children: React.ReactNode;
+  onBack?: () => void;
 }
 
-export const Modal: React.FC<ModalProps> = ({ isOpen, onClose, title, children }) => {
+export const Modal: React.FC<ModalProps> = ({ isOpen, onClose, title, children, onBack }) => {
   const modalRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -100,9 +101,20 @@ export const Modal: React.FC<ModalProps> = ({ isOpen, onClose, title, children }
         onClick={(e) => e.stopPropagation()} // Prevent closing when clicking inside the modal
       >
         <header className="flex items-center justify-between p-3 border-b-4 border-brand-light bg-black/20 flex-shrink-0">
-          <h2 id="modal-title" className="text-base sm:text-lg text-brand-yellow">
-            {title}
-          </h2>
+          <div className="flex items-center gap-4">
+            {onBack && (
+              <button
+                onClick={onBack}
+                className="text-sm underline hover:text-brand-yellow transition-colors font-sans"
+                aria-label="กลับ"
+              >
+                &#x2190; กลับ
+              </button>
+            )}
+            <h2 id="modal-title" className="text-base sm:text-lg text-brand-yellow">
+              {title}
+            </h2>
+          </div>
           <button
             onClick={onClose}
             aria-label="ปิด"

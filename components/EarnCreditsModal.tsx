@@ -107,7 +107,7 @@ export const EarnCreditsModal: React.FC<EarnCreditsModalProps> = ({ isOpen, onCl
     const today = new Date().toDateString();
 
     return (
-        <Modal isOpen={isOpen} onClose={onClose} title="รับเครดิตเพิ่ม">
+        <Modal isOpen={isOpen} onClose={onClose} onBack={onClose} title="รับเครดิตเพิ่ม">
             <div className="space-y-6 text-center font-sans">
                 <>
                     <div>

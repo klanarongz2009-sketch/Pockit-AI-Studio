@@ -11,6 +11,7 @@ import { StopIcon } from './icons/StopIcon';
 import { DownloadIcon } from './icons/DownloadIcon';
 import { TrashIcon } from './icons/TrashIcon';
 import { useCredits } from '../contexts/CreditContext';
+import { showNotification } from '../services/notificationService';
 
 interface TextToSongPageProps {
     onClose: () => void;
@@ -43,23 +44,6 @@ interface HistoryItem {
 
 const HISTORY_STORAGE_KEY = 'ai-studio-song-history';
 
-const showNotification = (title: string, options: NotificationOptions) => {
-    if (!('Notification' in window)) {
-        console.log("เบราว์เซอร์นี้ไม่รองรับการแจ้งเตือนบนเดสก์ท็อป");
-        return;
-    }
-
-    if (Notification.permission === "granted") {
-        new Notification(title, options);
-    } else if (Notification.permission !== "denied") {
-        Notification.requestPermission().then(permission => {
-            if (permission === "granted") {
-                new Notification(title, options);
-            }
-        });
-    }
-};
-
 export const TextToSongPage: React.FC<TextToSongPageProps> = ({
     onClose,
     playSound,
@@ -79,14 +63,7 @@ export const TextToSongPage: React.FC<TextToSongPageProps> = ({
     const [currentlyPlayingId, setCurrentlyPlayingId] = useState<string | null>(null);
     const { credits, spendCredits } = useCredits();
     const cancellationRequested = useRef(false);
-    const [notificationPermission, setNotificationPermission] = useState<'default' | 'granted' | 'denied'>('default');
 
-    useEffect(() => {
-        if ('Notification' in window) {
-            setNotificationPermission(Notification.permission);
-        }
-    }, []);
-    
     // Load history from localStorage on mount
     useEffect(() => {
         try {
@@ -127,17 +104,6 @@ export const TextToSongPage: React.FC<TextToSongPageProps> = ({
         cancellationRequested.current = true;
         setIsLoading(false); // This will hide the loading UI
         setError("การสร้างเพลงถูกยกเลิกโดยผู้ใช้");
-    }, [playSound]);
-
-    const handleRequestNotificationPermission = useCallback(async () => {
-        if (!('Notification' in window)) return;
-        playSound(audioService.playClick);
-        try {
-            const permission = await Notification.requestPermission();
-            setNotificationPermission(permission);
-        } catch (e) {
-            console.error("Error requesting notification permission", e);
-        }
     }, [playSound]);
 
     const handleGenerateSong = useCallback(async () => {
@@ -186,7 +152,6 @@ export const TextToSongPage: React.FC<TextToSongPageProps> = ({
             
             showNotification("🎵 เพลงของคุณพร้อมแล้ว!", {
                 body: `เพลงจากข้อความ "${inputText.substring(0, 30)}..." สร้างเสร็จแล้ว`,
-                icon: '/assets/icon-192.png'
             });
 
         } catch (err) {
@@ -283,19 +248,6 @@ export const TextToSongPage: React.FC<TextToSongPageProps> = ({
                 <p className="text-sm text-center text-brand-light/80">
                     พิมพ์เรื่องราว, บทกวี, หรือเนื้อเพลงของคุณ แล้วให้ AI แปลงตัวอักษรให้กลายเป็นเพลง 8-bit สุดสร้างสรรค์!
                 </p>
-
-                {isOnline && notificationPermission === 'default' && (
-                    <div className="w-full p-3 bg-black/20 border-2 border-brand-cyan/50 flex flex-col sm:flex-row items-center justify-between gap-3 text-center">
-                        <p className="text-xs text-brand-light/90">เปิดการแจ้งเตือนเพื่อรับการแจ้งเตือนเมื่อเพลงของคุณพร้อม</p>
-                        <button
-                            onClick={handleRequestNotificationPermission}
-                            onMouseEnter={() => playSound(audioService.playHover)}
-                            className="px-3 py-2 bg-brand-cyan text-black border-2 border-brand-light shadow-sm text-xs font-press-start hover:bg-brand-yellow"
-                        >
-                            อนุญาตการแจ้งเตือน
-                        </button>
-                    </div>
-                )}
 
                  <div className="w-full flex flex-col gap-4 bg-black/40 p-4 border-4 border-brand-light shadow-pixel">
                     <textarea
