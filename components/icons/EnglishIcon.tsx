@@ -1,3 +1,4 @@
+
 import React from 'react';
 
 export const EnglishIcon = ({ className }: { className?: string }): React.ReactNode => {
@@ -11,12 +12,14 @@ export const EnglishIcon = ({ className }: { className?: string }): React.ReactN
             aria-hidden="true"
         >
             {/* Globe Outline */}
-            <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8z" />
-            {/* Lines on Globe */}
-            <path d="M4 12h16" />
-            <path d="M12 4v16" />
-            <path d="M8 4.27C9.29 4.88 10.58 5.23 12 5.23s2.71-.35 4-0.96V4.27c-1.29.61-2.58.96-4 .96s-2.71-.35-4-0.96z" />
-            <path d="M8 19.73c1.29-.61 2.58-.96 4-.96s2.71.35 4 .96v-0.01c-1.29-.61-2.58-.96-4-.96s-2.71.35-4 .96z" />
+            <path d="M12 4H14V5H15V6H16V8H17V16H16V18H15V19H14V20H10V19H9V18H8V16H7V8H8V6H9V5H10V4H12Z" />
+            <path fill="black" d="M12 4V20" />
+            <path fill="black" d="M7 8H17V16H7V8Z" />
+            <path fill="black" d="M10 4H12V5H14V6H15V8H16V16H15V18H14V19H12V20H10V19H9V18H8V16H7V8H8V6H9V5H10V4Z" />
+            <path d="M12 6H14V8H12V6Z" />
+            <path d="M12 16H14V18H12V16Z" />
+            <path d="M9 9H11V11H9V9Z" />
+            <path d="M9 13H11V15H9V13Z" />
         </svg>
     );
 };

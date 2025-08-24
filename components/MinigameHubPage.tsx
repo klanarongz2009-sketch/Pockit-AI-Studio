@@ -26,6 +26,8 @@ import { BugIcon } from './icons/BugIcon';
 import { AiBugSquasherPage } from './AiBugSquasherPage';
 import { SearchMusicIcon } from './icons/SearchMusicIcon';
 import { SongSearchPage } from './SongSearchPage';
+import { MagicButtonIcon } from './icons/MagicButtonIcon';
+import { MagicButtonPage } from './MagicButtonPage';
 
 interface MinigameHubPageProps {
     onClose: () => void;
@@ -33,7 +35,7 @@ interface MinigameHubPageProps {
     isOnline: boolean;
 }
 
-type ActiveGame = 'hub' | 'pixelDodge' | 'ticTacToe' | 'snake' | 'platformer' | 'brickBreaker' | 'calculator' | 'aiOracle' | 'wordMatch' | 'aiBugSquasher' | 'songSearch';
+type ActiveGame = 'hub' | 'pixelDodge' | 'ticTacToe' | 'snake' | 'platformer' | 'brickBreaker' | 'calculator' | 'aiOracle' | 'wordMatch' | 'aiBugSquasher' | 'songSearch' | 'magicButton';
 
 const GameButton: React.FC<{ icon: React.ReactNode; title: string; description: string; onClick?: () => void; disabled?: boolean; comingSoon?: boolean; beta?: boolean; }> = ({ icon, title, description, onClick, disabled, comingSoon, beta }) => (
     <div className="relative group">
@@ -135,6 +137,9 @@ export const MinigameHubPage: React.FC<MinigameHubPageProps> = ({ onClose, playS
     if (activeGame === 'songSearch') {
         return <SongSearchPage onClose={() => setActiveGame('hub')} playSound={playSound} isOnline={isOnline} />;
     }
+    if (activeGame === 'magicButton') {
+        return <MagicButtonPage onClose={() => setActiveGame('hub')} playSound={playSound} addCredits={addCredits} />;
+    }
 
 
     const pixelDodgeCost = CREDIT_COSTS.MINIGAME_ASSET * 2;
@@ -156,7 +161,7 @@ export const MinigameHubPage: React.FC<MinigameHubPageProps> = ({ onClose, playS
                              <GameButton
                                 icon={<SearchMusicIcon className="w-16 h-16" />}
                                 title="ค้นหาเพลง/เสียง"
-                                description="อัปโหลดเสียง แล้วให้ AI ช่วยค้นหาว่าเป็นเพลงอะไร"
+                                description="เคยได้ยินเพลงแล้วนึกชื่อไม่ออกไหม? อัปโหลดไฟล์เสียงหรือวิดีโอที่มีเสียงนั้น แล้ว AI ของเราจะทำการวิเคราะห์และค้นหาข้อมูลเพลงให้คุณทันที ไม่ว่าจะเป็นชื่อเพลง ศิลปิน หรือแม้แต่เพลงที่มีทำนองคล้ายกัน"
                                 onClick={() => handleLaunchGame('songSearch')}
                                 disabled={!isOnline}
                                 beta={true}
@@ -164,61 +169,67 @@ export const MinigameHubPage: React.FC<MinigameHubPageProps> = ({ onClose, playS
                              <GameButton
                                 icon={<BugIcon className="w-16 h-16" />}
                                 title="AI แก้ไขคำผิด"
-                                description="พิมพ์ข้อความ แล้วให้ AI แก้ไขไวยากรณ์และคำผิด พร้อมลุ้นรับเครดิตคืน!"
+                                description="เบื่อไหมกับการพิมพ์ผิดๆ ถูกๆ? ให้ AI ของเราเป็นผู้ช่วยพิสูจน์อักษรส่วนตัวของคุณ พิมพ์ข้อความภาษาไทยลงไปแล้ว AI จะแก้ไขให้ถูกต้องตามหลักไวยากรณ์ การันตีความเป๊ะ! (มีค่าใช้จ่ายตามความยาวข้อความ)"
                                 onClick={() => handleLaunchGame('aiBugSquasher')}
                                 disabled={!isOnline}
                             />
                             <GameButton
                                 icon={<WordMatchIcon className="w-16 h-16" />}
                                 title="AI จับคู่คำ"
-                                description="ป้อนคำ แล้วรับการจับคู่สุดสร้างสรรค์พร้อม 10,000 เครดิตฟรี!"
+                                description="ทดสอบความคิดสร้างสรรค์ของ AI! เพียงแค่ป้อนคำหรือแนวคิดใดๆ ลงไป แล้ว AI จะทำการเชื่อมโยงและจับคู่กับสิ่งต่างๆ ในหมวดหมู่ที่คาดไม่ถึง พร้อมรับ 10,000 เครดิตฟรีทุกครั้งที่เล่น!"
                                 onClick={() => handleLaunchGame('wordMatch')}
                                 disabled={!isOnline}
                             />
                             <GameButton
                                 icon={<OracleIcon className="w-16 h-16" />}
                                 title="AI พยากรณ์"
-                                description="ถาม AI เกี่ยวกับความลับของจักรวาล แล้วรับคำทำนายที่คาดไม่ถึง"
+                                description="คุณมีคำถามที่หาคำตอบไม่ได้ใช่ไหม? ถาม AI พยากรณ์ของเราสิ ป้อนหัวข้อที่คุณอยากรู้ แล้ว AI จะเปิดเผย 'ความลับ' หรือเรื่องราวที่คาดไม่ถึงเกี่ยวกับสิ่งนั้นให้คุณฟัง"
                                 onClick={() => handleLaunchGame('aiOracle')}
                                 disabled={!isOnline}
                             />
                             <GameButton
                                 icon={<GamepadIcon className="w-16 h-16" />}
                                 title="Pixel Dodge"
-                                description={`เกมหลบหลีกสิ่งกีดขวางที่สร้างตัวละครโดย AI! (ต้องใช้ ${pixelDodgeCost} เครดิต)`}
+                                description={`เกมหลบหลีกสิ่งกีดขวางสุดท้าทายที่สร้างตัวละครฮีโร่และอุปสรรคโดย AI! แต่ละรอบจะไม่ซ้ำกัน มาดูกันว่าคุณจะทำคะแนนได้เท่าไหร่ (ต้องใช้ ${pixelDodgeCost} เครดิตในการสร้างตัวละคร)`}
                                 onClick={handleLaunchPixelDodge}
                                 disabled={!isOnline}
                             />
                             <GameButton
                                 icon={<TicTacToeIcon className="w-16 h-16" />}
                                 title="OX อัจฉริยะ"
-                                description="ท้าทาย AI ในเกม OX สุดคลาสสิก ชนะเพื่อรับเครดิต!"
+                                description="ท้าทาย AI ที่ฉลาดเป็นกรดในเกม OX สุดคลาสสิก วางแผนการเดินของคุณให้ดีเพื่อเอาชนะและรับเครดิตเป็นรางวัล หรือจะชวนเพื่อนมาเล่น 2 คนก็ได้!"
                                 onClick={() => handleLaunchGame('ticTacToe')}
                                 disabled={!isOnline}
                             />
                              <GameButton
                                 icon={<BrickBreakerIcon className="w-16 h-16" />}
                                 title="Brick Breaker"
-                                description="เกมทำลายบล็อกสุดคลาสสิก ทุบบล็อกเพื่อรับเครดิต!"
+                                description="เกมทำลายบล็อกสุดคลาสสิกที่ทุกคนคุ้นเคย ควบคุมแท่นรับลูกบอลเพื่อทำลายบล็อกทั้งหมดบนหน้าจอ ยิ่งทุบเยอะ ยิ่งได้เครดิตเยอะ!"
                                 onClick={() => handleLaunchGame('brickBreaker')}
                             />
                             <GameButton
                                 icon={<SnakeIcon className="w-16 h-16" />}
                                 title="เกมงู"
-                                description="เกมงูคลาสสิกในสไตล์พิกเซล กินอาหารเพื่อรับเครดิต!"
+                                description="ควบคุมเจ้างูน้อยในโลกพิกเซลให้กินอาหารเพื่อเติบโตและทำคะแนน แต่ระวัง! อย่าชนกำแพงหรือหางของตัวเอง ทุกครั้งที่กิน คุณจะได้รับเครดิตเพิ่ม!"
                                 onClick={() => handleLaunchGame('snake')}
                             />
                              <GameButton
                                 icon={<PlatformerIcon className="w-16 h-16" />}
                                 title="Platformer"
-                                description="เกมกระโดดผจญภัยสั้นๆ ไปให้ถึงเส้นชัย!"
+                                description="เกมแพลตฟอร์มเมอร์กระโดดผจญภัยสุดท้าทาย บังคับตัวละครของคุณผ่านด่านที่เต็มไปด้วยอุปสรรคเพื่อไปให้ถึงเส้นชัย หากพลาดท่า สามารถใช้เครดิตเพื่อเล่นต่อได้!"
                                 onClick={() => handleLaunchGame('platformer')}
                             />
                              <GameButton
                                 icon={<CalculatorIcon className="w-16 h-16" />}
                                 title="เครื่องคิดเลขเครดิต"
-                                description="คำนวณเลขแล้วรับเครดิตเท่ากับผลลัพธ์!"
+                                description="เครื่องมือสุดพิเศษที่จะเปลี่ยนการคำนวณตัวเลขธรรมดาให้กลายเป็นการสร้างเครดิต! แค่ใส่สมการคณิตศาสตร์ลงไป แล้วรับเครดิตเท่ากับผลลัพธ์ที่ได้ (ปัดเศษลง)"
                                 onClick={() => handleLaunchGame('calculator')}
+                            />
+                             <GameButton
+                                icon={<MagicButtonIcon className="w-16 h-16" />}
+                                title="ปุ่มมหัศจรรย์"
+                                description="ปุ่มที่เรียบง่ายแต่ทรงพลัง! ทุกครั้งที่คุณกดปุ่มนี้ คุณจะได้รับ 1 เครดิตฟรีทันที ไม่มีเงื่อนไข ไม่จำกัดจำนวนครั้ง มาดูกันว่าคุณจะสะสมได้เท่าไหร่!"
+                                onClick={() => handleLaunchGame('magicButton')}
                             />
                         </div>
                     </>

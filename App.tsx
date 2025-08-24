@@ -25,8 +25,6 @@ import { VideoEditorPage } from './components/VideoEditorPage';
 import { AnalyzeIcon } from './components/icons/AnalyzeIcon';
 import { AnalyzeMediaPage } from './components/AnalyzeMediaPage';
 import { BookmarkIcon } from './components/icons/BookmarkIcon';
-import { SearchMusicIcon } from './components/icons/SearchMusicIcon';
-import { SongSearchPage } from './components/SongSearchPage';
 
 
 type CurrentPage = 'main' | 'imageGenerator' | 'aiNarrator' | 'soundLibrary' | 'tts' | 'about' | 'minigameHub' | 'textToSong' | 'videoEditor' | 'analyzeMedia';
@@ -222,7 +220,7 @@ export const App: React.FC = () => {
         { pageKey: 'analyzeMedia', icon: <AnalyzeIcon className="w-10 h-10" />, label: "วิเคราะห์สื่อ", beta: true },
         { pageKey: 'soundLibrary', icon: <SoundWaveIcon className="w-10 h-10" />, label: "คลังเสียง" },
         { pageKey: 'tts', icon: <TextToSpeechIcon className="w-10 h-10" />, label: "อ่านออกเสียง" },
-        { pageKey: 'minigameHub', icon: <GamepadIcon className="w-10 h-10" />, label: "ฟีเจอร์เสริม" }
+        { pageKey: 'minigameHub', icon: <GamepadIcon className="w-10 h-10" />, label: "ฟีเจอร์เสริม" },
     ];
 
     return (
