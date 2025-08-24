@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import type { Song } from '../services/geminiService';
 import { generateSongFromText } from '../services/geminiService';
 import * as audioService from '../services/audioService';
@@ -43,6 +43,23 @@ interface HistoryItem {
 
 const HISTORY_STORAGE_KEY = 'ai-studio-song-history';
 
+const showNotification = (title: string, options: NotificationOptions) => {
+    if (!('Notification' in window)) {
+        console.log("เบราว์เซอร์นี้ไม่รองรับการแจ้งเตือนบนเดสก์ท็อป");
+        return;
+    }
+
+    if (Notification.permission === "granted") {
+        new Notification(title, options);
+    } else if (Notification.permission !== "denied") {
+        Notification.requestPermission().then(permission => {
+            if (permission === "granted") {
+                new Notification(title, options);
+            }
+        });
+    }
+};
+
 export const TextToSongPage: React.FC<TextToSongPageProps> = ({
     onClose,
     playSound,
@@ -61,6 +78,7 @@ export const TextToSongPage: React.FC<TextToSongPageProps> = ({
     const [history, setHistory] = useState<HistoryItem[]>([]);
     const [currentlyPlayingId, setCurrentlyPlayingId] = useState<string | null>(null);
     const { credits, spendCredits } = useCredits();
+    const cancellationRequested = useRef(false);
     
     // Load history from localStorage on mount
     useEffect(() => {
@@ -96,6 +114,13 @@ export const TextToSongPage: React.FC<TextToSongPageProps> = ({
             if (interval) clearInterval(interval);
         }
     }, [isLoading]);
+    
+    const handleCancel = useCallback(() => {
+        playSound(audioService.playCloseModal);
+        cancellationRequested.current = true;
+        setIsLoading(false); // This will hide the loading UI
+        setError("การสร้างเพลงถูกยกเลิกโดยผู้ใช้");
+    }, [playSound]);
 
     const handleGenerateSong = useCallback(async () => {
         if (!inputText.trim() || isLoading || !isOnline) return;
@@ -107,7 +132,12 @@ export const TextToSongPage: React.FC<TextToSongPageProps> = ({
                 return;
             }
         }
+        
+        if ('Notification' in window && Notification.permission !== "granted" && Notification.permission !== "denied") {
+            await Notification.requestPermission();
+        }
 
+        cancellationRequested.current = false;
         playSound(audioService.playGenerate);
         setIsLoading(true);
         setError(null);
@@ -116,6 +146,8 @@ export const TextToSongPage: React.FC<TextToSongPageProps> = ({
 
         try {
             const song = await generateSongFromText(inputText, modelVersion);
+            
+            if (cancellationRequested.current) return;
 
             if (modelVersion === 'v1.5') {
                 const cost = song.flat().length;
@@ -137,8 +169,14 @@ export const TextToSongPage: React.FC<TextToSongPageProps> = ({
             setHistory(prev => [newHistoryItem, ...prev]);
 
             playSound(audioService.playSuccess);
+            
+            showNotification("🎵 เพลงของคุณพร้อมแล้ว!", {
+                body: `เพลงจากข้อความ "${inputText.substring(0, 30)}..." สร้างเสร็จแล้ว`,
+                icon: '/assets/icon-192.png'
+            });
 
         } catch (err) {
+            if (cancellationRequested.current) return;
             playSound(audioService.playError);
             const errorMessage = err instanceof Error ? err.message : 'เกิดข้อผิดพลาดที่ไม่คาดคิด';
             setError(errorMessage);
@@ -293,19 +331,35 @@ export const TextToSongPage: React.FC<TextToSongPageProps> = ({
                             </label>
                         </div>
                     </div>
-
-                    <button 
-                        onClick={handleGenerateSong} 
-                        onMouseEnter={() => playSound(audioService.playHover)}
-                        disabled={!inputText.trim() || isLoading || !isOnline}
-                        className="w-full flex items-center justify-center gap-3 p-4 bg-brand-magenta text-white border-4 border-brand-light shadow-pixel text-base transition-all hover:bg-brand-yellow hover:text-black active:shadow-pixel-active active:translate-y-[2px] active:translate-x-[2px] disabled:bg-gray-500 disabled:cursor-not-allowed"
-                        title={!isOnline ? 'ฟีเจอร์นี้ต้องใช้การเชื่อมต่ออินเทอร์เน็ต' : 'ปุ่มลัด: Ctrl+Enter'}
-                    >
-                        <SparklesIcon className="w-6 h-6" /> สร้างเพลง
-                    </button>
+                    
+                    {isLoading ? (
+                         <div className="w-full text-center space-y-2 py-4">
+                            <LoadingSpinner text={thinkingMessage} />
+                            <p className="text-xs text-brand-yellow">
+                                AI กำลังประพันธ์เพลง... กรุณาอย่าปิดแท็บนี้
+                                <br />
+                                คุณจะได้รับการแจ้งเตือนเมื่อเพลงเสร็จสมบูรณ์
+                            </p>
+                            <button
+                                onClick={handleCancel}
+                                onMouseEnter={() => playSound(audioService.playHover)}
+                                className="mt-2 w-full max-w-xs p-2 bg-brand-magenta text-white border-2 border-brand-light shadow-sm transition-all hover:bg-red-500 active:shadow-none"
+                            >
+                                ยกเลิกการสร้าง
+                            </button>
+                        </div>
+                    ) : (
+                        <button 
+                            onClick={handleGenerateSong} 
+                            onMouseEnter={() => playSound(audioService.playHover)}
+                            disabled={!inputText.trim() || isLoading || !isOnline}
+                            className="w-full flex items-center justify-center gap-3 p-4 bg-brand-magenta text-white border-4 border-brand-light shadow-pixel text-base transition-all hover:bg-brand-yellow hover:text-black active:shadow-pixel-active active:translate-y-[2px] active:translate-x-[2px] disabled:bg-gray-500 disabled:cursor-not-allowed"
+                            title={!isOnline ? 'ฟีเจอร์นี้ต้องใช้การเชื่อมต่ออินเทอร์เน็ต' : 'ปุ่มลัด: Ctrl+Enter'}
+                        >
+                            <SparklesIcon className="w-6 h-6" /> สร้างเพลง
+                        </button>
+                    )}
                  </div>
-
-                {isLoading && <div className="py-8"><LoadingSpinner text={thinkingMessage} /></div>}
                 
                 {error && (
                      <div role="alert" className="space-y-4 text-center w-full py-4">
