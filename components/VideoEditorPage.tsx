@@ -1,4 +1,5 @@
 
+
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import * as audioService from '../services/audioService';
 import { 
@@ -295,7 +296,7 @@ export const VideoEditorPage: React.FC<VideoEditorPageProps> = ({ onClose, playS
     const canGenerate = isOnline && !isLoading && uploadedFile && ((!isAudioFile && (prompt.trim() || addSubs || activeTool === 'crop')) || (isAudioFile && addSubs));
 
     return (
-        <PageWrapper className="justify-start">
+        <PageWrapper>
             <input
                 type="file"
                 ref={fileInputRef}
@@ -305,8 +306,8 @@ export const VideoEditorPage: React.FC<VideoEditorPageProps> = ({ onClose, playS
                 aria-hidden="true"
             />
             <PageHeader title="AI Video Editor (รุ่นทดลอง)" onBack={onClose} />
-            <main id="main-content" className="w-full max-w-4xl flex-grow flex flex-col items-center gap-4 font-sans">
-                <div className="w-full h-auto aspect-video bg-black/50 border-4 border-brand-light flex items-center justify-center shadow-pixel" aria-live="polite">
+            <main id="main-content" className="w-full max-w-6xl mx-auto p-4 flex-grow overflow-y-auto flex flex-col items-center gap-4 font-sans">
+                <div className="w-full h-auto aspect-video bg-black/50 border-4 border-brand-light flex items-center justify-center shadow-pixel">
                     {renderResult()}
                 </div>
                 

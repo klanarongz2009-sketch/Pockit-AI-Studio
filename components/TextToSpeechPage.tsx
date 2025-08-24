@@ -1,4 +1,5 @@
 
+
 import React, { useState, useEffect, useCallback } from 'react';
 import * as audioService from '../services/audioService';
 import { PageHeader, PageWrapper } from './PageComponents';
@@ -137,7 +138,7 @@ export const TextToSpeechPage: React.FC<TextToSpeechPageProps> = ({ onClose, pla
                 </div>
             </Modal>
             <PageHeader title="แปลงข้อความเป็นเสียง AI" onBack={handleClose} />
-            <main id="main-content" className="w-full max-w-lg flex flex-col items-center gap-6 font-sans">
+            <main id="main-content" className="w-full max-w-4xl mx-auto p-4 flex-grow overflow-y-auto flex flex-col items-center gap-6 font-sans">
                 <p className="text-sm text-center text-brand-light/80">
                     พิมพ์ข้อความของคุณแล้ว AI จะอ่านให้ฟัง! <strong className="text-brand-yellow">รับ 1 เครดิตต่อ 1 ตัวอักษร!</strong>
                 </p>

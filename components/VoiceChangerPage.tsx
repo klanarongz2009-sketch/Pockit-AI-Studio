@@ -1,4 +1,5 @@
 
+
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import * as audioService from '../services/audioService';
 import { PageHeader, PageWrapper } from './PageComponents';
@@ -467,7 +468,7 @@ export const VoiceChangerPage: React.FC<VoiceChangerPageProps> = ({ playSound, o
             <PageHeader title="สตูดิโอเปลี่ยนเสียง" onBack={onClose} />
             <main 
                 id="main-content"
-                className="w-full max-w-4xl flex flex-col items-center gap-6 font-sans relative"
+                className="w-full max-w-6xl mx-auto p-4 flex-grow overflow-y-auto flex flex-col items-start gap-6 font-sans relative"
                 onDragEnter={handleDragEnter}
                 onDragOver={handleDragOver}
                 onDragLeave={handleDragLeave}
@@ -479,7 +480,7 @@ export const VoiceChangerPage: React.FC<VoiceChangerPageProps> = ({ playSound, o
                     </div>
                 )}
                 {!uploadedFile ? (
-                     <div className="w-full max-w-lg text-center space-y-4">
+                     <div className="w-full max-w-lg mx-auto text-center space-y-4 pt-10">
                         <p className="text-sm text-brand-light/80">มาเล่นสนุกกับเสียงของคุณกันเถอะ! ลากและวางไฟล์เสียงหรือวิดีโอของคุณที่นี่ หรือคลิกเพื่ออัปโหลด แล้วมาดูว่า AI จะเปลี่ยนเสียงของคุณให้แปลกและฮาแค่ไหน!</p>
                         <button 
                             onClick={handleUploadClick}

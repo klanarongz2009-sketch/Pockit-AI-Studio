@@ -327,7 +327,7 @@ export const ImageGeneratorPage: React.FC<{
         <PageWrapper>
              <input type="file" ref={fileInputRef} onChange={handleFileChange} accept="image/*" className="hidden" aria-hidden="true" />
              <PageHeader title="เครื่องมือสร้างภาพ AI" onBack={onClose} />
-             <main id="main-content" className="w-full max-w-lg flex flex-col items-center gap-4">
+             <main id="main-content" className="w-full max-w-4xl mx-auto p-4 flex-grow overflow-y-auto flex flex-col items-center gap-4">
                 <OutputDisplay 
                     isLoading={isLoading}
                     error={error}

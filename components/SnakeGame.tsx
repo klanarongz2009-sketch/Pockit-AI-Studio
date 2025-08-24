@@ -223,7 +223,7 @@ export const SnakeGame: React.FC<SnakeGameProps> = ({ onClose, playSound, addCre
 
     return (
         <PageWrapper>
-             <div className="w-full max-w-2xl mx-auto flex flex-col items-center">
+             <div className="w-full flex-grow flex flex-col items-center p-4">
                  <header className="w-full flex items-center justify-between mb-4">
                      <button onClick={onClose} className="text-sm underline hover:text-brand-yellow transition-colors pr-4 font-sans">
                         &#x2190; กลับ

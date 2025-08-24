@@ -1,5 +1,6 @@
 
 
+
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { PageWrapper } from './PageComponents';
 import * as audioService from '../services/audioService';
@@ -228,7 +229,7 @@ export const BrickBreakerGame: React.FC<BrickBreakerGameProps> = ({ onClose, pla
 
     return (
         <PageWrapper>
-            <div className="w-full max-w-2xl mx-auto flex flex-col items-center">
+            <div className="w-full flex-grow flex flex-col items-center p-4">
                 <header className="w-full flex items-center justify-between mb-4">
                     <button onClick={onClose} className="text-sm underline hover:text-brand-yellow transition-colors pr-4 font-sans">
                         &#x2190; กลับ
