@@ -1,3 +1,4 @@
+
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import * as audioService from '../services/audioService';
 import { 
@@ -12,7 +13,7 @@ import { LoadingSpinner } from './LoadingSpinner';
 import { SparklesIcon } from './icons/SparklesIcon';
 import { MusicNoteIcon } from './icons/MusicNoteIcon';
 import { DownloadIcon } from './icons/DownloadIcon';
-import { TextToSpeechIcon } from './icons/TextToSpeechIcon';
+import { SubtitlesIcon } from './icons/SubtitlesIcon';
 
 interface VideoEditorPageProps {
     onClose: () => void;
@@ -329,7 +330,7 @@ export const VideoEditorPage: React.FC<VideoEditorPageProps> = ({ onClose, playS
                             disabled={isLoading}
                              className={`flex flex-col items-center justify-center gap-1 p-2 border-2 transition-colors ${activeTool === 'subs' ? 'bg-brand-yellow text-black border-black' : 'bg-black/50 border-brand-light hover:bg-brand-cyan/20'}`}
                         >
-                            <TextToSpeechIcon className="w-6 h-6"/>
+                            <SubtitlesIcon className="w-6 h-6"/>
                             <span className="text-xs font-press-start">คำบรรยาย</span>
                         </button>
                          <button disabled={true} className="flex flex-col items-center justify-center gap-1 p-2 border-2 bg-black/50 border-brand-light opacity-50 cursor-not-allowed relative">

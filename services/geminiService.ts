@@ -1,5 +1,6 @@
 
 
+
 import { GoogleGenAI, Type, Chat } from "@google/genai";
 
 const API_KEY = process.env.API_KEY;
@@ -39,7 +40,7 @@ const parseApiError = (error: unknown): string => {
 
     // Step 2: Check for a specific quota error status or message.
     if (details?.status === 'RESOURCE_EXHAUSTED' || isQuotaError(details?.message)) {
-        return 'คุณใช้งานเกินโควต้าแล้ว โปรดตรวจสอบแผนและข้อมูลการเรียกเก็บเงินของคุณใน Google AI Studio';
+        return 'คุณใช้งานเกินโควต้าแล้ว โปรดรอสักครู่แล้วลองอีกครั้ง หรือตรวจสอบแผนและข้อมูลการเรียกเก็บเงินของคุณใน Google AI Studio';
     }
 
     // Step 3: Return a formatted message if one exists.
@@ -77,7 +78,7 @@ const throttleImageGeneration = async () => {
 let lastVideoGenerationTime = 0;
 // Video models have very strict rate limits, often less than 1 RPM on free tiers.
 // We'll set a conservative delay to avoid hitting the quota.
-const MIN_VIDEO_GENERATION_INTERVAL_MS = 70000; // Increased to 70 seconds
+const MIN_VIDEO_GENERATION_INTERVAL_MS = 120000; // Increased to 120 seconds
 
 /**
  * Ensures that video generation requests are spaced out to avoid hitting API rate limits.
@@ -144,7 +145,13 @@ export interface WordMatch {
 
 export interface SearchResult {
     identificationType: 'direct' | 'similarity';
+    title: string | null;
+    artist: string | null;
+    album: string | null;
+    year: string | null;
+    genre: string | null;
     overview: string;
+    searchSuggestions: string[];
     sources: {
         uri: string;
         title: string;
@@ -917,6 +924,58 @@ export const generateSoundEffectIdeas = async (prompt: string): Promise<SoundEff
     }
 };
 
+export const generateSoundFromImage = async (base64Data: string, mimeType: string): Promise<SoundEffectParameters> => {
+    if (!ai) {
+        throw new Error("ไม่ได้กำหนดค่า API_KEY ไม่สามารถเรียกใช้ Gemini API ได้");
+    }
+
+    const imagePart = {
+        inlineData: {
+            data: base64Data,
+            mimeType: mimeType,
+        },
+    };
+
+    const textPart = {
+        text: "Analyze the provided image for its mood, subject, colors, and any implied action. Based on this analysis, generate parameters for a single, fitting 8-bit sound effect. Describe the sound with a short name.",
+    };
+
+    try {
+        const response = await ai.models.generateContent({
+            model: "gemini-2.5-flash",
+            contents: { parts: [imagePart, textPart] },
+            config: {
+                systemInstruction: "You are an expert 8-bit sound designer. Your task is to generate parameters for the Web Audio API to create classic video game sounds based on an image. For waveType, choose from 'square', 'sine', 'sawtooth', or 'triangle'.",
+                responseMimeType: "application/json",
+                responseSchema: {
+                    type: Type.OBJECT,
+                    properties: {
+                        name: { type: Type.STRING, description: "A short, descriptive name for the sound effect (e.g., 'Mystic Chime', 'Robot Step')." },
+                        waveType: { type: Type.STRING, description: "Must be one of: 'square', 'sine', 'sawtooth', 'triangle'." },
+                        startFrequency: { type: Type.INTEGER, description: "Starting pitch in Hz (100-2000)." },
+                        endFrequency: { type: Type.INTEGER, description: "Ending pitch in Hz. Same as start for no pitch slide." },
+                        duration: { type: Type.NUMBER, description: "Total duration in seconds (0.05 to 1.5)." },
+                        volume: { type: Type.NUMBER, description: "Overall volume (0.1 to 0.8)." }
+                    },
+                    required: ["name", "waveType", "startFrequency", "endFrequency", "duration", "volume"]
+                },
+            },
+        });
+
+        const jsonResponse = JSON.parse(response.text);
+        const validWaveTypes = ['square', 'sine', 'sawtooth', 'triangle'];
+        if (jsonResponse && validWaveTypes.includes(jsonResponse.waveType)) {
+            return jsonResponse as SoundEffectParameters;
+        } else {
+            throw new Error("ไม่สามารถแยกวิเคราะห์เอฟเฟกต์เสียงที่ถูกต้องจากการตอบสนองได้");
+        }
+    } catch (error) {
+        console.error("Error generating sound from image:", error);
+        throw new Error(`ไม่สามารถสร้างเสียงได้: ${parseApiError(error)}`);
+    }
+};
+
+
 export const generateSubtitlesFromVideo = async (base64Data: string, mimeType: string, language: string): Promise<string> => {
     if (!ai) {
         throw new Error("ไม่ได้กำหนดค่า API_KEY ไม่สามารถเรียกใช้ Gemini API ได้");
@@ -1042,26 +1101,30 @@ export const identifyAndSearchMusic = async (base64Data: string, mimeType: strin
     };
 
     const textPart = {
-        text: `You are a world-class media analysis expert. Your task is to analyze the provided audio and respond in Thai. Follow this two-part process STRICTLY:
+        text: `You are a world-class media analysis expert. Your task is to analyze the provided audio and respond in Thai. Your response MUST be a single JSON object.
 
-**Part 1: Direct Identification**
-If you can identify the specific media (e.g., song, instrumental piece, broadcast clip, sound effect), your response MUST be a JSON object like this:
-{"identificationType": "direct", "overview": "นี่คือ [ประเภทสื่อ] ชื่อ '[ชื่อ]' โดย [ผู้สร้าง/ศิลปิน/แหล่งที่มา]."}
-Examples:
-- {"identificationType": "direct", "overview": "เพลงนี้คือ 'Clair de Lune' โดย Claude Debussy."}
-- {"identificationType": "direct", "overview": "นี่คือส่วนหนึ่งของรายการข่าวภาคค่ำจากช่อง ABC News."}
+**Process:**
 
-**Part 2: Descriptive Analysis (FALLBACK)**
-If you cannot identify the media directly, you MUST provide a detailed descriptive analysis.
-- DO NOT state that you cannot identify it.
-- Describe what you hear: genre, mood, instrumentation, content type (speech, music, sfx), potential context, and any similar artists or works.
-- Your response MUST be a JSON object like this:
-{"identificationType": "similarity", "overview": "[คำอธิบายโดยละเอียดของเสียงที่ได้ยิน]."}
-Example:
-- {"identificationType": "similarity", "overview": "เป็นเพลงบรรเลงเปียโนสไตล์คลาสสิก มีอารมณ์เศร้าและเชื่องช้า คล้ายกับผลงานของ Chopin."}
-- {"identificationType": "similarity", "overview": "เสียงร้องเพลงของผู้หญิงที่ไม่มีดนตรีประกอบ มีสไตล์คล้ายกับศิลปิน Taylor Swift ในยุคแรก."}
+1.  **Analyze Audio:** Listen to the audio clip carefully.
+2.  **Identify or Describe:**
+    *   **If you can identify the specific song/media:** Set \`identificationType\` to "direct". Fill in as many details as possible: \`title\`, \`artist\`, \`album\`, \`year\`, and \`genre\`. Write a concise \`overview\`.
+    *   **If you cannot identify it directly:** Set \`identificationType\` to "similarity". Do NOT state that you cannot identify it. Instead, provide a detailed description in the \`overview\` field (e.g., genre, mood, instrumentation, similar artists). Leave other fields like \`title\`, \`artist\`, \`album\`, and \`year\` as null.
+3.  **Generate Search Suggestions:** Create an array of 4 relevant and interesting Google search queries related to the identified or described media. Put these in the \`searchSuggestions\` field.
 
-**Constraint:** Your final output MUST be only the JSON object. Do not add any other text.`,
+**JSON Output Format:**
+
+{
+  "identificationType": "direct" | "similarity",
+  "title": "string | null",
+  "artist": "string | null",
+  "album": "string | null",
+  "year": "string | null",
+  "genre": "string | null",
+  "overview": "string",
+  "searchSuggestions": ["string", "string", "string", "string"]
+}
+
+**Constraint:** Your final output MUST be only the JSON object. Do not add any other text, markdown, or explanations.`,
     };
 
     try {
@@ -1074,7 +1137,7 @@ Example:
             },
         });
         
-        let parsedResult: { identificationType: 'direct' | 'similarity'; overview: string };
+        let parsedResult: Partial<SearchResult> = {};
         const rawText = response.text.trim();
         
         try {
@@ -1097,13 +1160,11 @@ Example:
             if (jsonString) {
                 parsedResult = JSON.parse(jsonString);
             } else {
-                // If no JSON found at all, treat the whole response as the overview.
                 console.warn("Could not find a JSON block in the response. Using raw text as overview.");
                 parsedResult = { identificationType: 'similarity', overview: rawText };
             }
         } catch (e) {
             console.error("Failed to parse JSON from Gemini response. Raw text:", rawText);
-            // If parsing fails, treat the whole text as the overview.
             parsedResult = { identificationType: 'similarity', overview: rawText };
         }
         
@@ -1119,7 +1180,13 @@ Example:
 
         return { 
             identificationType: parsedResult.identificationType || 'similarity',
-            overview: parsedResult.overview, 
+            title: parsedResult.title || null,
+            artist: parsedResult.artist || null,
+            album: parsedResult.album || null,
+            year: parsedResult.year || null,
+            genre: parsedResult.genre || null,
+            overview: parsedResult.overview || '',
+            searchSuggestions: parsedResult.searchSuggestions || [],
             sources 
         };
 

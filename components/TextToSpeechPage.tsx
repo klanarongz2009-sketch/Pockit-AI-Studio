@@ -5,7 +5,6 @@ import { PageHeader, PageWrapper } from './PageComponents';
 import { PlayIcon } from './icons/PlayIcon';
 import { StopIcon } from './icons/StopIcon';
 import { DownloadIcon } from './icons/DownloadIcon';
-import { Modal } from './Modal';
 import { useCredits } from '../contexts/CreditContext';
 
 interface TextToSpeechPageProps {
@@ -14,6 +13,7 @@ interface TextToSpeechPageProps {
 }
 
 const isSpeechSynthesisSupported = !!window.speechSynthesis;
+const isGetDisplayMediaSupported = !!(navigator.mediaDevices && navigator.mediaDevices.getDisplayMedia);
 
 export const TextToSpeechPage: React.FC<TextToSpeechPageProps> = ({ onClose, playSound }) => {
     const [text, setText] = useState('สวัสดี! ยินดีต้อนรับสู่ Ai Studio แบบพกพา');
@@ -22,9 +22,9 @@ export const TextToSpeechPage: React.FC<TextToSpeechPageProps> = ({ onClose, pla
     const [pitch, setPitch] = useState(1);
     const [rate, setRate] = useState(1);
     const [isSpeaking, setIsSpeaking] = useState(false);
+    const [isDownloading, setIsDownloading] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [autoDetectLang, setAutoDetectLang] = useState(true);
-    const [isModalOpen, setIsModalOpen] = useState(false);
     const { addCredits } = useCredits();
 
     const populateVoiceList = useCallback(() => {
@@ -83,29 +83,12 @@ export const TextToSpeechPage: React.FC<TextToSpeechPageProps> = ({ onClose, pla
         utterance.onend = () => setIsSpeaking(false);
         utterance.onerror = (e: SpeechSynthesisErrorEvent) => {
             if (e.error === 'canceled' || e.error === 'interrupted') {
-                console.warn(`Speech synthesis was ${e.error}. This is expected.`);
                 setIsSpeaking(false);
                 return;
             }
 
-            console.error('SpeechSynthesis Error:', e.error, e);
-            let errorMessage = 'ขออภัย ไม่สามารถพูดได้ในขณะนี้';
-            switch (e.error) {
-                case 'language-unavailable':
-                    errorMessage = 'ขออภัย ไม่รองรับภาษานี้บนอุปกรณ์ของคุณ';
-                    break;
-                case 'voice-unavailable':
-                     errorMessage = 'ขออภัย ไม่พบเสียงที่เลือกบนอุปกรณ์ของคุณ';
-                    break;
-                case 'text-too-long':
-                     errorMessage = 'ข้อความยาวเกินไป ไม่สามารถอ่านออกเสียงได้';
-                    break;
-                case 'audio-busy':
-                    errorMessage = 'ระบบเสียงกำลังยุ่ง โปรดลองอีกครั้งในภายหลัง';
-                    break;
-                default:
-                     errorMessage = `เกิดข้อผิดพลาดกับระบบเสียง (${e.error})`;
-            }
+            console.error('SpeechSynthesis Error:', e);
+            let errorMessage = `เกิดข้อผิดพลาดกับระบบเสียง (${e.error})`;
             setError(errorMessage);
             setIsSpeaking(false);
         };
@@ -119,6 +102,96 @@ export const TextToSpeechPage: React.FC<TextToSpeechPageProps> = ({ onClose, pla
         setIsSpeaking(false);
     };
 
+    const handleDownload = async () => {
+        const trimmedText = text.trim();
+        if (!trimmedText || isSpeaking || isDownloading) return;
+
+        if (!isGetDisplayMediaSupported) {
+            setError("เบราว์เซอร์ของคุณไม่รองรับการบันทึกเสียงเพื่อดาวน์โหลด");
+            return;
+        }
+
+        playSound(audioService.playClick);
+        setError(null);
+        setIsDownloading(true);
+
+        try {
+            setError('โปรดเลือกแท็บนี้และเปิด "แชร์เสียงของแท็บ" เพื่อบันทึก');
+
+            const stream = await navigator.mediaDevices.getDisplayMedia({
+                video: true,
+                audio: true,
+            });
+
+            setError(null); // Clear instruction message
+
+            const [audioTrack] = stream.getAudioTracks();
+            if (!audioTrack) {
+                stream.getTracks().forEach(track => track.stop());
+                throw new Error("ไม่พบแทร็กเสียง โปรดตรวจสอบว่าคุณได้แชร์เสียงของแท็บแล้ว");
+            }
+
+            const audioStream = new MediaStream([audioTrack]);
+            const recorder = new MediaRecorder(audioStream);
+            const chunks: Blob[] = [];
+
+            recorder.ondataavailable = (event) => chunks.push(event.data);
+            
+            const downloadPromise = new Promise<void>((resolve, reject) => {
+                recorder.onstop = () => {
+                    try {
+                        const mimeType = recorder.mimeType || 'audio/webm';
+                        const blob = new Blob(chunks, { type: mimeType });
+                        const url = URL.createObjectURL(blob);
+                        const a = document.createElement('a');
+                        a.href = url;
+                        a.download = `speech.webm`;
+                        document.body.appendChild(a);
+                        a.click();
+                        URL.revokeObjectURL(url);
+                        document.body.removeChild(a);
+                        resolve();
+                    } catch (e) {
+                        reject(e);
+                    }
+                };
+            
+                const utterance = new SpeechSynthesisUtterance(trimmedText);
+                if (!autoDetectLang) {
+                    const selectedVoice = voices.find(v => v.voiceURI === selectedVoiceURI);
+                    if (selectedVoice) utterance.voice = selectedVoice;
+                }
+                utterance.pitch = pitch;
+                utterance.rate = rate;
+
+                utterance.onend = () => {
+                    setTimeout(() => {
+                        if (recorder.state === "recording") recorder.stop();
+                        stream.getTracks().forEach(track => track.stop());
+                    }, 200);
+                };
+                utterance.onerror = (e) => {
+                     if (recorder.state === "recording") recorder.stop();
+                     stream.getTracks().forEach(track => track.stop());
+                     reject(new Error(`Speech synthesis error: ${e.error}`));
+                };
+                
+                recorder.start();
+                window.speechSynthesis.speak(utterance);
+            });
+            
+            await downloadPromise;
+
+        } catch (err) {
+            playSound(audioService.playError);
+            const msg = err instanceof Error ? err.message : 'เกิดข้อผิดพลาดในการบันทึกเสียง';
+            setError(msg.includes('Permission denied') ? 'คุณต้องอนุญาตให้แชร์เสียงของแท็บเพื่อดาวน์โหลด' : msg);
+        } finally {
+            setIsDownloading(false);
+        }
+    };
+
+
     const handleClose = () => {
         if (isSpeechSynthesisSupported) {
             window.speechSynthesis.cancel();
@@ -128,14 +201,6 @@ export const TextToSpeechPage: React.FC<TextToSpeechPageProps> = ({ onClose, pla
 
     return (
         <PageWrapper>
-            <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} title="เหตุใดจึงดาวน์โหลดเสียงไม่ได้">
-                <div className="space-y-4 text-sm font-sans">
-                    <p>คุณสมบัติ 'แปลงข้อความเป็นเสียง' นี้ใช้เทคโนโลยี Web Speech API ที่มีอยู่ในเว็บเบราว์เซอร์ของคุณโดยตรง</p>
-                    <p>เมื่อคุณกด 'พูด' เบราว์เซอร์จะส่งข้อความไปยังระบบปฏิบัติการ (เช่น Windows, Android, iOS) เพื่อสร้างเสียงและเล่นผ่านลำโพงของคุณ</p>
-                    <p>กระบวนการนี้เกิดขึ้นภายในระบบปิดของเบราว์เซอร์และระบบปฏิบัติการ ทำให้เว็บแอปพลิเคชันไม่มีวิธีมาตรฐานในการ 'ดักจับ' หรือบันทึกเสียงที่ถูกสร้างขึ้นมาเป็นไฟล์ได้โดยตรง</p>
-                    <p>เรากำลังติดตามการพัฒนาของเทคโนโลยีเว็บอย่างใกล้ชิด และจะเปิดใช้งานฟังก์ชันดาวน์โหลดทันทีที่เบราว์เซอร์มีความสามารถนี้ในอนาคต!</p>
-                </div>
-            </Modal>
             <PageHeader title="แปลงข้อความเป็นเสียง AI" onBack={handleClose} />
             <main id="main-content" className="w-full max-w-lg flex flex-col items-center gap-6 font-sans">
                 <p className="text-sm text-center text-brand-light/80">
@@ -150,7 +215,7 @@ export const TextToSpeechPage: React.FC<TextToSpeechPageProps> = ({ onClose, pla
                         onChange={(e) => setText(e.target.value)}
                         placeholder="ป้อนข้อความที่นี่..."
                         className="w-full h-32 p-2 bg-brand-light text-black rounded-none border-2 border-black focus:outline-none focus:ring-2 focus:ring-brand-yellow resize-y"
-                        disabled={!isSpeechSynthesisSupported || isSpeaking}
+                        disabled={!isSpeechSynthesisSupported || isSpeaking || isDownloading}
                     />
                     
                     <div className="flex flex-col gap-2">
@@ -159,7 +224,7 @@ export const TextToSpeechPage: React.FC<TextToSpeechPageProps> = ({ onClose, pla
                                 type="checkbox" 
                                 checked={autoDetectLang} 
                                 onChange={(e) => { playSound(audioService.playToggle); setAutoDetectLang(e.target.checked); }} 
-                                disabled={!isSpeechSynthesisSupported || isSpeaking}
+                                disabled={!isSpeechSynthesisSupported || isSpeaking || isDownloading}
                                 className="w-5 h-5 accent-brand-magenta"
                             />
                             <span className="text-sm">ตรวจจับภาษาอัตโนมัติ</span>
@@ -173,7 +238,7 @@ export const TextToSpeechPage: React.FC<TextToSpeechPageProps> = ({ onClose, pla
                             value={selectedVoiceURI}
                             onChange={(e) => { playSound(audioService.playSelection); setSelectedVoiceURI(e.target.value); }}
                             className="w-full p-2 bg-brand-light text-black border-2 border-black disabled:opacity-50 disabled:cursor-not-allowed"
-                            disabled={!isSpeechSynthesisSupported || isSpeaking || autoDetectLang}
+                            disabled={!isSpeechSynthesisSupported || isSpeaking || isDownloading || autoDetectLang}
                         >
                             {voices.length > 0 ? voices.map(voice => (
                                 <option key={voice.voiceURI} value={voice.voiceURI}>
@@ -193,7 +258,7 @@ export const TextToSpeechPage: React.FC<TextToSpeechPageProps> = ({ onClose, pla
                             step="0.1"
                             value={rate}
                             onChange={(e) => { playSound(audioService.playSliderChange); setRate(parseFloat(e.target.value)); }}
-                            disabled={!isSpeechSynthesisSupported || isSpeaking}
+                            disabled={!isSpeechSynthesisSupported || isSpeaking || isDownloading}
                         />
                     </div>
                     
@@ -207,7 +272,7 @@ export const TextToSpeechPage: React.FC<TextToSpeechPageProps> = ({ onClose, pla
                             step="0.1"
                             value={pitch}
                             onChange={(e) => { playSound(audioService.playSliderChange); setPitch(parseFloat(e.target.value)); }}
-                            disabled={!isSpeechSynthesisSupported || isSpeaking}
+                            disabled={!isSpeechSynthesisSupported || isSpeaking || isDownloading}
                         />
                     </div>
 
@@ -216,7 +281,7 @@ export const TextToSpeechPage: React.FC<TextToSpeechPageProps> = ({ onClose, pla
                             <button
                                 onClick={handleSpeak}
                                 onMouseEnter={() => playSound(audioService.playHover)}
-                                disabled={!text.trim() || isSpeaking || !isSpeechSynthesisSupported}
+                                disabled={!text.trim() || isSpeaking || isDownloading || !isSpeechSynthesisSupported}
                                 className="w-full flex items-center justify-center gap-3 p-3 bg-brand-lime text-black border-4 border-brand-light shadow-pixel text-base transition-all hover:bg-brand-yellow active:shadow-pixel-active active:translate-y-[2px] active:translate-x-[2px] disabled:bg-gray-500 disabled:cursor-not-allowed"
                             >
                                 <PlayIcon className="w-5 h-5"/> พูด
@@ -232,17 +297,18 @@ export const TextToSpeechPage: React.FC<TextToSpeechPageProps> = ({ onClose, pla
                         </div>
                         <div>
                             <button
-                                disabled={true}
-                                aria-describedby="download-tts-desc"
-                                className="w-full flex items-center justify-center gap-3 p-3 bg-gray-600 text-white border-4 border-brand-light shadow-pixel text-base cursor-not-allowed opacity-70"
+                                onClick={handleDownload}
+                                disabled={!text.trim() || isSpeaking || isDownloading || !isSpeechSynthesisSupported || !isGetDisplayMediaSupported}
+                                className="w-full flex items-center justify-center gap-3 p-3 bg-brand-yellow text-black border-4 border-brand-light shadow-pixel text-base transition-all hover:bg-brand-magenta hover:text-white disabled:bg-gray-500 disabled:cursor-not-allowed"
                             >
-                                <DownloadIcon className="w-5 h-5"/> ดาวน์โหลด
+                                <DownloadIcon className="w-5 h-5"/>
+                                {isDownloading ? 'กำลังบันทึก...' : 'ดาวน์โหลด'}
                             </button>
-                            <div id="download-tts-desc" className="text-xs text-center text-brand-light/60 mt-2">
-                               <span>(ฟังก์ชันดาวน์โหลดจะพร้อมใช้งานในอนาคต </span>
-                               <button onClick={() => { playSound(audioService.playClick); setIsModalOpen(true); }} onMouseEnter={() => playSound(audioService.playHover)} className="underline hover:text-brand-yellow">เรียนรู้สาเหตุ</button>
-                               <span>)</span>
-                            </div>
+                             {!isGetDisplayMediaSupported && (
+                                 <p className="text-xs text-center text-brand-light/60 mt-2">
+                                     (การดาวน์โหลดไม่รองรับในเบราว์เซอร์นี้)
+                                 </p>
+                             )}
                         </div>
                     </div>
                 </div>

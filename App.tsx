@@ -6,8 +6,6 @@ import { VoiceChangerIcon } from './components/icons/VoiceChangerIcon';
 import { VoiceChangerPage } from './components/VoiceChangerPage';
 import { SoundLibraryPage } from './components/SoundLibraryPage';
 import { SoundWaveIcon } from './components/icons/SoundWaveIcon';
-import { TextToSpeechIcon } from './components/icons/TextToSpeechIcon';
-import { TextToSpeechPage } from './components/TextToSpeechPage';
 import { AboutPage } from './components/AboutPage';
 import { ImageGeneratorPage } from './components/ImageGeneratorPage';
 import { MinigameHubPage } from './components/MinigameHubPage';
@@ -24,9 +22,11 @@ import { GlobalLayout } from './components/GlobalLayout';
 import { NotificationControl } from './components/NotificationControl';
 import { SpeakerOnIcon } from './components/icons/SpeakerOnIcon';
 import { SpeakerOffIcon } from './components/icons/SpeakerOffIcon';
+import { ImageSoundIcon } from './components/icons/ImageSoundIcon';
+import { ImageToSoundPage } from './components/ImageToSoundPage';
 
 
-type CurrentPage = 'main' | 'imageGenerator' | 'aiNarrator' | 'soundLibrary' | 'tts' | 'about' | 'minigameHub' | 'textToSong' | 'videoEditor' | 'analyzeMedia';
+type CurrentPage = 'main' | 'imageGenerator' | 'aiNarrator' | 'soundLibrary' | 'about' | 'minigameHub' | 'textToSong' | 'videoEditor' | 'analyzeMedia' | 'imageToSound';
 
 
 // --- Feature Button ---
@@ -192,8 +192,8 @@ export const App: React.FC = () => {
                 return <VoiceChangerPage onClose={handlePageClose} playSound={playSound} />;
             case 'soundLibrary':
                 return <SoundLibraryPage onClose={handlePageClose} playSound={playSound} isOnline={isOnline} />;
-            case 'tts':
-                return <TextToSpeechPage onClose={handlePageClose} playSound={playSound} />;
+             case 'imageToSound':
+                return <ImageToSoundPage onClose={handlePageClose} playSound={playSound} isOnline={isOnline} />;
             case 'imageGenerator':
                 return <ImageGeneratorPage onClose={handlePageClose} playSound={playSound} isOnline={isOnline} />;
             case 'videoEditor':
@@ -209,7 +209,7 @@ export const App: React.FC = () => {
                     { pageKey: 'textToSong', icon: <TextMusicIcon className="w-10 h-10" />, label: "สร้างเพลง" },
                     { pageKey: 'analyzeMedia', icon: <AnalyzeIcon className="w-10 h-10" />, label: "วิเคราะห์สื่อ", beta: true },
                     { pageKey: 'soundLibrary', icon: <SoundWaveIcon className="w-10 h-10" />, label: "คลังเสียง" },
-                    { pageKey: 'tts', icon: <TextToSpeechIcon className="w-10 h-10" />, label: "อ่านออกเสียง" },
+                    { pageKey: 'imageToSound', icon: <ImageSoundIcon className="w-10 h-10" />, label: "ภาพเป็นเสียง", beta: true },
                     { pageKey: 'minigameHub', icon: <GamepadIcon className="w-10 h-10" />, label: "ฟีเจอร์เสริม" },
                 ];
 

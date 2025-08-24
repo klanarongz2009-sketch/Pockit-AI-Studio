@@ -200,14 +200,53 @@ export const SongSearchPage: React.FC<SongSearchPageProps> = ({ onClose, playSou
                         </div>
                     )}
                     {result && !isLoading && (
-                        <div className="w-full text-left space-y-4">
+                        <div className="w-full text-left space-y-6">
+                            {result.identificationType === 'direct' && (
+                                <div className="space-y-2">
+                                    <h3 className="font-press-start text-lg text-brand-cyan mb-2">ข้อมูลที่พบ:</h3>
+                                    {[
+                                        { label: 'เพลง', value: result.title },
+                                        { label: 'ศิลปิน', value: result.artist },
+                                        { label: 'อัลบั้ม', value: result.album },
+                                        { label: 'ปี', value: result.year },
+                                        { label: 'แนวเพลง', value: result.genre },
+                                    ].filter(d => d.value).map(detail => (
+                                        <div key={detail.label} className="flex text-sm border-b border-brand-light/10 pb-1">
+                                            <span className="font-press-start text-brand-cyan/80 w-1/3 truncate">{detail.label}:</span>
+                                            <span className="text-brand-light w-2/3">{detail.value}</span>
+                                        </div>
+                                    ))}
+                                </div>
+                            )}
+
                             <div>
                                 <h3 className="font-press-start text-lg text-brand-cyan mb-2">ภาพรวมจาก AI:</h3>
                                 <p className="text-sm whitespace-pre-wrap text-brand-light">{result.overview || 'AI ไม่ได้ให้ข้อมูลภาพรวม'}</p>
                             </div>
+
+                             {result.searchSuggestions.length > 0 && (
+                                <div>
+                                    <h3 className="font-press-start text-lg text-brand-cyan mb-2">คำแนะนำการค้นหา:</h3>
+                                    <div className="flex flex-wrap gap-2">
+                                        {result.searchSuggestions.map((suggestion, index) => (
+                                            <a 
+                                                key={index}
+                                                href={`https://www.google.com/search?q=${encodeURIComponent(suggestion)}`}
+                                                target="_blank"
+                                                rel="noopener noreferrer"
+                                                onMouseEnter={() => playSound(audioService.playHover)}
+                                                className="px-3 py-1 bg-brand-cyan/20 text-brand-light text-xs font-press-start border border-brand-cyan hover:bg-brand-cyan hover:text-black transition-colors"
+                                            >
+                                                {suggestion}
+                                            </a>
+                                        ))}
+                                    </div>
+                                </div>
+                            )}
+
                             {result.sources.length > 0 && (
                                 <div>
-                                    <h3 className="font-press-start text-lg text-brand-cyan mb-2">แหล่งข้อมูลที่ AI ใช้อ้างอิง:</h3>
+                                    <h3 className="font-press-start text-lg text-brand-cyan mb-2">แหล่งข้อมูลอ้างอิง:</h3>
                                     <ul className="space-y-2 list-inside">
                                         {result.sources.map((source, index) => (
                                             <li key={source.uri} className="text-sm">
