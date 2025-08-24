@@ -224,7 +224,7 @@ export const App: React.FC = () => {
     ];
 
     return (
-        <PageWrapper>
+        <PageWrapper className="justify-between">
             <EarnCreditsModal isOpen={isEarnCreditsModalOpen} onClose={() => setIsEarnCreditsModalOpen(false)} />
             <div className="absolute top-4 right-4 flex items-center gap-2 z-10">
                  <button
@@ -253,7 +253,9 @@ export const App: React.FC = () => {
                 </button>
             </div>
             
-            <main id="main-content" role="main" className="w-full max-w-4xl mx-auto flex flex-col items-center justify-center gap-6 p-4 pt-16 flex-grow overflow-y-auto">
+            <div/>
+
+            <main id="main-content" role="main" className="w-full max-w-lg flex flex-col items-center gap-6 p-4 sm:p-8">
                 <header className="text-center mb-2">
                     <h1 className="text-3xl sm:text-4xl text-brand-yellow drop-shadow-[3px_3px_0_#000]">Ai Studio แบบพกพา</h1>
                     <p className="text-sm text-brand-cyan mt-2">สตูดิโอสร้างสรรค์พลัง AI!</p>
@@ -283,7 +285,7 @@ export const App: React.FC = () => {
                     </section>
                 )}
 
-                 <div className="w-full grid grid-cols-2 sm:grid-cols-4 gap-2 text-brand-light text-sm">
+                 <div className="w-full grid grid-cols-2 gap-2 text-brand-light text-sm">
                     {features.map(feature => (
                         <FeatureButton
                             key={feature.pageKey}
@@ -300,7 +302,7 @@ export const App: React.FC = () => {
                 </div>
             </main>
             
-            <footer className="w-full flex flex-col sm:flex-row items-center justify-center gap-x-4 gap-y-2 p-4 flex-shrink-0">
+            <footer className="w-full flex flex-col sm:flex-row items-center justify-center gap-x-4 gap-y-2 p-4 pt-0">
                 <button onClick={() => handleSetPage('about')} className="text-[10px] text-brand-light/50 hover:text-brand-yellow underline">เกี่ยวกับแอป</button>
                 <p className="text-[10px] text-brand-light/50">ขับเคลื่อนโดย Google AI</p>
             </footer>

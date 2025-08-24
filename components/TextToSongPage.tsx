@@ -1,5 +1,4 @@
 
-
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import type { Song } from '../services/geminiService';
 import { generateSongFromText } from '../services/geminiService';
@@ -280,7 +279,7 @@ export const TextToSongPage: React.FC<TextToSongPageProps> = ({
     return (
         <PageWrapper>
             <PageHeader title="แปลงข้อความเป็นเพลง" onBack={handleClose} />
-            <main id="main-content" className="w-full max-w-4xl mx-auto p-4 flex-grow overflow-y-auto flex flex-col items-center gap-6 font-sans">
+            <main id="main-content" className="w-full max-w-lg flex flex-col items-center gap-6 font-sans">
                 <p className="text-sm text-center text-brand-light/80">
                     พิมพ์เรื่องราว, บทกวี, หรือเนื้อเพลงของคุณ แล้วให้ AI แปลงตัวอักษรให้กลายเป็นเพลง 8-bit สุดสร้างสรรค์!
                 </p>

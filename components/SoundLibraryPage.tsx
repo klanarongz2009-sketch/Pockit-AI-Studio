@@ -110,7 +110,7 @@ export const SoundLibraryPage: React.FC<SoundLibraryPageProps> = ({ onClose, pla
     return (
         <PageWrapper>
             <PageHeader title="คลังเสียง 8-Bit" onBack={onClose} />
-            <main id="main-content" className="w-full max-w-4xl mx-auto p-4 flex-grow overflow-y-auto flex flex-col items-center gap-6 font-sans">
+            <main id="main-content" className="w-full max-w-lg flex flex-col items-center gap-6 font-sans">
                 <div className="w-full text-center space-y-4">
                     <p className="text-sm text-brand-light/80">
                         อธิบายเสียง 8-bit ที่คุณต้องการ แล้วให้ AI สร้างสรรค์เสียงประกอบที่เป็นเอกลักษณ์สำหรับโปรเจกต์ของคุณ!

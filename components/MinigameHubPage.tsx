@@ -1,5 +1,4 @@
 
-
 import React, { useState, useCallback } from 'react';
 import { PageHeader, PageWrapper } from './PageComponents';
 import { LoadingSpinner } from './LoadingSpinner';
@@ -135,7 +134,7 @@ export const MinigameHubPage: React.FC<MinigameHubPageProps> = ({ onClose, playS
     return (
         <PageWrapper>
             <PageHeader title="ฟีเจอร์เสริม & มินิเกม" onBack={onClose} />
-            <main className="w-full max-w-4xl mx-auto p-4 flex-grow overflow-y-auto font-sans space-y-6">
+            <main className="w-full max-w-2xl flex-grow overflow-y-auto font-sans pr-2 space-y-6">
                 {isLoadingAssets ? (
                     <LoadingSpinner text="กำลังสร้างตัวละคร..." />
                 ) : (

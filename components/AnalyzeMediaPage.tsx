@@ -158,10 +158,10 @@ export const AnalyzeMediaPage: React.FC<AnalyzeMediaPageProps> = ({ onClose, pla
     );
 
     return (
-        <PageWrapper>
+        <PageWrapper className="justify-start">
             <input type="file" ref={fileInputRef} onChange={handleFileChange} accept="video/*,image/*" className="hidden" aria-hidden="true" />
             <PageHeader title="AI Media Analyzer" onBack={onClose} />
-            <main id="main-content" className="w-full max-w-4xl mx-auto p-4 flex-grow overflow-y-auto flex flex-col items-center gap-4 font-sans">
+            <main id="main-content" className="w-full max-w-2xl flex-grow flex flex-col items-center gap-4 font-sans">
                 <div className="w-full h-auto aspect-video bg-black/50 border-4 border-brand-light flex items-center justify-center shadow-pixel p-2">
                     {!uploadedFile ? (
                         <div className="text-center space-y-4">
@@ -205,7 +205,7 @@ export const AnalyzeMediaPage: React.FC<AnalyzeMediaPageProps> = ({ onClose, pla
                             {isLoading && <LoadingSpinner text={loadingText} />}
                             {error && <div role="alert" className="text-center text-brand-magenta"><p className="font-press-start">ข้อผิดพลาด</p><p className="text-sm mt-2">{error}</p></div>}
                             {result && !isLoading && (
-                                <div className="w-full h-full overflow-y-auto">
+                                <div className="w-full h-full">
                                     {result.type === 'text' && <p className="text-sm whitespace-pre-wrap">{result.content}</p>}
                                     {result.type === 'image' && (
                                         <div className="flex flex-col items-center gap-4">

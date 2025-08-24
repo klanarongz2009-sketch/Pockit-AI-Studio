@@ -1,7 +1,6 @@
 
 
 
-
 import React, { useState } from 'react';
 import { PageHeader, PageWrapper } from './PageComponents';
 import { SparklesIcon } from './icons/SparklesIcon';
@@ -164,7 +163,7 @@ const FeedbackSection: React.FC<{ playSound: (player: () => void) => void; isOnl
 export const AboutPage: React.FC<AboutPageProps> = ({ onClose, playSound, isOnline }) => (
     <PageWrapper>
         <PageHeader title="เกี่ยวกับสตูดิโอ" onBack={onClose} />
-        <main className="w-full max-w-4xl mx-auto p-4 flex-grow overflow-y-auto font-sans space-y-6">
+        <main className="w-full max-w-2xl flex-grow overflow-y-auto font-sans pr-2 space-y-6">
             <Section title="สวัสดีครับ!">
                 <p>
                     ยินดีต้อนรับสู่ Ai Studio แบบพกพา สนามเด็กเล่นดิจิทัลแห่งนี้! สตูดิโอนี้มีเครื่องมือ AI สร้างสรรค์และแหล่งข้อมูลทางเทคนิคเพื่อช่วยเหลือคุณ ภารกิจของเราคือการเปลี่ยนไอเดียสุดบรรเจิดของคุณให้กลายเป็นความจริงด้วย AI ด้วยพลังของ Google AI เรามาสร้างสรรค์สิ่งที่น่าทึ่งไปด้วยกันเถอะ!
