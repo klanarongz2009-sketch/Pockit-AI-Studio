@@ -1,6 +1,4 @@
 
-
-
 import { GoogleGenAI, Type, Chat } from "@google/genai";
 
 const API_KEY = process.env.API_KEY;
@@ -12,45 +10,65 @@ if (API_KEY) {
     console.error("Gemini API key not found. Please set the API_KEY environment variable.");
 }
 
-const parseApiError = (error: unknown): string => {
-    // Helper to check for quota-related substrings
-    const isQuotaError = (message: string): boolean => {
-        if (!message) return false;
-        const lowerCaseMessage = message.toLowerCase();
-        return lowerCaseMessage.includes('quota') || lowerCaseMessage.includes('resource_exhausted');
-    };
+export const parseApiError = (error: unknown): string => {
+    // If the "error" is a response object with promptFeedback, it's a safety block.
+    if (typeof error === 'object' && error !== null && 'promptFeedback' in error) {
+        const feedback = (error as any).promptFeedback;
+        if (feedback?.blockReason) {
+            return `คำสั่งของคุณถูกบล็อกเนื่องจากนโยบายความปลอดภัย: ${feedback.blockReasonMessage || feedback.blockReason}`;
+        }
+    }
 
+    let message = 'เกิดข้อผิดพลาดที่ไม่คาดคิด';
     let details: any = {};
 
-    // Step 1: Extract the core error object ("details") from various possible structures.
-    if (typeof error === 'object' && error !== null) {
-        details = (error as any).error || (error as any).response?.data?.error || error;
-    } else if (error instanceof Error) {
+    if (error instanceof Error) {
+        message = error.message;
         try {
-            const parsed = JSON.parse(error.message);
+            // Sometimes the error message is a JSON string from the API
+            const parsed = JSON.parse(message);
             details = parsed.error || parsed;
+            message = details.message || message;
         } catch (e) {
-            // If parsing fails, the message itself is the detail.
-            details = { message: error.message };
+            // Not JSON, use the message as is
         }
+    } else if (typeof error === 'object' && error !== null) {
+        // Common structure for Google API errors
+        details = (error as any).error || (error as any).response?.data?.error || error;
+        message = details.message || String(error);
     } else {
-        // For primitives like strings.
-        details = { message: String(error) };
+        message = String(error);
     }
 
-    // Step 2: Check for a specific quota error status or message.
-    if (details?.status === 'RESOURCE_EXHAUSTED' || isQuotaError(details?.message)) {
-        return 'คุณใช้งานเกินโควต้าแล้ว โปรดรอสักครู่แล้วลองอีกครั้ง หรือตรวจสอบแผนและข้อมูลการเรียกเก็บเงินของคุณใน Google AI Studio';
-    }
+    const status = details?.status || '';
+    const lowerCaseMessage = message.toLowerCase();
 
-    // Step 3: Return a formatted message if one exists.
-    if (typeof details?.message === 'string') {
-        return `เกิดข้อผิดพลาดจาก API: ${details.message}`;
+    if (status === 'RESOURCE_EXHAUSTED' || lowerCaseMessage.includes('quota') || lowerCaseMessage.includes('rate limit')) {
+        return 'คุณใช้งานเกินโควต้าแล้ว โปรดรอสักครู่แล้วลองอีกครั้ง หรือตรวจสอบแผนการใช้งานของคุณใน Google AI Studio';
     }
+    if (status === 'PERMISSION_DENIED' || lowerCaseMessage.includes('api key not valid')) {
+        return 'API Key ไม่ถูกต้องหรือไม่มีสิทธิ์เข้าถึง โปรดตรวจสอบการตั้งค่า';
+    }
+    if (status === 'INVALID_ARGUMENT') {
+        return `คำขอไม่ถูกต้อง: ${message}. โปรดตรวจสอบว่าข้อมูลที่ส่งถูกต้อง`;
+    }
+    if (lowerCaseMessage.includes('service is currently unavailable') || (details.code && details.code >= 500)) {
+        return 'บริการไม่พร้อมใช้งานชั่วคราว โปรดลองอีกครั้งในภายหลัง';
+    }
+    if (lowerCaseMessage.includes('safety policy') || lowerCaseMessage.includes('blocked') || lowerCaseMessage.includes('safety threshold')) {
+        return `คำสั่งของคุณอาจขัดต่อนโยบายความปลอดภัยและถูกบล็อก โปรดลองปรับเปลี่ยนคำสั่ง`;
+    }
+    if (lowerCaseMessage.includes('failed to fetch')) {
+        return 'เกิดข้อผิดพลาดในการเชื่อมต่อเครือข่าย โปรดตรวจสอบการเชื่อมต่ออินเทอร์เน็ตของคุณแล้วลองอีกครั้ง';
+    }
+    
+    // Clean up generic prefixes from the SDK
+    if (message.startsWith('Error: ')) message = message.substring(7);
+    if (message.startsWith('[GoogleGenerativeAI Error]: ')) message = message.substring(28);
 
-    // Step 4: Fallback for unknown errors.
-    return 'เกิดข้อผิดพลาดที่ไม่คาดคิด';
+    return `เกิดข้อผิดพลาด: ${message}`;
 };
+
 
 const delay = (ms: number) => new Promise(res => setTimeout(res, ms));
 
@@ -158,6 +176,13 @@ export interface SearchResult {
     }[];
 }
 
+export interface MidiNote {
+    pitch: string;
+    startTime: number; // in seconds
+    duration: number; // in seconds
+    velocity: number; // 0-127
+}
+
 export const getTicTacToeMove = async (board: string[][], aiPlayer: 'X' | 'O'): Promise<{row: number, col: number}> => {
     if (!ai) {
         throw new Error("ไม่ได้กำหนดค่า API_KEY ไม่สามารถเรียกใช้ Gemini API ได้");
@@ -182,6 +207,10 @@ export const getTicTacToeMove = async (board: string[][], aiPlayer: 'X' | 'O'): 
                 }
             }
         });
+
+        if (response.promptFeedback?.blockReason) {
+            throw new Error(`คำสั่งถูกบล็อกเนื่องจากนโยบายความปลอดภัย: ${response.promptFeedback.blockReasonMessage || response.promptFeedback.blockReason}`);
+        }
 
         const jsonResponse = JSON.parse(response.text);
         if (typeof jsonResponse.row === 'number' && typeof jsonResponse.col === 'number' && jsonResponse.row >= 0 && jsonResponse.row <= 2 && jsonResponse.col >= 0 && jsonResponse.col <= 2) {
@@ -251,6 +280,10 @@ export const generateSongFromText = async (text: string, modelVersion: 'v1' | 'v
             },
         });
 
+        if (response.promptFeedback?.blockReason) {
+            throw new Error(`คำสั่งถูกบล็อกเนื่องจากนโยบายความปลอดภัย: ${response.promptFeedback.blockReasonMessage || response.promptFeedback.blockReason}`);
+        }
+
         const jsonResponse = JSON.parse(response.text);
         if (jsonResponse && Array.isArray(jsonResponse) && jsonResponse.length > 0) {
             return jsonResponse as Song;
@@ -311,6 +344,10 @@ export const generateSongFromMedia = async (base64Data: string, mimeType: string
             },
         });
 
+        if (response.promptFeedback?.blockReason) {
+            throw new Error(`คำสั่งถูกบล็อกเนื่องจากนโยบายความปลอดภัย: ${response.promptFeedback.blockReasonMessage || response.promptFeedback.blockReason}`);
+        }
+
         const jsonResponse = JSON.parse(response.text);
         if (jsonResponse && Array.isArray(jsonResponse) && jsonResponse.length > 0) {
             return jsonResponse as Song;
@@ -336,6 +373,9 @@ export const analyzeFeedback = async (feedbackText: string): Promise<string> => 
                 systemInstruction: "You are a helpful assistant who analyzes user feedback. Your goal is to summarize the user's intent clearly and concisely in Thai.",
             },
         });
+        if (response.promptFeedback?.blockReason) {
+            throw new Error(`คำสั่งถูกบล็อกเนื่องจากนโยบายความปลอดภัย: ${response.promptFeedback.blockReasonMessage || response.promptFeedback.blockReason}`);
+        }
         return response.text;
     } catch (error) {
         console.error("Error analyzing feedback:", error);
@@ -382,6 +422,10 @@ export const generateAnimationIdeas = async (baseIdea: string): Promise<Animatio
             },
         });
 
+        if (response.promptFeedback?.blockReason) {
+            throw new Error(`คำสั่งถูกบล็อกเนื่องจากนโยบายความปลอดภัย: ${response.promptFeedback.blockReasonMessage || response.promptFeedback.blockReason}`);
+        }
+
         const jsonResponse = JSON.parse(response.text);
         if (jsonResponse.ideas && Array.isArray(jsonResponse.ideas)) {
             return jsonResponse.ideas;
@@ -415,6 +459,9 @@ export const generatePromptFromImage = async (base64Data: string, mimeType: stri
             model: 'gemini-2.5-flash',
             contents: { parts: [imagePart, textPart] },
         });
+        if (response.promptFeedback?.blockReason) {
+            throw new Error(`คำสั่งถูกบล็อกเนื่องจากนโยบายความปลอดภัย: ${response.promptFeedback.blockReasonMessage || response.promptFeedback.blockReason}`);
+        }
         return response.text;
     } catch (error) {
         console.error("Error generating prompt from image:", error);
@@ -447,7 +494,7 @@ export const generatePixelArt = async (prompt: string): Promise<string> => {
             const base64ImageBytes: string = response.generatedImages[0].image.imageBytes;
             return `data:image/png;base64,${base64ImageBytes}`;
         } else {
-            throw new Error("ไม่มีภาพถูกสร้างขึ้น การตอบสนองอาจว่างเปล่าหรือคำสั่งถูกบล็อก");
+            throw new Error("AI ไม่สามารถสร้างภาพได้ อาจเนื่องจากคำสั่งของคุณขัดต่อนโยบายความปลอดภัย โปรดลองปรับเปลี่ยนคำสั่งของคุณ");
         }
     } catch (error) {
         console.error("Error generating image:", error);
@@ -510,6 +557,10 @@ export const generateGifFrames = async (prompt: string, frameCount: number): Pro
             },
         });
         
+        if (response.promptFeedback?.blockReason) {
+            throw new Error(`คำสั่งถูกบล็อกเนื่องจากนโยบายความปลอดภัย: ${response.promptFeedback.blockReasonMessage || response.promptFeedback.blockReason}`);
+        }
+
         const jsonResponse = JSON.parse(response.text);
         if (jsonResponse.prompts && Array.isArray(jsonResponse.prompts) && jsonResponse.prompts.length > 0) {
             framePrompts = jsonResponse.prompts;
@@ -633,6 +684,9 @@ export const generatePromptSuggestions = async (basePrompt: string): Promise<Pro
                 },
             },
         });
+        if (response.promptFeedback?.blockReason) {
+            throw new Error(`คำสั่งถูกบล็อกเนื่องจากนโยบายความปลอดภัย: ${response.promptFeedback.blockReasonMessage || response.promptFeedback.blockReason}`);
+        }
         const jsonResponse = JSON.parse(response.text);
         return jsonResponse.suggestions || [];
     } catch (error) {
@@ -671,6 +725,9 @@ export const enhancePrompt = async (prompt: string): Promise<PromptEnhancement[]
                 },
             },
         });
+        if (response.promptFeedback?.blockReason) {
+            throw new Error(`คำสั่งถูกบล็อกเนื่องจากนโยบายความปลอดภัย: ${response.promptFeedback.blockReasonMessage || response.promptFeedback.blockReason}`);
+        }
         const jsonResponse = JSON.parse(response.text);
         return jsonResponse.enhancements || [];
     } catch (error) {
@@ -712,6 +769,10 @@ export const generateWordMatches = async (text: string): Promise<WordMatch[]> =>
             },
         });
 
+        if (response.promptFeedback?.blockReason) {
+            throw new Error(`คำสั่งถูกบล็อกเนื่องจากนโยบายความปลอดภัย: ${response.promptFeedback.blockReasonMessage || response.promptFeedback.blockReason}`);
+        }
+
         const jsonResponse = JSON.parse(response.text);
         if (jsonResponse && Array.isArray(jsonResponse)) {
             return jsonResponse as WordMatch[];
@@ -737,6 +798,9 @@ export const generateSecret = async (topic: string): Promise<string> => {
                 systemInstruction: "You are a mystical AI oracle that speaks in Thai. You reveal fictional, profound-sounding secrets about any topic given to you. Your tone is mysterious and wise.",
             },
         });
+        if (response.promptFeedback?.blockReason) {
+            throw new Error(`คำสั่งถูกบล็อกเนื่องจากนโยบายความปลอดภัย: ${response.promptFeedback.blockReasonMessage || response.promptFeedback.blockReason}`);
+        }
         return response.text;
     } catch (error) {
         console.error("Error generating secret:", error);
@@ -766,6 +830,9 @@ export const generateScriptFromMedia = async (base64Data: string, mimeType: stri
                 systemInstruction: "You are a creative AI scriptwriter. Your task is to generate a script based on media input and a specified style.",
             },
         });
+        if (response.promptFeedback?.blockReason) {
+            throw new Error(`คำสั่งถูกบล็อกเนื่องจากนโยบายความปลอดภัย: ${response.promptFeedback.blockReasonMessage || response.promptFeedback.blockReason}`);
+        }
         return response.text;
     } catch (error) {
         console.error("Error generating script from media:", error);
@@ -794,6 +861,9 @@ export const generateVideoSummary = async (base64Data: string, mimeType: string)
             model: 'gemini-2.5-flash',
             contents: { parts: [videoPart, textPart] },
         });
+        if (response.promptFeedback?.blockReason) {
+            throw new Error(`คำสั่งถูกบล็อกเนื่องจากนโยบายความปลอดภัย: ${response.promptFeedback.blockReasonMessage || response.promptFeedback.blockReason}`);
+        }
         return response.text;
     } catch (error) {
         console.error("Error generating summary from video:", error);
@@ -856,6 +926,10 @@ export const generateVoicePresets = async (baseIdea: string): Promise<VoicePrese
             },
         });
 
+        if (response.promptFeedback?.blockReason) {
+            throw new Error(`คำสั่งถูกบล็อกเนื่องจากนโยบายความปลอดภัย: ${response.promptFeedback.blockReasonMessage || response.promptFeedback.blockReason}`);
+        }
+
         const jsonResponse = JSON.parse(response.text);
         if (jsonResponse.presets && Array.isArray(jsonResponse.presets)) {
             const validEffects = availableEffects.split(', ');
@@ -905,6 +979,10 @@ export const generateSoundEffectIdeas = async (prompt: string): Promise<SoundEff
                 },
             },
         });
+
+        if (response.promptFeedback?.blockReason) {
+            throw new Error(`คำสั่งถูกบล็อกเนื่องจากนโยบายความปลอดภัย: ${response.promptFeedback.blockReasonMessage || response.promptFeedback.blockReason}`);
+        }
 
         const jsonResponse = JSON.parse(response.text);
         if (jsonResponse.sounds && Array.isArray(jsonResponse.sounds)) {
@@ -961,6 +1039,10 @@ export const generateSoundFromImage = async (base64Data: string, mimeType: strin
                 },
             },
         });
+
+        if (response.promptFeedback?.blockReason) {
+            throw new Error(`คำสั่งถูกบล็อกเนื่องจากนโยบายความปลอดภัย: ${response.promptFeedback.blockReasonMessage || response.promptFeedback.blockReason}`);
+        }
 
         const jsonResponse = JSON.parse(response.text);
         const validWaveTypes = ['square', 'sine', 'sawtooth', 'triangle'];
@@ -1022,6 +1104,10 @@ export const generateSubtitlesFromVideo = async (base64Data: string, mimeType: s
             },
         });
         
+        if (response.promptFeedback?.blockReason) {
+            throw new Error(`คำสั่งถูกบล็อกเนื่องจากนโยบายความปลอดภัย: ${response.promptFeedback.blockReasonMessage || response.promptFeedback.blockReason}`);
+        }
+
         const text = response.text.trim();
         if (text.startsWith('WEBVTT')) {
             return text;
@@ -1061,6 +1147,9 @@ export const analyzeAudioFromMedia = async (base64Data: string, mimeType: string
                 systemInstruction: "You are an expert audio analyst. Your task is to listen to the audio from a media file (which could be audio or video) and provide a detailed breakdown of its components in clear, descriptive Thai.",
             },
         });
+        if (response.promptFeedback?.blockReason) {
+            throw new Error(`คำสั่งถูกบล็อกเนื่องจากนโยบายความปลอดภัย: ${response.promptFeedback.blockReasonMessage || response.promptFeedback.blockReason}`);
+        }
         return response.text;
     } catch (error) {
         console.error("Error analyzing audio from media:", error);
@@ -1081,6 +1170,9 @@ export const correctText = async (text: string): Promise<string> => {
                 systemInstruction: "You are an expert Thai language proofreader. Your task is to correct the provided text. Return only the fully corrected text without any preamble, explanation, or markdown formatting.",
             },
         });
+        if (response.promptFeedback?.blockReason) {
+            throw new Error(`คำสั่งถูกบล็อกเนื่องจากนโยบายความปลอดภัย: ${response.promptFeedback.blockReasonMessage || response.promptFeedback.blockReason}`);
+        }
         return response.text.trim();
     } catch (error) {
         console.error("Error correcting text:", error);
@@ -1105,10 +1197,10 @@ export const identifyAndSearchMusic = async (base64Data: string, mimeType: strin
 
 **Process:**
 
-1.  **Analyze Audio:** Listen to the audio clip carefully.
+1.  **Analyze Audio:** Listen to the audio clip carefully. The audio could be a song, spoken words, a sound effect, or rhythmic sounds like tapping or knocking.
 2.  **Identify or Describe:**
     *   **If you can identify the specific song/media:** Set \`identificationType\` to "direct". Fill in as many details as possible: \`title\`, \`artist\`, \`album\`, \`year\`, and \`genre\`. Write a concise \`overview\`.
-    *   **If you cannot identify it directly:** Set \`identificationType\` to "similarity". Do NOT state that you cannot identify it. Instead, provide a detailed description in the \`overview\` field (e.g., genre, mood, instrumentation, similar artists). Leave other fields like \`title\`, \`artist\`, \`album\`, and \`year\` as null.
+    *   **If you cannot identify it directly:** Set \`identificationType\` to "similarity". Do NOT state that you cannot identify it. Instead, provide a detailed description in the \`overview\` field (e.g., genre, mood, instrumentation, similar artists, or describing the sound like 'fast rhythmic knocking on wood'). Leave other fields like \`title\`, \`artist\`, \`album\`, and \`year\` as null.
 3.  **Generate Search Suggestions:** Create an array of 4 relevant and interesting Google search queries related to the identified or described media. Put these in the \`searchSuggestions\` field.
 
 **JSON Output Format:**
@@ -1137,6 +1229,10 @@ export const identifyAndSearchMusic = async (base64Data: string, mimeType: strin
             },
         });
         
+        if (response.promptFeedback?.blockReason) {
+            throw new Error(`คำสั่งถูกบล็อกเนื่องจากนโยบายความปลอดภัย: ${response.promptFeedback.blockReasonMessage || response.promptFeedback.blockReason}`);
+        }
+
         let parsedResult: Partial<SearchResult> = {};
         const rawText = response.text.trim();
         
@@ -1193,5 +1289,73 @@ export const identifyAndSearchMusic = async (base64Data: string, mimeType: strin
     } catch (error) {
         console.error("Error identifying music:", error);
         throw new Error(`ไม่สามารถค้นหาเพลงได้: ${parseApiError(error)}`);
+    }
+};
+
+export const convertAudioToMidi = async (base64Data: string, mimeType: string): Promise<MidiNote[]> => {
+    if (!ai) {
+        throw new Error("ไม่ได้กำหนดค่า API_KEY ไม่สามารถเรียกใช้ Gemini API ได้");
+    }
+
+    const mediaPart = {
+        inlineData: {
+            data: base64Data,
+            mimeType: mimeType,
+        },
+    };
+
+    const textPart = {
+        text: "Analyze the provided audio clip, which may contain singing, musical instruments, or both. Transcribe the primary melodic line into a series of musical notes. For each note, provide its pitch name (e.g., 'C4', 'F#5'), its start time in seconds from the beginning, its duration in seconds, and its velocity (loudness) from 0 to 127. If you cannot detect a clear melody, return an empty array.",
+    };
+
+    try {
+        const response = await ai.models.generateContent({
+            model: "gemini-2.5-flash",
+            contents: { parts: [mediaPart, textPart] },
+            config: {
+                systemInstruction: "You are an expert audio analysis AI that transcribes melodies to a structured JSON format. Focus on the most prominent melody. The output must only be the JSON array.",
+                responseMimeType: "application/json",
+                responseSchema: {
+                    type: Type.ARRAY,
+                    description: "An array of transcribed musical notes.",
+                    items: {
+                        type: Type.OBJECT,
+                        properties: {
+                            pitch: {
+                                type: Type.STRING,
+                                description: "The note pitch (e.g., 'C4', 'G#3') or 'Rest'."
+                            },
+                            startTime: {
+                                type: Type.NUMBER,
+                                description: "The start time of the note in seconds."
+                            },
+                            duration: {
+                                type: Type.NUMBER,
+                                description: "The duration of the note in seconds."
+                            },
+                            velocity: {
+                                type: Type.INTEGER,
+                                description: "The note's velocity (loudness), from 0 to 127."
+                            }
+                        },
+                        required: ["pitch", "startTime", "duration", "velocity"]
+                    }
+                },
+            },
+        });
+
+        if (response.promptFeedback?.blockReason) {
+            throw new Error(`คำสั่งถูกบล็อกเนื่องจากนโยบายความปลอดภัย: ${response.promptFeedback.blockReasonMessage || response.promptFeedback.blockReason}`);
+        }
+
+        const jsonResponse = JSON.parse(response.text);
+        if (jsonResponse && Array.isArray(jsonResponse)) {
+            return jsonResponse as MidiNote[];
+        } else {
+            throw new Error("Could not parse MIDI notes from the response.");
+        }
+    } catch (error) {
+        console.error("Error converting audio to MIDI:", error);
+        throw new Error(`ไม่สามารถแปลงเสียงเป็น MIDI ได้: ${parseApiError(error)}`);
     }
 };

@@ -1,7 +1,7 @@
+
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import * as geminiService from '../services/geminiService';
 import * as audioService from '../services/audioService';
-import { PageHeader, PageWrapper } from './PageComponents';
 import { OutputDisplay } from './ImageDisplay';
 import { SparklesIcon } from './icons/SparklesIcon';
 import { UploadIcon } from './icons/UploadIcon';
@@ -23,10 +23,9 @@ const videoLoadingMessages = [
 ];
 
 export const ImageGeneratorPage: React.FC<{
-  onClose: () => void;
   playSound: (player: () => void) => void;
   isOnline: boolean;
-}> = ({ onClose, playSound, isOnline }) => {
+}> = ({ playSound, isOnline }) => {
     const [prompt, setPrompt] = useState<string>('');
     const [basePrompt, setBasePrompt] = useState<string>('');
     const [isLoading, setIsLoading] = useState<boolean>(false);
@@ -109,7 +108,7 @@ export const ImageGeneratorPage: React.FC<{
             playSound(audioService.playSuccess);
         } catch (err) {
             playSound(audioService.playError);
-            setError(err instanceof Error ? err.message : 'เกิดข้อผิดพลาดในการประมวลผลภาพ');
+            setError(geminiService.parseApiError(err));
         } finally {
             setIsLoading(false);
         }
@@ -117,29 +116,29 @@ export const ImageGeneratorPage: React.FC<{
     
     const pollVideoOperation = useCallback(async (operation: any, retries = 20) => {
         if (retries <= 0) {
-            setError('การสร้างวิดีโอใช้เวลานานเกินไป โปรดลองอีกครั้ง');
-            setIsLoading(false);
-            return;
+            throw new Error('การสร้างวิดีโอใช้เวลานานเกินไป โปรดลองอีกครั้ง');
         }
 
-        try {
-            const updatedOperation = await geminiService.getVideosOperation(operation);
-            if (updatedOperation.done) {
-                const downloadLink = updatedOperation.response?.generatedVideos?.[0]?.video?.uri;
-                if(downloadLink){
-                    setGeneratedVideoUrl(downloadLink);
-                } else {
-                    throw new Error("ไม่พบวิดีโอในผลลัพธ์");
-                }
+        const updatedOperation = await geminiService.getVideosOperation(operation);
+        if (updatedOperation.done) {
+            if (updatedOperation.error) {
+                // Propagate the actual error message from the operation
+                throw new Error(updatedOperation.error.message);
+            }
+            const downloadLink = updatedOperation.response?.generatedVideos?.[0]?.video?.uri;
+            if (downloadLink) {
+                setGeneratedVideoUrl(downloadLink);
+                // Success: This is the only place we stop loading for video.
                 setIsLoading(false);
                 playSound(audioService.playSuccess);
             } else {
-                setTimeout(() => pollVideoOperation(updatedOperation, retries - 1), 10000);
+                // This case can happen for safety blocks or other silent failures.
+                throw new Error("ไม่พบวิดีโอในผลลัพธ์ อาจเป็นเพราะคำสั่งถูกบล็อกเนื่องจากนโยบายความปลอดภัย");
             }
-        } catch (err) {
-            playSound(audioService.playError);
-            setError(err instanceof Error ? err.message : 'เกิดข้อผิดพลาดในการตรวจสอบสถานะวิดีโอ');
-            setIsLoading(false);
+        } else {
+            // Not done yet, poll again recursively.
+            await new Promise(resolve => setTimeout(resolve, 10000));
+            await pollVideoOperation(updatedOperation, retries - 1);
         }
     }, [playSound]);
     
@@ -221,7 +220,7 @@ export const ImageGeneratorPage: React.FC<{
                 playSound(audioService.playSuccess);
             } catch (err) {
                 playSound(audioService.playError);
-                setError(err instanceof Error ? err.message : 'เกิดข้อผิดพลาดในการสร้างทรัพย์สินเกม');
+                setError(geminiService.parseApiError(err));
                 setIsGameMode(false);
             } finally {
                 setIsLoading(false);
@@ -254,13 +253,14 @@ export const ImageGeneratorPage: React.FC<{
                     await pollVideoOperation(operation);
                     break;
             }
-        } catch (err) {
-            playSound(audioService.playError);
-            setError(err instanceof Error ? err.message : 'เกิดข้อผิดพลาดที่ไม่คาดคิด');
-        } finally {
-             if (generationMode !== 'video') { // Video has its own loading state management
+            // For non-video ops, stop loading on success. Video is handled in poller.
+            if (generationMode !== 'video') {
                 setIsLoading(false);
             }
+        } catch (err) {
+            playSound(audioService.playError);
+            setError(geminiService.parseApiError(err));
+            setIsLoading(false); // Stop loading on ANY error
         }
     }, [prompt, isLoading, isOnline, playSound, generationMode, frameCount, handleClear, pollVideoOperation, combineFramesToSpritesheet, spendCredits, credits]);
 
@@ -313,7 +313,7 @@ export const ImageGeneratorPage: React.FC<{
             const results = await geminiService.generatePromptSuggestions(prompt);
             setSuggestions(results);
         } catch (err) {
-            setError(err instanceof Error ? err.message : 'Could not get suggestions');
+            setError(geminiService.parseApiError(err));
         }
     }, [prompt, isOnline, playSound]);
 
@@ -324,104 +324,105 @@ export const ImageGeneratorPage: React.FC<{
     const hasContent = generatedImage || (generatedFrames && generatedFrames.length > 0) || generatedVideoUrl;
 
     return (
-        <PageWrapper>
-             <input type="file" ref={fileInputRef} onChange={handleFileChange} accept="image/*" className="hidden" aria-hidden="true" />
-             <PageHeader title="เครื่องมือสร้างภาพ AI" onBack={onClose} />
-             <main id="main-content" className="w-full max-w-lg flex flex-col items-center gap-4">
-                <OutputDisplay 
-                    isLoading={isLoading}
-                    error={error}
-                    generatedImage={generatedImage}
-                    generatedFrames={generatedFrames}
-                    generatedVideoUrl={generatedVideoUrl}
-                    prompt={prompt}
-                    generationMode={generationMode}
-                    fps={fps}
-                    loadingText={loadingText}
-                    videoLoadingMessages={videoLoadingMessages}
-                    currentFrame={currentFrame}
-                />
-                
-                {suggestions.length > 0 && (
-                     <div className="w-full bg-black/40 p-3 border-2 border-brand-light/50 space-y-2">
-                        <h3 className="text-xs font-press-start text-brand-cyan">ไอเดีย:</h3>
-                        <div className="flex flex-wrap gap-2">
-                            {suggestions.map((s, i) => (
-                                <button
-                                    key={i}
-                                    onClick={() => { playSound(audioService.playSelection); setPrompt(s.prompt); setSuggestions([]); }}
-                                    className="px-2 py-1 bg-brand-cyan/20 text-brand-light text-xs font-press-start border border-brand-cyan hover:bg-brand-cyan hover:text-black transition-colors"
-                                >
-                                    {s.title}
-                                </button>
-                            ))}
+        <div className="w-full h-full flex flex-col items-center px-4">
+             <h1 className="text-3xl sm:text-4xl text-brand-yellow text-center drop-shadow-[3px_3px_0_#000] mb-6">เครื่องมือสร้างภาพ AI</h1>
+             <div className="w-full max-w-5xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-6 items-start">
+                {/* Left Column: Controls */}
+                <div className="w-full flex flex-col gap-4">
+                    <div className="w-full flex flex-col gap-4 bg-black/40 p-4 border-4 border-brand-light shadow-pixel font-sans">
+                        {/* Prompt */}
+                        <div className="flex flex-col gap-2">
+                            <label htmlFor="prompt-input" className="text-xs font-press-start text-brand-cyan">คำสั่ง (Prompt)</label>
+                            <textarea
+                                id="prompt-input"
+                                value={prompt}
+                                onChange={(e) => setPrompt(e.target.value)}
+                                placeholder="เช่น อัศวินขี่ไดโนเสาร์ในอวกาศ"
+                                className="w-full h-24 p-2 bg-brand-light text-black rounded-none border-2 border-black focus:outline-none focus:ring-2 focus:ring-brand-yellow resize-y"
+                                disabled={isLoading || !isOnline}
+                            />
                         </div>
-                    </div>
-                )}
-                
-                <div className="w-full flex flex-col gap-4 bg-black/40 p-4 border-4 border-brand-light shadow-pixel font-sans">
-                    <div className="flex flex-col gap-2">
-                        <label htmlFor="prompt-input" className="text-xs font-press-start text-brand-cyan">คำสั่ง (Prompt)</label>
-                        <textarea
-                            id="prompt-input"
-                            value={prompt}
-                            onChange={(e) => setPrompt(e.target.value)}
-                            placeholder="เช่น อัศวินขี่ไดโนเสาร์ในอวกาศ"
-                            className="w-full h-24 p-2 bg-brand-light text-black rounded-none border-2 border-black focus:outline-none focus:ring-2 focus:ring-brand-yellow resize-y"
-                            disabled={isLoading || !isOnline}
-                        />
-                    </div>
-                    
-                    <div className="flex flex-wrap items-center gap-4 text-sm">
-                       {['image', 'gif', 'video', 'spritesheet'].map(mode => (
-                           <label key={mode} className="flex items-center gap-2 cursor-pointer">
-                               <input type="radio" name="generationMode" value={mode}
-                                   checked={generationMode === mode}
-                                   onChange={() => { playSound(audioService.playToggle); setGenerationMode(mode as GenerationMode); }}
-                                   disabled={isLoading || !isOnline}
-                                   className="w-4 h-4 accent-brand-magenta"
-                               />
-                               <span>{mode.charAt(0).toUpperCase() + mode.slice(1)}</span>
-                           </label>
-                       ))}
-                    </div>
-
-                    {(generationMode === 'gif' || generationMode === 'spritesheet') && (
-                        <div className="grid grid-cols-2 gap-4">
-                             <div className="flex flex-col gap-2">
-                                <label htmlFor="fps-slider" className="text-xs font-press-start text-brand-cyan/80">FPS: {fps}</label>
-                                <input id="fps-slider" type="range" min="1" max="24" value={fps} onChange={(e) => { playSound(audioService.playSliderChange); setFps(Number(e.target.value)); }} disabled={isLoading || !isOnline} />
+                        {/* Suggestions */}
+                        {suggestions.length > 0 && (
+                             <div className="space-y-2">
+                                <h3 className="text-xs font-press-start text-brand-cyan">ไอเดีย:</h3>
+                                <div className="flex flex-wrap gap-2">
+                                    {suggestions.map((s, i) => (
+                                        <button key={i} onClick={() => { playSound(audioService.playSelection); setPrompt(s.prompt); setSuggestions([]); }}
+                                            className="px-2 py-1 bg-brand-cyan/20 text-brand-light text-xs font-press-start border border-brand-cyan hover:bg-brand-cyan hover:text-black transition-colors">
+                                            {s.title}
+                                        </button>
+                                    ))}
+                                </div>
                             </div>
-                            <div className="flex flex-col gap-2">
-                                <label htmlFor="frames-slider" className="text-xs font-press-start text-brand-cyan/80">Frames: {frameCount}</label>
-                                <input id="frames-slider" type="range" min="4" max="16" step="2" value={frameCount} onChange={(e) => { playSound(audioService.playSliderChange); setFrameCount(Number(e.target.value)); }} disabled={isLoading || !isOnline} />
-                            </div>
+                        )}
+                        {/* Generation Mode */}
+                        <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-sm">
+                           {['image', 'gif', 'video', 'spritesheet'].map(mode => (
+                               <label key={mode} className="flex items-center gap-2 cursor-pointer">
+                                   <input type="radio" name="generationMode" value={mode} checked={generationMode === mode}
+                                       onChange={() => { playSound(audioService.playToggle); setGenerationMode(mode as GenerationMode); }}
+                                       disabled={isLoading || !isOnline} className="w-4 h-4 accent-brand-magenta" />
+                                   <span>{mode.charAt(0).toUpperCase() + mode.slice(1)}</span>
+                               </label>
+                           ))}
                         </div>
-                    )}
-                    
-                     <div className="flex flex-col sm:flex-row gap-2">
+                        {/* GIF/Spritesheet Settings */}
+                        {(generationMode === 'gif' || generationMode === 'spritesheet') && (
+                            <div className="grid grid-cols-2 gap-4 pt-2">
+                                 <div className="flex flex-col gap-2">
+                                    <label htmlFor="fps-slider" className="text-xs font-press-start text-brand-cyan/80">FPS: {fps}</label>
+                                    <input id="fps-slider" type="range" min="1" max="24" value={fps} onChange={(e) => { playSound(audioService.playSliderChange); setFps(Number(e.target.value)); }} disabled={isLoading || !isOnline} />
+                                </div>
+                                <div className="flex flex-col gap-2">
+                                    <label htmlFor="frames-slider" className="text-xs font-press-start text-brand-cyan/80">Frames: {frameCount}</label>
+                                    <input id="frames-slider" type="range" min="4" max="16" step="2" value={frameCount} onChange={(e) => { playSound(audioService.playSliderChange); setFrameCount(Number(e.target.value)); }} disabled={isLoading || !isOnline} />
+                                </div>
+                            </div>
+                        )}
+                    </div>
+                    {/* Main Action Buttons */}
+                    <div className="flex gap-2">
                          <button onClick={handleGenerate} disabled={!prompt.trim() || isLoading || !isOnline} onMouseEnter={() => playSound(audioService.playHover)} className="flex-grow flex items-center justify-center gap-2 p-3 bg-brand-magenta text-white border-4 border-brand-light shadow-pixel transition-all hover:bg-brand-yellow hover:text-black active:shadow-pixel-active active:translate-y-[2px] active:translate-x-[2px] disabled:bg-gray-500 disabled:cursor-not-allowed">
                             <SparklesIcon className="w-5 h-5" />
-                            <span>{isLoading ? loadingText : 'สร้าง'}</span>
+                            <span className="font-press-start">{isLoading ? loadingText : 'สร้าง'}</span>
                          </button>
-                          <button onClick={handleGetSuggestions} disabled={!prompt.trim() || isLoading || !isOnline} onMouseEnter={() => playSound(audioService.playHover)} title="รับไอเดีย (Alt+S)" aria-label="รับไอเดีย" className="w-12 h-12 flex-shrink-0 flex items-center justify-center bg-brand-cyan text-black border-4 border-brand-light shadow-pixel transition-all hover:bg-brand-yellow active:shadow-pixel-active active:translate-y-[2px] active:translate-x-[2px] disabled:bg-gray-500 disabled:cursor-not-allowed">
+                          <button onClick={handleGetSuggestions} disabled={!prompt.trim() || isLoading || !isOnline} onMouseEnter={() => playSound(audioService.playHover)} title="รับไอเดีย (Alt+S)" aria-label="รับไอเดีย" className="w-14 h-14 flex-shrink-0 flex items-center justify-center bg-brand-cyan text-black border-4 border-brand-light shadow-pixel transition-all hover:bg-brand-yellow active:shadow-pixel-active active:translate-y-[2px] active:translate-x-[2px] disabled:bg-gray-500 disabled:cursor-not-allowed">
                             <PlusSquareIcon className="w-6 h-6" />
                          </button>
                      </div>
+                    {/* Secondary Action Buttons */}
+                    <div className="w-full grid grid-cols-3 gap-2">
+                        <button onClick={handleUploadClick} disabled={isLoading || !isOnline} onMouseEnter={() => playSound(audioService.playHover)} className="flex items-center justify-center gap-2 p-2 bg-black/50 border-2 border-brand-light shadow-sm transition-all hover:bg-brand-cyan/20 disabled:opacity-50">
+                            <UploadIcon className="w-5 h-5 text-brand-cyan" /> <span className="text-xs font-press-start">จากภาพ</span>
+                        </button>
+                        <button onClick={handleDownload} disabled={isLoading || !hasContent} onMouseEnter={() => playSound(audioService.playHover)} className="flex items-center justify-center gap-2 p-2 bg-black/50 border-2 border-brand-light shadow-sm transition-all hover:bg-brand-cyan/20 disabled:opacity-50">
+                            <DownloadIcon className="w-5 h-5 text-brand-cyan" /> <span className="text-xs font-press-start">ดาวน์โหลด</span>
+                        </button>
+                         <button onClick={handleClear} disabled={isLoading} onMouseEnter={() => playSound(audioService.playHover)} className="flex items-center justify-center gap-2 p-2 bg-black/50 border-2 border-brand-light shadow-sm transition-all hover:bg-brand-cyan/20 disabled:opacity-50">
+                            <TrashIcon className="w-5 h-5 text-brand-cyan" /> <span className="text-xs font-press-start">ล้าง</span>
+                        </button>
+                    </div>
                 </div>
 
-                <div className="w-full flex items-center gap-2">
-                    <button onClick={handleUploadClick} disabled={isLoading || !isOnline} onMouseEnter={() => playSound(audioService.playHover)} className="w-full flex items-center justify-center gap-2 p-2 bg-black/50 border-2 border-brand-light shadow-sm transition-all hover:bg-brand-cyan/20 disabled:opacity-50">
-                        <UploadIcon className="w-5 h-5 text-brand-cyan" /> <span className="text-xs font-press-start">สร้างจากภาพ</span>
-                    </button>
-                    <button onClick={handleDownload} disabled={isLoading || !hasContent} onMouseEnter={() => playSound(audioService.playHover)} className="w-full flex items-center justify-center gap-2 p-2 bg-black/50 border-2 border-brand-light shadow-sm transition-all hover:bg-brand-cyan/20 disabled:opacity-50">
-                        <DownloadIcon className="w-5 h-5 text-brand-cyan" /> <span className="text-xs font-press-start">ดาวน์โหลด</span>
-                    </button>
-                     <button onClick={handleClear} disabled={isLoading} onMouseEnter={() => playSound(audioService.playHover)} className="w-full flex items-center justify-center gap-2 p-2 bg-black/50 border-2 border-brand-light shadow-sm transition-all hover:bg-brand-cyan/20 disabled:opacity-50">
-                        <TrashIcon className="w-5 h-5 text-brand-cyan" /> <span className="text-xs font-press-start">ล้าง</span>
-                    </button>
+                {/* Right Column: Output */}
+                <div className="w-full">
+                     <OutputDisplay 
+                        isLoading={isLoading}
+                        error={error}
+                        generatedImage={generatedImage}
+                        generatedFrames={generatedFrames}
+                        generatedVideoUrl={generatedVideoUrl}
+                        prompt={prompt}
+                        generationMode={generationMode}
+                        fps={fps}
+                        loadingText={loadingText}
+                        videoLoadingMessages={videoLoadingMessages}
+                        currentFrame={currentFrame}
+                    />
                 </div>
-             </main>
-        </PageWrapper>
+             </div>
+             <input type="file" ref={fileInputRef} onChange={handleFileChange} accept="image/*" className="hidden" aria-hidden="true" />
+        </div>
     );
 };

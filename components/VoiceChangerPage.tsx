@@ -1,5 +1,4 @@
 
-
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import * as audioService from '../services/audioService';
 import { PageHeader, PageWrapper } from './PageComponents';
@@ -12,6 +11,8 @@ import { MusicNoteIcon } from './icons/MusicNoteIcon';
 import { DownloadIcon } from './icons/DownloadIcon';
 import type { EffectParameters } from '../services/audioService';
 import { useCredits, CREDIT_COSTS } from '../contexts/CreditContext';
+import * as geminiService from '../services/geminiService';
+import type { MidiNote } from '../services/geminiService';
 
 
 interface VoiceChangerPageProps {
@@ -35,7 +36,12 @@ type VoiceEffect =
     | 'chorus'
     | 'reverb'
     | 'ai-lofi-remix'
-    | 'electric-piano';
+    | 'electric-piano'
+    | 'audio-to-midi'
+    | 'ai-voice-enhancer'
+    | 'ai-noise-removal'
+    | 'ai-vocal-isolation'
+    | 'ai-narrator';
 
 // --- UI DATA STRUCTURE ---
 interface Control {
@@ -64,6 +70,51 @@ interface VoiceSection {
 
 // --- VOICE EFFECTS CONFIGURATION ---
 const voiceSections: VoiceSection[] = [
+  {
+    title: 'เครื่องมือ AI',
+    description: 'ใช้พลังของ AI เพื่อวิเคราะห์และแปลงโฉมเสียงของคุณอย่างชาญฉลาด',
+    options: [
+      {
+        label: 'ปรับปรุงเสียง AI',
+        effect: 'ai-voice-enhancer',
+        description: 'ใช้ AI ปรับปรุงคุณภาพเสียงพูดให้คมชัด, ลดเสียงสะท้อน, และปรับความดังให้สม่ำเสมอ',
+        controls: [{ type: 'slider', param: 'remasterIntensity', label: 'ความเข้มข้น', min: 0, max: 10, step: 1, defaultValue: 5 }],
+        beta: true,
+      },
+      {
+        label: 'ลดเสียงรบกวน',
+        effect: 'ai-noise-removal',
+        description: 'กำจัดเสียงรบกวนพื้นหลังที่ไม่ต้องการ เช่น เสียงพัดลม, เสียงแอร์ ออกจากไฟล์เสียงของคุณ',
+        beta: true,
+      },
+      {
+        label: 'แยกเสียงร้อง (คาราโอเกะ)',
+        effect: 'ai-vocal-isolation',
+        description: 'พยายามลบเสียงเครื่องดนตรีออกจากเพลงเพื่อแยกเสียงร้องออกมา (ได้ผลดีกับไฟล์สเตอริโอ)',
+        beta: true,
+      },
+      {
+        label: 'เสียงผู้บรรยาย AI',
+        effect: 'ai-narrator',
+        description: 'เปลี่ยนเสียงของคุณให้กลายเป็นเสียงผู้บรรยายที่นุ่มลึก, ชัดเจน, และน่าฟังเหมือนในสารคดี',
+        beta: true,
+      },
+      { 
+        label: 'แปลงเสียงเป็น MIDI', 
+        effect: 'audio-to-midi', 
+        beta: true,
+        description: 'AI จะวิเคราะห์ไฟล์เสียงและพยายามถอดเสียงเมโลดี้หลักออกมาเป็นโน้ตดนตรี (MIDI)'
+      },
+      {
+        label: 'รีมิกซ์ Lofi',
+        effect: 'ai-lofi-remix',
+        description: 'เปลี่ยนเพลงของคุณให้เป็นแนว Lofi ฟังสบายๆ พร้อมเสียงประกอบสไตล์วินเทจ',
+        controls: [
+            { type: 'slider', param: 'lofiVintage', label: 'ความเก่า', min: 0, max: 10, step: 1, defaultValue: 5 }
+        ]
+      },
+    ]
+  },
   {
     title: 'สไตล์เรโทร & โลไฟ',
     description: 'ย้อนยุคไปกับเอฟเฟกต์เสียงสุดคลาสสิกและฟังสบาย',
@@ -94,14 +145,6 @@ const voiceSections: VoiceSection[] = [
         controls: [
           { type: 'slider', param: 'bitCrushLevel', label: 'ความลึกบิต', min: 1, max: 16, step: 1, defaultValue: 8 },
           { type: 'slider', param: 'sampleRateCrushLevel', label: 'อัตราสุ่ม', min: 1, max: 40, step: 1, defaultValue: 20 }
-        ]
-      },
-      {
-        label: 'รีมิกซ์ Lofi',
-        effect: 'ai-lofi-remix',
-        description: 'เปลี่ยนเพลงของคุณให้เป็นแนว Lofi ฟังสบายๆ พร้อมเสียงประกอบสไตล์วินเทจ',
-        controls: [
-            { type: 'slider', param: 'lofiVintage', label: 'ความเก่า', min: 0, max: 10, step: 1, defaultValue: 5 }
         ]
       },
     ]
@@ -173,7 +216,7 @@ const voiceSections: VoiceSection[] = [
         controls: [{ type: 'slider', param: 'clarityLevel', label: 'ระดับความชัด', min: -10, max: 10, step: 1, defaultValue: 0 }]
       },
     ]
-  }
+  },
 ];
 
 
@@ -183,7 +226,9 @@ export const VoiceChangerPage: React.FC<VoiceChangerPageProps> = ({ playSound, o
     const [isLoading, setIsLoading] = useState<boolean>(false);
     const [error, setError] = useState<string | null>(null);
     const [processedAudio, setProcessedAudio] = useState<AudioBuffer | null>(null);
+    const [processedMidi, setProcessedMidi] = useState<MidiNote[] | null>(null);
     const [isPlaying, setIsPlaying] = useState<boolean>(false);
+    const [isPlayingMidi, setIsPlayingMidi] = useState<boolean>(false);
     const [isDownloading, setIsDownloading] = useState<boolean>(false);
     
     const allOptions = voiceSections.flatMap(s => s.options);
@@ -193,7 +238,7 @@ export const VoiceChangerPage: React.FC<VoiceChangerPageProps> = ({ playSound, o
 
     const fileInputRef = useRef<HTMLInputElement>(null);
     const activeAudioSourceRef = useRef<AudioBufferSourceNode | null>(null);
-    const { credits, spendCredits } = useCredits();
+    const { credits, spendCredits, addCredits } = useCredits();
 
     // Effect to reset params when effect changes
     useEffect(() => {
@@ -211,6 +256,8 @@ export const VoiceChangerPage: React.FC<VoiceChangerPageProps> = ({ playSound, o
             activeAudioSourceRef.current = null;
         }
         setIsPlaying(false);
+        audioService.stopMidi();
+        setIsPlayingMidi(false);
     }, []);
 
 
@@ -221,6 +268,7 @@ export const VoiceChangerPage: React.FC<VoiceChangerPageProps> = ({ playSound, o
     const resetState = (clearFile: boolean = false) => {
         setError(null);
         setProcessedAudio(null);
+        setProcessedMidi(null);
         stopPlayback();
         if (clearFile) {
             setUploadedFile(null);
@@ -290,42 +338,69 @@ export const VoiceChangerPage: React.FC<VoiceChangerPageProps> = ({ playSound, o
     const handleGenerate = useCallback(async () => {
         if (!uploadedFile || isLoading) return;
 
-        if (!spendCredits(CREDIT_COSTS.VOICE_EFFECT_AI)) {
-            setError(`เครดิตไม่เพียงพอ! ต้องการ ${CREDIT_COSTS.VOICE_EFFECT_AI} เครดิต แต่คุณมี ${credits.toFixed(0)} เครดิต`);
+        const cost = selectedEffect.effect === 'audio-to-midi' 
+            ? CREDIT_COSTS.AUDIO_TO_MIDI 
+            : CREDIT_COSTS.VOICE_EFFECT_AI;
+
+        if (!spendCredits(cost)) {
+            setError(`เครดิตไม่เพียงพอ! ต้องการ ${cost} เครดิต แต่คุณมี ${credits.toFixed(0)} เครดิต`);
             playSound(audioService.playError);
             return;
         }
 
-        // Clear previous results, but keep the file
         stopPlayback();
         setProcessedAudio(null);
+        setProcessedMidi(null);
         setError(null);
         
         playSound(audioService.playGenerate);
         setIsLoading(true);
 
         try {
-            const audioBuffer = await audioService.applyVoiceEffect(uploadedFile, selectedEffect.effect, effectParams);
-            setProcessedAudio(audioBuffer);
-            playSound(audioService.playSuccess);
-            
-            // Auto-play the result
-            const source = audioService.playAudioBuffer(audioBuffer);
-            activeAudioSourceRef.current = source;
-            setIsPlaying(true);
-            source.onended = () => {
-                setIsPlaying(false);
-                activeAudioSourceRef.current = null;
-            };
+            if (selectedEffect.effect === 'audio-to-midi') {
+                const toBase64 = (file: File): Promise<string> => new Promise((resolve, reject) => {
+                    const reader = new FileReader();
+                    reader.readAsDataURL(file);
+                    reader.onload = () => resolve((reader.result as string).split(',')[1]);
+                    reader.onerror = error => reject(error);
+                });
+                const base64Data = await toBase64(uploadedFile);
+                const midiNotes = await geminiService.convertAudioToMidi(base64Data, uploadedFile.type);
+
+                if (midiNotes.length === 0) {
+                    throw new Error('AI ไม่สามารถตรวจจับเมโลดี้ที่ชัดเจนในไฟล์เสียงนี้ได้');
+                }
+                setProcessedMidi(midiNotes);
+                playSound(audioService.playSuccess);
+                
+                setIsPlayingMidi(true);
+                audioService.playMidi(midiNotes, () => {
+                    setIsPlayingMidi(false);
+                });
+
+            } else {
+                 const audioBuffer = await audioService.applyVoiceEffect(uploadedFile, selectedEffect.effect, effectParams);
+                 setProcessedAudio(audioBuffer);
+                 playSound(audioService.playSuccess);
+                 
+                 const source = audioService.playAudioBuffer(audioBuffer);
+                 activeAudioSourceRef.current = source;
+                 setIsPlaying(true);
+                 source.onended = () => {
+                     setIsPlaying(false);
+                     activeAudioSourceRef.current = null;
+                 };
+            }
 
         } catch (err) {
             playSound(audioService.playError);
+            addCredits(cost); // Refund credits on failure
             const errorMessage = err instanceof Error ? err.message : 'เกิดข้อผิดพลาดในการประมวลผลเสียง';
             setError(errorMessage);
         } finally {
             setIsLoading(false);
         }
-    }, [uploadedFile, isLoading, stopPlayback, playSound, selectedEffect.effect, effectParams, credits, spendCredits]);
+    }, [uploadedFile, isLoading, stopPlayback, playSound, selectedEffect.effect, effectParams, credits, spendCredits, addCredits]);
 
 
     const handlePlaybackToggle = useCallback(() => {
@@ -367,6 +442,44 @@ export const VoiceChangerPage: React.FC<VoiceChangerPageProps> = ({ playSound, o
         }
     }, [processedAudio, isDownloading, playSound, uploadedFile?.name, selectedEffect.effect]);
 
+    const handleMidiPlaybackToggle = useCallback(() => {
+        playSound(audioService.playClick);
+        if (isPlayingMidi) {
+            audioService.stopMidi();
+            setIsPlayingMidi(false);
+        } else if (processedMidi) {
+            setIsPlayingMidi(true);
+            audioService.playMidi(processedMidi, () => {
+                setIsPlayingMidi(false);
+            });
+        }
+    }, [isPlayingMidi, processedMidi, playSound]);
+
+    const handleMidiDownload = useCallback(async () => {
+        if (!processedMidi || isDownloading) return;
+
+        playSound(audioService.playDownload);
+        setIsDownloading(true);
+        try {
+            const wavBlob = await audioService.exportMidiToWav(processedMidi);
+            if (!wavBlob) throw new Error("ไม่สามารถสร้างไฟล์ WAV ได้");
+            const url = URL.createObjectURL(wavBlob);
+            const a = document.createElement('a');
+            a.href = url;
+            const fileName = uploadedFile?.name.split('.').slice(0, -1).join('.') || 'transcribed-midi';
+            a.download = `${fileName}_midi.wav`;
+            document.body.appendChild(a);
+            a.click();
+            URL.revokeObjectURL(url);
+            document.body.removeChild(a);
+        } catch (err) {
+            setError('ไม่สามารถสร้างไฟล์ WAV ได้');
+            playSound(audioService.playError);
+        } finally {
+            setIsDownloading(false);
+        }
+    }, [processedMidi, isDownloading, playSound, uploadedFile?.name]);
+
 
     // Keyboard shortcuts
     useEffect(() => {
@@ -385,12 +498,18 @@ export const VoiceChangerPage: React.FC<VoiceChangerPageProps> = ({ playSound, o
                         if (processedAudio) {
                            event.preventDefault();
                            handlePlaybackToggle();
+                        } else if (processedMidi) {
+                            event.preventDefault();
+                            handleMidiPlaybackToggle();
                         }
                         break;
                     case 'd':
                         if (processedAudio) {
                             event.preventDefault();
                             handleDownload();
+                        } else if (processedMidi) {
+                            event.preventDefault();
+                            handleMidiDownload();
                         }
                         break;
                     case 'u':
@@ -403,7 +522,7 @@ export const VoiceChangerPage: React.FC<VoiceChangerPageProps> = ({ playSound, o
 
         window.addEventListener('keydown', handleKeyDown);
         return () => window.removeEventListener('keydown', handleKeyDown);
-    }, [isLoading, isDownloading, processedAudio, handleGenerate, handlePlaybackToggle, handleDownload, handleUploadClick]);
+    }, [isLoading, isDownloading, processedAudio, processedMidi, handleGenerate, handlePlaybackToggle, handleDownload, handleUploadClick, handleMidiPlaybackToggle, handleMidiDownload]);
 
     const renderFilePreview = () => {
         if (!uploadedFile || !filePreview) return null;
@@ -434,6 +553,7 @@ export const VoiceChangerPage: React.FC<VoiceChangerPageProps> = ({ playSound, o
             case 'reverbWet': return `ความก้อง: ${(value * 100).toFixed(0)}%`;
             case 'lofiVintage': return `ความเก่า: ${value}`;
             case 'humFrequency': return `ความถี่ฮัม: ${value} Hz`;
+            case 'remasterIntensity': return `ความเข้มข้น: ${value}`;
             default: return String(value);
         }
     };
@@ -501,22 +621,57 @@ export const VoiceChangerPage: React.FC<VoiceChangerPageProps> = ({ playSound, o
                         </button>
                     </div>
                 ) : (
-                    <div className="w-full grid grid-cols-1 lg:grid-cols-2 gap-6">
-                        {/* Left Column: Effect Library & File Preview */}
-                        <div className="flex flex-col gap-6">
-                             <div className="bg-black/40 border-2 border-brand-light/50 p-4 space-y-3">
+                    <div className="w-full grid grid-cols-1 lg:grid-cols-3 gap-6">
+                        {/* Left Column: Effect Library */}
+                         <div className="lg:col-span-1 flex flex-col gap-4">
+                           {voiceSections.map(section => (
+                                <div key={section.title} className="bg-black/40 border-2 border-brand-light/50 p-4 space-y-3">
+                                    <h3 className="font-press-start text-brand-cyan text-base">{section.title}</h3>
+                                    <div className="grid grid-cols-2 gap-2">
+                                        {section.options.map(opt => (
+                                            <div key={opt.effect} className="relative group">
+                                                <button
+                                                    onClick={() => { playSound(audioService.playClick); setSelectedEffect(opt); }}
+                                                    onMouseEnter={() => playSound(audioService.playHover)}
+                                                    className={`w-full h-full p-3 text-sm border-2 text-center border-brand-light shadow-sm transition-all ${selectedEffect.effect === opt.effect ? 'bg-brand-yellow text-black' : 'bg-brand-cyan/80 text-black hover:bg-brand-light'}`}
+                                                    aria-pressed={selectedEffect.effect === opt.effect}
+                                                    aria-describedby={opt.beta ? `beta-tooltip-${opt.effect}` : undefined}
+                                                >
+                                                    {opt.label}
+                                                </button>
+                                                {opt.beta && (
+                                                     <div className="absolute top-1 right-1 bg-brand-magenta text-white text-[8px] font-press-start px-1 border border-black pointer-events-none" aria-hidden="true">
+                                                        BETA
+                                                    </div>
+                                                )}
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+
+                        {/* Right Column: Controls & Results */}
+                        <div id="control-panel" className="lg:col-span-2 flex flex-col gap-6">
+                            <div className="bg-black/40 border-2 border-brand-light/50 p-4 space-y-3">
                                 <h3 className="font-press-start text-brand-cyan">ไฟล์ที่เลือก:</h3>
                                 {renderFilePreview()}
                                 <button onClick={handleUploadClick} title="ปุ่มลัด: Alt+U" onMouseEnter={() => playSound(audioService.playHover)} className="text-sm underline hover:text-brand-yellow transition-colors">เปลี่ยนไฟล์อื่น</button>
                             </div>
-                            
+
+                            <div className="bg-black/40 border-2 border-brand-light/50 p-4 space-y-4">
+                               <h3 className="font-press-start text-brand-cyan">แผงควบคุม: {selectedEffect.label}</h3>
+                               <p className="text-xs text-brand-light/80">{selectedEffect.description}</p>
+                               <div className="space-y-3">{renderControls()}</div>
+                            </div>
+
                             <button 
                                 onClick={handleGenerate} 
                                 onMouseEnter={() => playSound(audioService.playHover)}
                                 disabled={isLoading}
                                 title="ปุ่มลัด: Ctrl+Enter"
                                 className="w-full flex items-center justify-center gap-3 p-4 bg-brand-magenta text-white border-4 border-brand-light shadow-pixel text-base hover:bg-brand-yellow hover:text-black active:shadow-pixel-active active:translate-y-[2px] active:translate-x-[2px] disabled:bg-gray-500">
-                                <SparklesIcon className="w-6 h-6" /> {isLoading ? 'กำลังประมวลผล...' : `ใช้เอฟเฟกต์ (${CREDIT_COSTS.VOICE_EFFECT_AI} เครดิต)`}
+                                <SparklesIcon className="w-6 h-6" /> {isLoading ? 'กำลังประมวลผล...' : `ใช้เอฟเฟกต์ (${selectedEffect.effect === 'audio-to-midi' ? CREDIT_COSTS.AUDIO_TO_MIDI : CREDIT_COSTS.VOICE_EFFECT_AI} เครดิต)`}
                             </button>
 
                             {isLoading && <LoadingSpinner text="กำลังเปลี่ยนเสียง..." />}
@@ -546,50 +701,31 @@ export const VoiceChangerPage: React.FC<VoiceChangerPageProps> = ({ playSound, o
                                     </div>
                                 </div>
                             )}
-                        </div>
-
-                        {/* Right Column: Control Panel & Results */}
-                        <div id="control-panel" className="flex flex-col gap-6">
-                            <div className="bg-black/40 border-2 border-brand-light/50 p-4 space-y-4">
-                               <h3 className="font-press-start text-brand-cyan">แผงควบคุม: {selectedEffect.label}</h3>
-                               <div className="space-y-3">{renderControls()}</div>
-                            </div>
-                           
-                            {voiceSections.map(section => (
-                                <div key={section.title} className="bg-black/40 border-2 border-brand-light/50 p-4 space-y-3">
-                                    <h3 className="font-press-start text-brand-cyan text-base">{section.title}</h3>
-                                    <p className="text-xs text-brand-light/80">{section.description}</p>
-                                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
-                                        {section.options.map(opt => (
-                                            <div key={opt.effect} className="relative group">
-                                                <button
-                                                    onClick={() => { playSound(audioService.playClick); setSelectedEffect(opt); }}
-                                                    onMouseEnter={() => playSound(audioService.playHover)}
-                                                    className={`w-full h-full p-3 text-sm border-2 text-center border-brand-light shadow-sm transition-all ${selectedEffect.effect === opt.effect ? 'bg-brand-yellow text-black' : 'bg-brand-cyan/80 text-black hover:bg-brand-light'}`}
-                                                    aria-pressed={selectedEffect.effect === opt.effect}
-                                                    aria-describedby={opt.beta ? `beta-tooltip-${opt.effect}` : undefined}
-                                                >
-                                                    {opt.label}
-                                                </button>
-                                                {opt.beta && (
-                                                    <>
-                                                        <div className="absolute top-1 right-1 bg-brand-magenta text-white text-[8px] font-press-start px-1 border border-black pointer-events-none" aria-hidden="true">
-                                                            BETA
-                                                        </div>
-                                                        <div 
-                                                            id={`beta-tooltip-${opt.effect}`}
-                                                            role="tooltip"
-                                                            className="absolute bottom-full right-0 mb-1 w-max max-w-[200px] p-2 text-xs bg-black text-white border border-brand-light scale-0 group-hover:scale-100 group-focus-within:scale-100 transition-transform origin-bottom z-10 font-sans pointer-events-none rounded-sm"
-                                                        >
-                                                            {opt.description}
-                                                        </div>
-                                                    </>
-                                                )}
-                                            </div>
-                                        ))}
+                            {processedMidi && !isLoading && (
+                                <div aria-live="polite" className="p-4 bg-black/40 border-2 border-brand-lime space-y-4">
+                                    <h3 className="text-lg font-press-start text-brand-lime text-center">แปลงเป็น MIDI สำเร็จ!</h3>
+                                    <p className="text-center text-sm">{`ตรวจพบ ${processedMidi.length} โน้ต`}</p>
+                                    <div className="flex flex-col sm:flex-row gap-4">
+                                        <button 
+                                            onClick={handleMidiPlaybackToggle}
+                                            onMouseEnter={() => playSound(audioService.playHover)}
+                                            title="ปุ่มลัด: Alt+P"
+                                            className="flex-1 flex items-center justify-center gap-3 p-3 bg-brand-cyan text-black border-2 border-brand-light shadow-sm hover:bg-brand-yellow">
+                                            {isPlayingMidi ? <StopIcon className="w-6 h-6" /> : <PlayIcon className="w-6 h-6" />}
+                                            <span>{isPlayingMidi ? 'หยุด' : 'เล่น MIDI'}</span>
+                                        </button>
+                                        <button 
+                                            onClick={handleMidiDownload}
+                                            onMouseEnter={() => playSound(audioService.playHover)}
+                                            disabled={isDownloading}
+                                            title="ปุ่มลัด: Alt+D"
+                                            className="flex-1 flex items-center justify-center gap-3 p-3 bg-brand-yellow text-black border-2 border-brand-light shadow-sm hover:bg-brand-magenta hover:text-white disabled:bg-gray-500">
+                                            <DownloadIcon className="w-6 h-6" />
+                                            <span>{isDownloading ? 'กำลังสร้าง...' : 'ดาวน์โหลด (.wav)'}</span>
+                                        </button>
                                     </div>
                                 </div>
-                            ))}
+                            )}
                         </div>
                     </div>
                 )}

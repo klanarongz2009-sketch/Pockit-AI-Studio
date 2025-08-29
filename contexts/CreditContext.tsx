@@ -24,6 +24,7 @@ export const CREDIT_COSTS = {
   MINIGAME_ASSET: 10, 
   AI_ORACLE: 5,
   PLATFORMER_CONTINUE: 5,
+  AUDIO_TO_MIDI: 20,
 };
 
 

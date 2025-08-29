@@ -1,6 +1,5 @@
 
-
-import type { Song, SongNote, SoundEffectParameters } from './geminiService';
+import type { Song, SongNote, SoundEffectParameters, MidiNote } from './geminiService';
 
 let audioContext: AudioContext | null = null;
 let isInitialized = false;
@@ -8,6 +7,10 @@ let isInitialized = false;
 // Module-level state for song playback
 let activeSources: AudioScheduledSourceNode[] = [];
 let songEndTimeoutId: number | null = null;
+
+// Module-level state for MIDI playback
+let activeMidiSources: AudioScheduledSourceNode[] = [];
+let midiEndTimeoutId: number | null = null;
 
 // Module-level state for background music
 let musicSource: AudioBufferSourceNode | null = null;
@@ -32,7 +35,7 @@ export const initAudio = () => {
     }
 };
 
-type SoundType = 'sine' | 'square' | 'sawtooth' | 'triangle';
+export type SoundType = 'sine' | 'square' | 'sawtooth' | 'triangle';
 
 const playSoundInternal = (type: SoundType, startFreq: number, endFreq: number, duration: number, volume: number = 0.3) => {
     if (!audioContext || audioContext.state !== 'running') return;
@@ -145,7 +148,7 @@ export const setMusicVolume = (volume: number) => {
 };
 
 // --- Song Playback ---
-const NOTE_FREQUENCIES: { [key: string]: number } = {
+export const NOTE_FREQUENCIES: { [key: string]: number } = {
     'C2': 65.41, 'C#2': 69.30, 'D2': 73.42, 'D#2': 77.78, 'E2': 82.41, 'F2': 87.31, 'F#2': 92.50, 'G2': 98.00, 'G#2': 103.83, 'A2': 110.00, 'A#2': 116.54, 'B2': 123.47,
     'C3': 130.81, 'C#3': 138.59, 'D3': 146.83, 'D#3': 155.56, 'E3': 164.81, 'F3': 174.61, 'F#3': 185.00, 'G3': 196.00, 'G#3': 207.65, 'A3': 220.00, 'A#3': 233.08, 'B3': 246.94,
     'C4': 261.63, 'C#4': 277.18, 'D4': 293.66, 'D#4': 311.13, 'E4': 329.63, 'F4': 349.23, 'F#4': 369.99, 'G4': 392.00, 'G#4': 415.30, 'A4': 440.00, 'A#4': 466.16, 'B4': 493.88,
@@ -280,6 +283,74 @@ export const exportSongToWav = async (song: Song, bpm: number): Promise<Blob | n
         return bufferToWav(renderedBuffer);
     } catch (e) {
         console.error("Error rendering song to WAV:", e);
+        return null;
+    }
+};
+
+// --- MIDI Playback ---
+export const stopMidi = () => {
+    activeMidiSources.forEach(source => { try { source.stop(0); } catch (e) {} });
+    activeMidiSources = [];
+    if (midiEndTimeoutId) {
+        clearTimeout(midiEndTimeoutId);
+        midiEndTimeoutId = null;
+    }
+};
+
+export const playMidi = (notes: MidiNote[], onEnd?: () => void) => {
+    if (!audioContext || audioContext.state !== 'running') return;
+    stopMidi();
+    
+    let totalDuration = 0;
+    const now = audioContext.currentTime;
+
+    notes.forEach(note => {
+        const freq = noteToFrequency(note.pitch);
+        if (freq > 0) {
+            const volume = (note.velocity / 127) * 0.7; // Convert velocity to gain level (0.7 max gain)
+            const source = playNoteInternal(freq, now + note.startTime, note.duration, 'sine', volume);
+            if(source) activeMidiSources.push(source);
+        }
+        const noteEndTime = note.startTime + note.duration;
+        if (noteEndTime > totalDuration) {
+            totalDuration = noteEndTime;
+        }
+    });
+
+    if (onEnd) {
+        midiEndTimeoutId = window.setTimeout(onEnd, totalDuration * 1000);
+    }
+};
+
+export const exportMidiToWav = async (notes: MidiNote[]): Promise<Blob | null> => {
+    if (!notes || notes.length === 0) return null;
+
+    let totalDurationSeconds = 0;
+    notes.forEach(note => {
+        const noteEndTime = note.startTime + note.duration;
+        if (noteEndTime > totalDurationSeconds) {
+            totalDurationSeconds = noteEndTime;
+        }
+    });
+
+    if (totalDurationSeconds === 0) return null;
+    
+    const sampleRate = 44100;
+    const offlineCtx = new OfflineAudioContext(1, Math.ceil(sampleRate * totalDurationSeconds) + sampleRate, sampleRate); // Add 1s padding
+
+    notes.forEach(note => {
+        const freq = noteToFrequency(note.pitch);
+        if (freq > 0) {
+            const volume = (note.velocity / 127) * 0.7;
+            playNoteInContext(offlineCtx, freq, note.startTime, note.duration, 'sine', volume);
+        }
+    });
+
+    try {
+        const renderedBuffer = await offlineCtx.startRendering();
+        return bufferToWav(renderedBuffer);
+    } catch (e) {
+        console.error("Error rendering MIDI to WAV:", e);
         return null;
     }
 };
@@ -420,7 +491,7 @@ export const applyVoiceEffect = async (file: File, effect: string, params: Effec
         return offlineCtx.startRendering();
     }
     
-    const playbackRate = (effect === 'pitch-shift' ? Math.pow(2, (params.pitchShift ?? 0) / 12) : 1) * (effect === 'monster' ? 0.7 : 1);
+    const playbackRate = (effect === 'pitch-shift' ? Math.pow(2, (params.pitchShift ?? 0) / 12) : 1) * (effect === 'monster' ? 0.7 : 1) * (effect === 'ai-narrator' ? 0.95 : 1);
 
     const offlineContext = new OfflineAudioContext(originalBuffer.numberOfChannels, Math.floor(originalBuffer.duration * (1 / playbackRate) * originalBuffer.sampleRate), originalBuffer.sampleRate);
     const source = offlineContext.createBufferSource();
@@ -691,6 +762,69 @@ export const applyVoiceEffect = async (file: File, effect: string, params: Effec
             lastNode = distortion;
             break;
         }
+        case 'ai-voice-enhancer': {
+            const compressor = offlineContext.createDynamicsCompressor();
+            compressor.threshold.value = -24;
+            compressor.knee.value = 30;
+            compressor.ratio.value = 12;
+            compressor.attack.value = 0.003;
+            compressor.release.value = 0.25;
+
+            const treble = offlineContext.createBiquadFilter();
+            treble.type = 'highshelf';
+            treble.frequency.value = 3200;
+            treble.gain.value = params.remasterIntensity ?? 5;
+
+            lastNode.connect(compressor);
+            compressor.connect(treble);
+            lastNode = treble;
+            break;
+        }
+        case 'ai-noise-removal': {
+            const noiseGate = offlineContext.createDynamicsCompressor();
+            noiseGate.threshold.value = -50;
+            noiseGate.knee.value = 40;
+            noiseGate.ratio.value = 12;
+            noiseGate.attack.value = 0;
+            noiseGate.release.value = 0.25;
+
+            const lowpass = offlineContext.createBiquadFilter();
+            lowpass.type = 'lowpass';
+            lowpass.frequency.value = 4500;
+
+            lastNode.connect(noiseGate);
+            noiseGate.connect(lowpass);
+            lastNode = lowpass;
+            break;
+        }
+        case 'ai-vocal-isolation': {
+            const bandpass = offlineContext.createBiquadFilter();
+            bandpass.type = 'bandpass';
+            bandpass.frequency.value = 1800; // Center of vocal range
+            bandpass.Q.value = 2.5;
+            lastNode.connect(bandpass);
+            lastNode = bandpass;
+            break;
+        }
+        case 'ai-narrator': {
+            // Pitch is already handled by playbackRate
+            const compressor = offlineContext.createDynamicsCompressor();
+            compressor.threshold.value = -20;
+            compressor.ratio.value = 8;
+            lastNode.connect(compressor);
+            
+            const convolver = offlineContext.createConvolver();
+            convolver.buffer = createReverbImpulse(offlineContext, 0.5, 1); // Short, subtle reverb
+            const wetGain = offlineContext.createGain();
+            wetGain.gain.value = 0.15;
+
+            compressor.connect(masterGain); // Dry
+            compressor.connect(convolver);
+            convolver.connect(wetGain);
+            wetGain.connect(masterGain); // Wet
+            lastNode = masterGain;
+            break;
+        }
         // Default case for effects with no specific node chain (like pitch-shift)
         default:
             break;
@@ -814,5 +948,11 @@ export const exportSoundEffectToWav = async (params: SoundEffectParameters): Pro
     } catch (e) {
         console.error("Error rendering sound effect to WAV:", e);
         return null;
+    }
+};
+
+export const playMusicalNote = (frequency: number, type: SoundType, duration: number = 0.4) => {
+    if (frequency > 0) {
+        playSoundInternal(type, frequency, frequency, duration, 0.4);
     }
 };
