@@ -91,16 +91,16 @@ export const Modal: React.FC<ModalProps> = ({ isOpen, onClose, title, children, 
       role="dialog"
       aria-modal="true"
       aria-labelledby="modal-title"
-      className="fixed inset-0 bg-black/80 z-50 flex items-center justify-center font-press-start"
+      className="fixed inset-0 bg-surface-secondary/80 z-50 flex items-center justify-center font-press-start animate-modal-bg-fade-in"
       onClick={onClose}
     >
       <div
         ref={modalRef}
         tabIndex={-1}
-        className={`bg-black w-full h-full flex flex-col border-4 border-brand-light outline-none`}
+        className={`bg-background w-full h-full flex flex-col border-4 border-border-primary outline-none animate-modal-content-scale-in`}
         onClick={(e) => e.stopPropagation()} // Prevent closing when clicking inside the modal
       >
-        <header className="flex items-center justify-between p-3 border-b-4 border-brand-light bg-black/20 flex-shrink-0">
+        <header className="flex items-center justify-between p-3 border-b-4 border-border-primary bg-background/20 flex-shrink-0">
           <div className="flex items-center gap-4">
             {onBack && (
               <button
@@ -118,12 +118,12 @@ export const Modal: React.FC<ModalProps> = ({ isOpen, onClose, title, children, 
           <button
             onClick={onClose}
             aria-label="ปิด"
-            className="w-8 h-8 flex-shrink-0 flex items-center justify-center bg-brand-magenta text-white border-2 border-brand-light hover:bg-brand-yellow hover:text-black transition-colors text-sm"
+            className="w-8 h-8 flex-shrink-0 flex items-center justify-center bg-brand-magenta text-white border-2 border-border-primary hover:bg-brand-yellow hover:text-black transition-colors text-sm"
           >
             X
           </button>
         </header>
-        <main className="p-4 sm:p-6 text-brand-light overflow-y-auto font-sans">
+        <main className="p-4 sm:p-6 text-text-primary overflow-y-auto font-sans">
             {children}
         </main>
       </div>

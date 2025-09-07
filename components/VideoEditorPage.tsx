@@ -1,6 +1,6 @@
-
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import * as audioService from '../services/audioService';
+import * as preferenceService from '../services/preferenceService';
 import { 
     getVideosOperation, 
     generateVideo,
@@ -44,8 +44,8 @@ export const VideoEditorPage: React.FC<VideoEditorPageProps> = ({ onClose, playS
     const [error, setError] = useState<string | null>(null);
     const [prompt, setPrompt] = useState('');
     const [addSubs, setAddSubs] = useState(false);
-    const [subtitleLanguage, setSubtitleLanguage] = useState<string>('th-TH');
-    const [autoDetectLanguage, setAutoDetectLanguage] = useState<boolean>(true);
+    const [subtitleLanguage, setSubtitleLanguage] = useState<string>(() => preferenceService.getPreference('videoEditorSubtitleLang', 'th-TH'));
+    const [autoDetectLanguage, setAutoDetectLanguage] = useState<boolean>(() => preferenceService.getPreference('videoEditorAutoDetectLang', true));
 
 
     const [generatedVideoUrl, setGeneratedVideoUrl] = useState<string | null>(null);
@@ -56,6 +56,14 @@ export const VideoEditorPage: React.FC<VideoEditorPageProps> = ({ onClose, playS
     const fileInputRef = useRef<HTMLInputElement>(null);
     const isAudioFile = uploadedFile?.type.startsWith('audio/') ?? false;
 
+    useEffect(() => {
+        preferenceService.setPreference('videoEditorSubtitleLang', subtitleLanguage);
+    }, [subtitleLanguage]);
+
+    useEffect(() => {
+        preferenceService.setPreference('videoEditorAutoDetectLang', autoDetectLanguage);
+    }, [autoDetectLanguage]);
+
     const resetState = (clearFile: boolean = false) => {
         setError(null);
         setIsLoading(false);
@@ -64,8 +72,6 @@ export const VideoEditorPage: React.FC<VideoEditorPageProps> = ({ onClose, playS
         setPrompt('');
         setAddSubs(false);
         setActiveTool(null);
-        setAutoDetectLanguage(true);
-        setSubtitleLanguage('th-TH');
 
         if (clearFile) {
             setUploadedFile(null);
@@ -212,7 +218,14 @@ export const VideoEditorPage: React.FC<VideoEditorPageProps> = ({ onClose, playS
 
     const renderResult = () => {
         if (isLoading) return <LoadingSpinner text="AI กำลังตัดต่อ..." />;
-        if (error) return <div role="alert" className="text-center text-brand-magenta font-press-start p-4"><p>ข้อผิดพลาด</p><p className="text-xs mt-4 font-sans">{error}</p></div>;
+        if (error) return (
+            <div role="alert" className="w-full h-full p-4 flex flex-col items-center justify-center gap-4 text-center bg-black/40 border-4 border-brand-magenta">
+                <h3 className="font-press-start text-lg text-brand-magenta">เกิดข้อผิดพลาด</h3>
+                <p className="font-sans text-sm break-words text-brand-light/90 max-w-md">
+                    {error}
+                </p>
+            </div>
+        );
         if (generatedVideoUrl) {
             const videoUrlWithKey = `${generatedVideoUrl}&key=${process.env.API_KEY}`;
             return (

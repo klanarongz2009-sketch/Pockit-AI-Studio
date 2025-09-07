@@ -1,13 +1,31 @@
-const CACHE_NAME = 'pixel-art-generator-cache-v2';
+const CACHE_NAME = 'pixel-art-generator-cache-v4';
 const urlsToCache = [
+  // Core App Shell
   '/',
   '/index.html',
+  '/index.tsx',
   '/manifest.json',
+  // Icons & Manifest
   '/assets/icon-192.png',
   '/assets/icon-512.png',
   '/assets/icon.svg',
+  // Preloaded game and UI assets
+  '/assets/images/default_player.png',
+  '/assets/images/default_obstacle.png',
+  '/assets/music/bgm.mp3',
+  // External Dependencies
+  'https://cdn.tailwindcss.com',
   'https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap',
-  'https://cdn.tailwindcss.com'
+  'https://esm.sh/zone.js@0.14.8',
+  'https://esm.sh/@angular/core@18.1.0',
+  'https://esm.sh/@angular/common@18.1.0',
+  'https://esm.sh/@angular/compiler@18.1.0',
+  'https://esm.sh/@angular/platform-browser@18.1.0',
+  'https://esm.sh/@angular/platform-browser-dynamic@18.1.0',
+  'https://esm.sh/rxjs@7.8.1',
+  'https://esm.sh/rxjs@7.8.1/operators',
+  'https://esm.sh/@google/genai@^1.13.0',
+  'https://aistudiocdn.com/react@^19.1.1'
 ];
 
 self.addEventListener('install', (event) => {

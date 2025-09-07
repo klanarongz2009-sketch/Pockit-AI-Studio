@@ -1,4 +1,7 @@
 
+
+
+
 import React, { useState } from 'react';
 import { SparklesIcon } from './icons/SparklesIcon';
 import { GamepadIcon } from './icons/GamepadIcon';
@@ -20,7 +23,7 @@ interface AboutPageProps {
 }
 
 const Section: React.FC<{ title: string; children: React.ReactNode; id: string }> = ({ title, children, id }) => (
-    <section id={id} aria-labelledby={`${id}-heading`} className="w-full bg-black/40 p-4 border-4 border-brand-light/50 shadow-pixel space-y-2">
+    <section id={id} aria-labelledby={`${id}-heading`} className="w-full bg-surface-primary p-4 border-4 border-border-secondary shadow-pixel space-y-2">
         <h3 id={`${id}-heading`} className="font-press-start text-lg text-brand-cyan">{title}</h3>
         <div className="font-sans text-sm space-y-2">{children}</div>
     </section>
@@ -29,7 +32,7 @@ const Section: React.FC<{ title: string; children: React.ReactNode; id: string }
 const InstructionStep: React.FC<{ icon?: React.ReactNode; children: React.ReactNode }> = ({ icon, children }) => (
     <li className="flex gap-4 items-center">
         {icon && <div className="flex-shrink-0 w-8 h-8 text-brand-yellow">{icon}</div>}
-        <p className="text-brand-light/90">{children}</p>
+        <p className="text-text-primary/90">{children}</p>
     </li>
 );
 
@@ -94,7 +97,7 @@ const FeedbackSection: React.FC<{ playSound: (player: () => void) => void; isOnl
 
     if (isSubmitted) {
         return (
-            <div className="text-center space-y-4 p-4 bg-black/40 border-4 border-brand-lime shadow-pixel">
+            <div className="text-center space-y-4 p-4 bg-surface-primary border-4 border-brand-lime shadow-pixel">
                 <h3 className="font-press-start text-xl text-brand-lime">ขอบคุณ!</h3>
                 {wasAnalyzed ? (
                     <p>ขอบคุณสำหรับข้อเสนอแนะ! ในแอปพลิเคชันเวอร์ชันเต็ม ข้อความที่ผ่านการวิเคราะห์นี้จะถูกส่งไปยัง AI Code Assistant โดยอัตโนมัติเพื่อช่วยในการพัฒนาต่อไป</p>
@@ -107,15 +110,15 @@ const FeedbackSection: React.FC<{ playSound: (player: () => void) => void; isOnl
     
     return (
         <>
-            <p className="text-sm text-center text-brand-light/80">
+            <p className="text-sm text-center text-text-secondary">
                 เราให้ความสำคัญกับความคิดเห็นของคุณ! โปรดบอกเราว่าคุณคิดอย่างไรกับแอปนี้ หรือมีไอเดียอะไรอยากจะแนะนำ
             </p>
-            <div className="w-full flex flex-col gap-4 bg-black/40 p-4 border-2 border-brand-light/50 shadow-pixel">
+            <div className="w-full flex flex-col gap-4 bg-surface-primary p-4 border-2 border-border-secondary shadow-pixel">
                 <textarea
                     value={feedback}
                     onChange={(e) => setFeedback(e.target.value)}
                     placeholder="พิมพ์ความคิดเห็นของคุณที่นี่..."
-                    className="w-full h-40 p-2 bg-brand-light text-black rounded-none border-2 border-black focus:outline-none focus:ring-2 focus:ring-brand-yellow resize-y"
+                    className="w-full h-40 p-2 bg-text-primary text-background rounded-none border-2 border-border-primary focus:outline-none focus:ring-2 focus:ring-brand-yellow resize-y"
                     disabled={isLoading || !isOnline}
                     aria-label="ช่องใส่ข้อเสนอแนะ"
                 />
@@ -124,7 +127,7 @@ const FeedbackSection: React.FC<{ playSound: (player: () => void) => void; isOnl
                         onClick={handleAnalyze}
                         onMouseEnter={() => playSound(audioService.playHover)}
                         disabled={!feedback.trim() || isLoading || isSummaryLoading || !isOnline}
-                        className="w-full flex items-center justify-center gap-2 p-3 bg-brand-cyan text-black border-2 border-brand-light shadow-sm transition-all hover:bg-brand-yellow disabled:bg-gray-500 disabled:cursor-not-allowed"
+                        className="w-full flex items-center justify-center gap-2 p-3 bg-brand-cyan text-black border-2 border-border-primary shadow-sm transition-all hover:bg-brand-yellow disabled:bg-gray-500 disabled:cursor-not-allowed"
                     >
                         <SparklesIcon className="w-5 h-5" />
                         {isSummaryLoading ? 'กำลังวิเคราะห์...' : `วิเคราะห์ด้วย AI (${CREDIT_COSTS.FEEDBACK_ANALYSIS} เครดิต)`}
@@ -133,7 +136,7 @@ const FeedbackSection: React.FC<{ playSound: (player: () => void) => void; isOnl
                         onClick={handleSubmit}
                         onMouseEnter={() => playSound(audioService.playHover)}
                         disabled={!feedback.trim() || isLoading || isSummaryLoading || !isOnline}
-                        className="w-full flex items-center justify-center gap-2 p-3 bg-brand-magenta text-white border-2 border-brand-light shadow-sm transition-all hover:bg-brand-yellow hover:text-black disabled:bg-gray-500 disabled:cursor-not-allowed"
+                        className="w-full flex items-center justify-center gap-2 p-3 bg-brand-magenta text-white border-2 border-border-primary shadow-sm transition-all hover:bg-brand-yellow hover:text-black disabled:bg-gray-500 disabled:cursor-not-allowed"
                     >
                         <SendIcon className="w-5 h-5" />
                         {isLoading ? 'กำลังส่ง...' : (summary ? 'ส่งให้ AI Code Assistant' : 'ส่งข้อเสนอแนะ')}
@@ -144,7 +147,7 @@ const FeedbackSection: React.FC<{ playSound: (player: () => void) => void; isOnl
             {isSummaryLoading && <LoadingSpinner text="AI กำลังอ่าน..." />}
             
             {error && (
-                <div role="alert" className="w-full p-3 text-center text-sm text-brand-magenta border-2 border-brand-magenta/50 bg-brand-magenta/10">
+                <div role="alert" className="w-full p-3 text-center text-sm text-text-primary bg-brand-magenta/20 border-2 border-brand-magenta">
                     {error}
                 </div>
             )}
@@ -179,7 +182,7 @@ export const AboutPage: React.FC<AboutPageProps> = ({ onClose, playSound, isOnli
                         onClick={() => { playSound(audioService.playClick); setShowEnglishGuide(true); }}
                         onMouseEnter={() => playSound(audioService.playHover)}
                         aria-label="View English Guide"
-                        className="flex-shrink-0 flex items-center gap-2 p-2 text-xs bg-black/50 border-2 border-brand-light text-brand-light hover:bg-brand-yellow hover:text-black transition-colors"
+                        className="flex-shrink-0 flex items-center gap-2 p-2 text-xs bg-surface-primary border-2 border-border-primary text-text-primary hover:bg-brand-yellow hover:text-text-inverted transition-colors"
                     >
                         <EnglishIcon className="w-5 h-5" />
                         <span>EN</span>
@@ -193,7 +196,7 @@ export const AboutPage: React.FC<AboutPageProps> = ({ onClose, playSound, isOnli
 
                 <Section title="เคล็ดลับ & ความลับจาก AI" id="tips">
                     <h4 className="font-press-start text-base text-brand-yellow">คีย์ลัดคู่ใจ (Keyboard Shortcuts)</h4>
-                    <p className="text-xs text-brand-light/80">ใช้คีย์ลัดเหล่านี้เพื่อทำงานอย่างมือโปร! (Ctrl สำหรับ Windows/Linux, Cmd สำหรับ Mac)</p>
+                    <p className="text-xs text-text-secondary">ใช้คีย์ลัดเหล่านี้เพื่อทำงานอย่างมือโปร! (Ctrl สำหรับ Windows/Linux, Cmd สำหรับ Mac)</p>
                     <ul className="list-disc list-inside text-xs space-y-1 pl-2">
                         <li><strong className="text-brand-cyan">Ctrl + Enter:</strong> เริ่มสร้างผลงานในหน้าต่างๆ (สร้างภาพ, เพลง, เสียงประกอบ, วิดีโอ, วิเคราะห์ข้อเสนอแนะ)</li>
                         <li><strong className="text-brand-cyan">Alt + U:</strong> เปิดหน้าต่างอัปโหลดไฟล์ (ในหน้าเปลี่ยนเสียง, ตัดต่อวิดีโอ)</li>
@@ -208,11 +211,11 @@ export const AboutPage: React.FC<AboutPageProps> = ({ onClose, playSound, isOnli
                         <li><strong>ผสมผสานพลัง:</strong> สร้างภาพตัวละคร -> สร้างเพลงประกอบจากภาพ -> สร้างเสียงประกอบ -> คุณมีองค์ประกอบสำหรับโปรเจกต์มัลติมีเดียแล้ว!</li>
                      </ul>
 
-                    <div className="flex gap-4 items-start pt-4 mt-4 border-t-2 border-brand-light/20">
+                    <div className="flex gap-4 items-start pt-4 mt-4 border-t-2 border-border-primary/20">
                         <div className="flex-shrink-0 w-10 h-10 text-brand-magenta mt-1"><GamepadIcon/></div>
                         <div>
                             <h4 className="font-press-start text-base text-brand-magenta">ฟีเจอร์ลับ: Pixel Dodge Minigame!</h4>
-                            <p className="text-xs text-brand-light/80">
+                            <p className="text-xs text-text-secondary">
                                 รู้สึกเบื่อไหม? ลองพิมพ์คำสั่งสร้างภาพแล้วต่อท้ายด้วยคำว่า <strong className="text-brand-yellow">"มาเล่นกัน"</strong> ดูสิ! AI จะสร้างมินิเกมหลบหลีกสิ่งกีดขวางให้คุณเล่นทันที โดยตัวละครฮีโร่และอุปสรรคจะถูกออกแบบจากคำสั่งของคุณเอง! มาดูกันว่าคุณจะทำคะแนนได้เท่าไหร่!
                             </p>
                         </div>
@@ -249,9 +252,9 @@ export const AboutPage: React.FC<AboutPageProps> = ({ onClose, playSound, isOnli
 
                 <Section title="คำถามที่พบบ่อย (FAQ)" id="faq">
                     <h4 className="font-bold">แอปนี้ใช้เทคโนโลยีอะไร?</h4>
-                    <p className="text-xs text-brand-light/80 mb-2">หัวใจของแอปนี้คือ Gemini API ซึ่งเป็นโมเดล AI ขั้นสูงจาก Google เราใช้มันในการวิเคราะห์, ตีความ, และสร้างสรรค์ผลงานจากคำสั่งของคุณ ตั้งแต่ภาพนิ่งไปจนถึงวิดีโอและเสียง</p>
+                    <p className="text-xs text-text-secondary mb-2">หัวใจของแอปนี้คือ Gemini API ซึ่งเป็นโมเดล AI ขั้นสูงจาก Google เราใช้มันในการวิเคราะห์, ตีความ, และสร้างสรรค์ผลงานจากคำสั่งของคุณ ตั้งแต่ภาพนิ่งไปจนถึงวิดีโอและเสียง</p>
                      <h4 className="font-bold">ข้อมูลของฉันปลอดภัยไหม?</h4>
-                    <p className="text-xs text-brand-light/80 mb-2">แน่นอนครับ แอปนี้เป็นเพียงเดโมสำหรับการสาธิตเท่านั้น ไม่มีการเก็บข้อมูลส่วนตัว, ไฟล์ที่อัปโหลด, หรือผลงานที่คุณสร้างไว้บนเซิร์ฟเวอร์ ทุกอย่างจะถูกประมวลผลและหายไปเมื่อคุณปิดหน้าต่างครับ</p>
+                    <p className="text-xs text-text-secondary mb-2">แน่นอนครับ แอปนี้เป็นเพียงเดโมสำหรับการสาธิตเท่านั้น ไม่มีการเก็บข้อมูลส่วนตัว, ไฟล์ที่อัปโหลด, หรือผลงานที่คุณสร้างไว้บนเซิร์ฟเวอร์ ทุกอย่างจะถูกประมวลผลและหายไปเมื่อคุณปิดหน้าต่างครับ</p>
                 </Section>
 
                 <Section title="ข้อจำกัดความรับผิดชอบ" id="disclaimer">

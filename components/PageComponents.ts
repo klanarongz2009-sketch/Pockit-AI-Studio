@@ -1,3 +1,4 @@
+
 import React, { useEffect } from 'react';
 
 export const PageWrapper: React.FC<{ children: React.ReactNode; className?: string }> = ({ children, className = '' }) => {
@@ -10,11 +11,10 @@ export const PageWrapper: React.FC<{ children: React.ReactNode; className?: stri
         };
     }, []);
 
-    // FIX: Replaced JSX with React.createElement to support .ts file extension.
     return React.createElement(
         'div',
         {
-            className: `h-screen w-screen bg-black font-press-start text-brand-light flex flex-col items-center ${className}`
+            className: `h-screen w-screen bg-background font-press-start text-text-primary flex flex-col items-center animate-page-enter ${className}`
         },
         children
     );
@@ -22,7 +22,7 @@ export const PageWrapper: React.FC<{ children: React.ReactNode; className?: stri
 
 export const PageHeader: React.FC<{ title: string; onBack: () => void; }> = ({ title, onBack }) => (
     React.createElement('header', {
-        className: "w-full max-w-lg flex items-center p-3 border-b-4 border-brand-light bg-black/20 flex-shrink-0 mb-6"
+        className: "w-full max-w-lg flex items-center p-3 border-b-4 border-border-primary bg-background/20 flex-shrink-0 mb-6"
     },
     React.createElement('button', {
         onClick: onBack,

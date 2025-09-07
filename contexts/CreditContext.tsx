@@ -1,17 +1,11 @@
-import React, { createContext, useState, useEffect, useCallback, useContext, ReactNode } from 'react';
+import React, { createContext, useContext, useState, useEffect, useCallback, FC, ReactNode } from 'react';
 import * as audioService from '../services/audioService';
-
-const CREDITS_STORAGE_KEY = 'ai-studio-credits';
-const LAST_REFRESH_STORAGE_KEY = 'ai-studio-last-refresh';
 
 export const CREDIT_COSTS = {
   IMAGE_GENERATION: 10,
-  // GIF is dynamic: frameCount * 2
-  // Video is dynamic: prompt.length
   SPRITESHEET_GENERATION: 300,
   PROMPT_SUGGESTION: 2,
   SONG_V1: 0,
-  // Song V1.5 is dynamic: 1 per note
   SONG_V2_BETA: 10,
   SONG_SEARCH: 15,
   VIDEO_SUBTITLES: 20,
@@ -22,29 +16,40 @@ export const CREDIT_COSTS = {
   FEEDBACK_ANALYSIS: 2,
   TICTACTOE_AI_MOVE: 1,
   MINIGAME_ASSET: 10, 
-  AI_ORACLE: 5,
   PLATFORMER_CONTINUE: 5,
   AUDIO_TO_MIDI: 20,
+  AI_ORACLE: 5,
 };
-
 
 export const DAILY_CREDIT_AMOUNT = 250;
 const INITIAL_CREDITS = 500;
+const CREDITS_STORAGE_KEY = 'ai-studio-credits';
+const LAST_REFRESH_STORAGE_KEY = 'ai-studio-last-refresh';
 
 interface CreditContextType {
     credits: number;
     loading: boolean;
+    lastRefresh: string | null;
     spendCredits: (amount: number) => boolean;
     addCredits: (amount: number) => void;
-    lastRefresh: string | null;
 }
 
 const CreditContext = createContext<CreditContextType | undefined>(undefined);
 
-export const CreditProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
+export const CreditProvider: FC<{ children: ReactNode }> = ({ children }) => {
     const [credits, setCredits] = useState(0);
     const [loading, setLoading] = useState(true);
     const [lastRefresh, setLastRefresh] = useState<string | null>(null);
+
+    const updateCredits = useCallback((newCreditValue: number) => {
+        const intValue = Math.floor(newCreditValue);
+        setCredits(intValue);
+        try {
+            localStorage.setItem(CREDITS_STORAGE_KEY, String(intValue));
+        } catch (error) {
+            console.error("Failed to save credits to localStorage:", error);
+        }
+    }, []);
 
     useEffect(() => {
         try {
@@ -54,43 +59,31 @@ export const CreditProvider: React.FC<{ children: ReactNode }> = ({ children }) 
 
             setLastRefresh(storedLastRefresh);
 
+            let currentCreditsValue: number;
+
             if (storedCredits === null) {
-                // First time user
-                setCredits(INITIAL_CREDITS);
-                localStorage.setItem(CREDITS_STORAGE_KEY, String(INITIAL_CREDITS));
+                currentCreditsValue = INITIAL_CREDITS;
                 localStorage.setItem(LAST_REFRESH_STORAGE_KEY, today);
                 setLastRefresh(today);
             } else {
-                let currentCredits = parseFloat(storedCredits);
-                if (isNaN(currentCredits)) {
-                    currentCredits = INITIAL_CREDITS;
+                currentCreditsValue = parseFloat(storedCredits);
+                if (isNaN(currentCreditsValue)) {
+                    currentCreditsValue = INITIAL_CREDITS;
                 }
-                // Daily refresh logic
                 if (storedLastRefresh !== today) {
-                    currentCredits += DAILY_CREDIT_AMOUNT;
+                    currentCreditsValue += DAILY_CREDIT_AMOUNT;
                     setLastRefresh(today);
                     localStorage.setItem(LAST_REFRESH_STORAGE_KEY, today);
                 }
-                setCredits(Math.floor(currentCredits));
-                 localStorage.setItem(CREDITS_STORAGE_KEY, String(Math.floor(currentCredits)));
             }
+            updateCredits(Math.floor(currentCreditsValue));
         } catch (error) {
             console.error("Failed to initialize credits from localStorage:", error);
-            setCredits(INITIAL_CREDITS); // Fallback
+            updateCredits(INITIAL_CREDITS);
         } finally {
             setLoading(false);
         }
-    }, []);
-
-    const updateCredits = (newCreditValue: number) => {
-        const intValue = Math.floor(newCreditValue);
-        setCredits(intValue);
-        try {
-            localStorage.setItem(CREDITS_STORAGE_KEY, String(intValue));
-        } catch (error) {
-            console.error("Failed to save credits to localStorage:", error);
-        }
-    };
+    }, [updateCredits]);
 
     const spendCredits = useCallback((amount: number): boolean => {
         const hasEnough = credits >= amount;
@@ -101,24 +94,20 @@ export const CreditProvider: React.FC<{ children: ReactNode }> = ({ children }) 
             }
         }
         return hasEnough;
-    }, [credits]);
+    }, [credits, updateCredits]);
 
-    const addCredits = useCallback((amount: number) => {
-        setCredits(prevCredits => {
-            const newTotal = Math.floor(prevCredits + amount);
-            try {
-                localStorage.setItem(CREDITS_STORAGE_KEY, String(newTotal));
-                if (amount > 0) {
-                    audioService.playCreditAdd();
-                }
-            } catch (error) {
-                 console.error("Failed to save credits to localStorage:", error);
+    const addCredits = useCallback((amount: number): void => {
+        setCredits(prev => {
+            const newTotal = Math.floor(prev + amount);
+            updateCredits(newTotal);
+            if (amount > 0) {
+                audioService.playCreditAdd();
             }
             return newTotal;
         });
-    }, []);
+    }, [updateCredits]);
 
-    const value = { credits, loading, spendCredits, addCredits, lastRefresh };
+    const value = { credits, loading, lastRefresh, spendCredits, addCredits };
 
     return (
         <CreditContext.Provider value={value}>

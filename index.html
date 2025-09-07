@@ -6,13 +6,58 @@
     <title>จักรวาล AI สร้างสรรค์</title>
     <link rel="icon" href="/assets/icon.svg" type="image/svg+xml">
     <link rel="manifest" href="manifest.json" />
-    <meta name="theme-color" content="#000000" />
+    <meta name="theme-color" content="#080c2b" />
     <link rel="apple-touch-icon" sizes="192x192" href="/assets/icon-192.png">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
+      /* --- THEME COLORS --- */
+      /* Dark theme (default) */
+      :root {
+        --color-brand-magenta: #ff00ff;
+        --color-brand-cyan: #00ffff;
+        --color-brand-yellow: #ffff00;
+        --color-brand-lime: #00ff00;
+        
+        --color-bg: #080c2b; /* Deep space blue */
+        --color-text-primary: #f0f0f0;
+        --color-text-secondary: rgba(240, 240, 240, 0.7);
+        --color-text-inverted: #080c2b;
+        --color-border-primary: var(--color-brand-cyan);
+        --color-border-secondary: rgba(0, 255, 255, 0.5);
+        --color-surface-primary: transparent; /* Outline buttons */
+        --color-surface-secondary: rgba(8, 12, 43, 0.85); /* Modal BG */
+        --color-shadow: var(--color-brand-cyan);
+      }
+      /* Light theme */
+      body.theme-light {
+        --color-bg: #E2E8F0; /* slate-200 */
+        --color-text-primary: #1E293B; /* slate-800 */
+        --color-text-secondary: rgba(30, 41, 59, 0.7);
+        --color-text-inverted: #E2E8F0;
+        --color-border-primary: #1E293B;
+        --color-border-secondary: rgba(30, 41, 59, 0.5);
+        --color-surface-primary: rgba(255, 255, 255, 0.6); /* Semi-transparent white buttons */
+        --color-surface-secondary: rgba(226, 232, 240, 0.9); /* Modal BG */
+        --color-shadow: #1E293B;
+      }
+      /* System Preference */
+      @media (prefers-color-scheme: light) {
+        :root:not(.theme-dark) {
+          --color-bg: #E2E8F0;
+          --color-text-primary: #1E293B;
+          --color-text-secondary: rgba(30, 41, 59, 0.7);
+          --color-text-inverted: #E2E8F0;
+          --color-border-primary: #1E293B;
+          --color-border-secondary: rgba(30, 41, 59, 0.5);
+          --color-surface-primary: rgba(255, 255, 255, 0.6);
+          --color-surface-secondary: rgba(226, 232, 240, 0.9);
+          --color-shadow: #1E293B;
+        }
+      }
+      
       body::before {
         content: "";
         position: fixed;
@@ -22,8 +67,8 @@
         height: 100%;
         background-image: repeating-linear-gradient(
             0deg,
-            rgba(255, 255, 255, 0.03),
-            rgba(255, 255, 255, 0.03) 1px,
+            rgba(128, 128, 128, 0.05),
+            rgba(128, 128, 128, 0.05) 1px,
             transparent 1px,
             transparent 3px
         );
@@ -42,14 +87,69 @@
         white-space: nowrap;
         border-width: 0;
       }
+
+      /* --- Global Animations --- */
+      @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(10px); }
+        to { opacity: 1; transform: translateY(0); }
+      }
+      @keyframes pageEnter {
+        from { opacity: 0; transform: scale(0.98); }
+        to { opacity: 1; transform: scale(1); }
+      }
+      @keyframes modalBgFadeIn {
+        from { opacity: 0; }
+        to { opacity: 1; }
+      }
+      @keyframes modalContentScaleIn {
+        from { opacity: 0; transform: scale(0.95); }
+        to { opacity: 1; transform: scale(1); }
+      }
+      @keyframes pieceAppear {
+        from { transform: scale(0.5); opacity: 0; }
+        to { transform: scale(1); opacity: 1; }
+      }
+
+      /* Page/Component Animation Classes */
+      main#main-content > * {
+        animation: fadeIn 0.4s ease-out forwards;
+      }
+      .animate-page-enter {
+        animation: pageEnter 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+      }
+      .animate-modal-bg-fade-in {
+        animation: modalBgFadeIn 0.3s ease-out forwards;
+      }
+      .animate-modal-content-scale-in {
+        animation: modalContentScaleIn 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+      }
+      .animate-piece-appear {
+        display: inline-block; /* Needed for transform */
+        animation: pieceAppear 0.2s ease-out forwards;
+      }
+
+      /* --- Global Interactivity --- */
+      :is(button, a) {
+        /* Add a base transition to all interactive elements for a responsive feel */
+        transition: all 0.15s ease-out;
+      }
+      .subtle-interactive:hover:not(:disabled) {
+        transform: translateY(-2px);
+        filter: brightness(1.2);
+      }
+      .subtle-interactive:active:not(:disabled) {
+        transform: translateY(0px);
+        filter: brightness(0.95);
+      }
+
       /* Custom styles for range sliders */
       input[type=range] {
         -webkit-appearance: none;
         appearance: none;
         width: 100%;
         height: 8px;
-        background: #000;
-        border: 2px solid #f0f0f0;
+        background: var(--color-text-primary);
+        border: 2px solid var(--color-text-primary);
         outline: none;
       }
 
@@ -63,19 +163,19 @@
         appearance: none;
         width: 24px;
         height: 24px;
-        background: #ff00ff; /* brand-magenta */
-        border: 2px solid #000;
+        background: var(--color-brand-magenta);
+        border: 2px solid var(--color-text-primary);
         cursor: pointer;
-        box-shadow: 2px 2px 0px #000;
+        box-shadow: 2px 2px 0px var(--color-text-primary);
       }
 
       input[type=range]::-moz-range-thumb {
         width: 20px;
         height: 20px;
-        background: #ff00ff; /* brand-magenta */
-        border: 2px solid #000;
+        background: var(--color-brand-magenta);
+        border: 2px solid var(--color-text-primary);
         cursor: pointer;
-        box-shadow: 2px 2px 0px #000;
+        box-shadow: 2px 2px 0px var(--color-text-primary);
         border-radius: 0;
       }
       
@@ -90,20 +190,20 @@
 
       /* Accessibility improvement: focus-visible styles */
       :is(button, a, input, textarea):focus-visible {
-        outline: 3px solid #ffff00; /* brand-yellow */
+        outline: 3px solid var(--color-brand-yellow);
         outline-offset: 2px;
-        box-shadow: 0 0 0 5px #000;
+        box-shadow: 0 0 0 5px var(--color-bg);
       }
       input[type=range]:focus-visible {
         outline: none;
       }
       input[type=range]:focus-visible::-webkit-slider-thumb {
         transform: scale(1.1);
-        box-shadow: 0 0 0 3px #000, 0 0 0 6px #ffff00;
+        box-shadow: 0 0 0 3px var(--color-bg), 0 0 0 6px var(--color-brand-yellow);
       }
        input[type=range]:focus-visible::-moz-range-thumb {
         transform: scale(1.1);
-        box-shadow: 0 0 0 3px #000, 0 0 0 6px #ffff00;
+        box-shadow: 0 0 0 3px var(--color-bg), 0 0 0 6px var(--color-brand-yellow);
       }
       body.modal-open {
         overflow: hidden;
@@ -125,33 +225,42 @@
               'press-start': ['"Press Start 2P"', 'cursive'],
             },
             boxShadow: {
-              'pixel': '4px 4px 0px #f0f0f0',
-              'pixel-active': '2px 2px 0px #f0f0f0',
+              'pixel': '4px 4px 0px var(--color-shadow)',
+              'pixel-active': '2px 2px 0px var(--color-shadow)',
             },
             colors: {
-              'brand-magenta': '#ff00ff',
-              'brand-cyan': '#00ffff',
-              'brand-yellow': '#ffff00',
-              'brand-lime': '#00ff00',
-              'brand-light': '#f0f0f0',
+              'background': 'var(--color-bg)',
+              'text-primary': 'var(--color-text-primary)',
+              'text-secondary': 'var(--color-text-secondary)',
+              'text-inverted': 'var(--color-text-inverted)',
+              'border-primary': 'var(--color-border-primary)',
+              'border-secondary': 'var(--color-border-secondary)',
+              'surface-primary': 'var(--color-surface-primary)',
+              'surface-secondary': 'var(--color-surface-secondary)',
+
+              'brand-magenta': 'var(--color-brand-magenta)',
+              'brand-cyan': 'var(--color-brand-cyan)',
+              'brand-yellow': 'var(--color-brand-yellow)',
+              'brand-lime': 'var(--color-brand-lime)',
             }
           }
         }
       }
     </script>
-<script type="importmap">
+    <script type="importmap">
 {
   "imports": {
-    "react": "https://esm.sh/react@^19.1.1",
-    "react-dom/": "https://esm.sh/react-dom@^19.1.1/",
     "@google/genai": "https://esm.sh/@google/genai@^1.13.0",
-    "react/": "https://esm.sh/react@^19.1.1/"
+    "react": "https://aistudiocdn.com/react@^19.1.1",
+    "react/": "https://aistudiocdn.com/react@^19.1.1/",
+    "react-dom/client": "https://aistudiocdn.com/react-dom@^19.1.1/client",
+    "react-dom/": "https://aistudiocdn.com/react-dom@^19.1.1/"
   }
 }
 </script>
 </head>
-<body class="bg-black text-brand-light">
-    <a href="#main-content" class="sr-only focus:not-sr-only focus:fixed focus:z-50 focus:top-2 focus:left-2 focus:px-4 focus:py-2 focus:bg-brand-yellow focus:text-black focus:shadow-pixel font-press-start">ข้ามไปยังเนื้อหาหลัก</a>
+<body class="bg-background text-text-primary">
+    <a href="#main-content" class="sr-only focus:not-sr-only focus:fixed focus:z-50 focus:top-2 focus:left-2 focus:px-4 focus:py-2 focus:bg-brand-yellow text-black focus:shadow-pixel font-press-start">ข้ามไปยังเนื้อหาหลัก</a>
     <div id="root"></div>
     <script type="module" src="/index.tsx"></script>
     <script>

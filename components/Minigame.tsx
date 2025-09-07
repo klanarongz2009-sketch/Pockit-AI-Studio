@@ -1,6 +1,8 @@
 
+
 import React, { useRef, useEffect, useState, useCallback } from 'react';
 import * as audioService from '../services/audioService';
+import { ShareIcon } from './icons/ShareIcon';
 
 type Difficulty = 'easy' | 'normal' | 'hard';
 
@@ -19,20 +21,22 @@ const OBSTACLE_WIDTH = 32;
 const OBSTACLE_HEIGHT = 32;
 const INITIAL_LIVES = 3;
 
+// Updated difficulty settings for more noticeable differences and UI color
 const difficultySettings = {
-    easy: { playerSpeed: 8, initialObstacleSpeed: 2, spawnRateModifier: 0.04 },
-    normal: { playerSpeed: 7, initialObstacleSpeed: 2.5, spawnRateModifier: 0.05 },
-    hard: { playerSpeed: 6, initialObstacleSpeed: 3, spawnRateModifier: 0.06 },
+    easy: { playerSpeed: 9, initialObstacleSpeed: 2, spawnRateModifier: 0.035, color: '#00ff00' },
+    normal: { playerSpeed: 7, initialObstacleSpeed: 3, spawnRateModifier: 0.05, color: '#ffff00' },
+    hard: { playerSpeed: 5, initialObstacleSpeed: 4, spawnRateModifier: 0.07, color: '#ff00ff' },
 };
 
 export const Minigame: React.FC<MinigameProps> = ({ playerImageUrl, obstacleImageUrl, onClose, playSound }) => {
     const canvasRef = useRef<HTMLCanvasElement>(null);
     const gameLoopRef = useRef<number | null>(null);
-    const gameOverTimeoutRef = useRef<number | null>(null);
 
     const [gameState, setGameState] = useState<'idle' | 'playing' | 'gameOver'>('idle');
     const [difficulty, setDifficulty] = useState<Difficulty>('normal');
     const [score, setScore] = useState(0);
+    const [highScore, setHighScore] = useState(0);
+    const [isNewHighScore, setIsNewHighScore] = useState(false);
     const [lives, setLives] = useState(INITIAL_LIVES);
     const [gameStatus, setGameStatus] = useState('ยินดีต้อนรับสู่มินิเกม');
     
@@ -44,6 +48,13 @@ export const Minigame: React.FC<MinigameProps> = ({ playerImageUrl, obstacleImag
     const keysRef = useRef<{ [key: string]: boolean }>({});
     const touchStartRef = useRef<{ x: number, y: number } | null>(null);
     const starfieldRef = useRef<{ x: number, y: number, size: number }[]>([]);
+
+    useEffect(() => {
+        const savedHighScore = localStorage.getItem('minigame_pixelDodge_highscore');
+        if (savedHighScore) {
+            setHighScore(parseInt(savedHighScore, 10) || 0);
+        }
+    }, []);
 
     useEffect(() => {
         const pImg = new Image();
@@ -66,11 +77,6 @@ export const Minigame: React.FC<MinigameProps> = ({ playerImageUrl, obstacleImag
     };
 
     const startGame = useCallback((selectedDifficulty: Difficulty) => {
-        if (gameOverTimeoutRef.current) {
-            clearTimeout(gameOverTimeoutRef.current);
-            gameOverTimeoutRef.current = null;
-        }
-
         playSound(audioService.playGenerate);
         setDifficulty(selectedDifficulty);
         setScore(0);
@@ -79,24 +85,23 @@ export const Minigame: React.FC<MinigameProps> = ({ playerImageUrl, obstacleImag
         obstaclesRef.current = [];
         setGameState('playing');
         setGameStatus('เริ่มเกม!');
+        setIsNewHighScore(false);
     }, [playSound]);
     
     useEffect(() => {
         if (gameState === 'gameOver') {
-            setGameStatus(`เกมจบแล้ว! คะแนนสุดท้ายคือ ${score}. กำลังกลับสู่หน้าก่อนหน้า...`);
-            if (gameOverTimeoutRef.current) {
-                clearTimeout(gameOverTimeoutRef.current);
+            if (score > highScore) {
+                setHighScore(score);
+                localStorage.setItem('minigame_pixelDodge_highscore', String(score));
+                setIsNewHighScore(true);
+                playSound(audioService.playSuccess);
+                setGameStatus(`คะแนนสูงสุดใหม่! ${score}`);
+            } else {
+                setIsNewHighScore(false);
+                setGameStatus(`เกมจบแล้ว! คะแนนสุดท้ายคือ ${score}.`);
             }
-            gameOverTimeoutRef.current = window.setTimeout(() => {
-                onClose();
-            }, 4000);
         }
-        return () => {
-            if (gameOverTimeoutRef.current) {
-                clearTimeout(gameOverTimeoutRef.current);
-            }
-        };
-    }, [gameState, onClose, score]);
+    }, [gameState, score, highScore, playSound]);
     
     useEffect(() => {
         const handleKeyDown = (e: KeyboardEvent) => { keysRef.current[e.key] = true; };
@@ -182,9 +187,14 @@ export const Minigame: React.FC<MinigameProps> = ({ playerImageUrl, obstacleImag
             if (gameState === 'gameOver') {
                 ctx.fillStyle = '#ff00ff';
                 ctx.fillText('GAME OVER', GAME_WIDTH / 2, GAME_HEIGHT / 2 - 120);
+                if (isNewHighScore) {
+                    ctx.fillStyle = '#00ff00';
+                    ctx.font = '24px "Press Start 2P"';
+                    ctx.fillText('คะแนนสูงสุดใหม่!', GAME_WIDTH / 2, GAME_HEIGHT / 2 - 70);
+                }
                 ctx.fillStyle = 'white';
                 ctx.font = '24px "Press Start 2P"';
-                ctx.fillText(`SCORE: ${score}`, GAME_WIDTH / 2, GAME_HEIGHT / 2 - 70);
+                ctx.fillText(`SCORE: ${score}`, GAME_WIDTH / 2, GAME_HEIGHT / 2 - 30);
             } else {
                  ctx.fillText('PIXEL DODGE', GAME_WIDTH / 2, GAME_HEIGHT / 2 - 80);
             }
@@ -203,13 +213,17 @@ export const Minigame: React.FC<MinigameProps> = ({ playerImageUrl, obstacleImag
         }
         
         // Draw UI
-        ctx.fillStyle = '#ffff00';
+        // Use color based on difficulty during play, or yellow otherwise
+        const uiColor = gameState === 'playing' ? difficultySettings[difficulty].color : '#ffff00';
+        ctx.fillStyle = uiColor;
         ctx.font = '16px "Press Start 2P"';
         ctx.textAlign = 'left';
         ctx.fillText(`SCORE: ${score}`, 10, 25);
+        ctx.textAlign = 'center';
+        ctx.fillText(`HI: ${highScore}`, GAME_WIDTH / 2, 25);
         ctx.textAlign = 'right';
         ctx.fillText(`LIVES: ${'♥'.repeat(lives)}`, GAME_WIDTH - 10, 25);
-    }, [gameState, playerImg, obstacleImg, score, lives]);
+    }, [gameState, playerImg, obstacleImg, score, lives, highScore, isNewHighScore, difficulty]);
     
     const gameLoop = useCallback(() => {
         if (!canvasRef.current) return;
@@ -289,17 +303,46 @@ export const Minigame: React.FC<MinigameProps> = ({ playerImageUrl, obstacleImag
         }
     }, [gameLoop]);
 
+    const handleShareScore = useCallback(async () => {
+        playSound(audioService.playClick);
+        const text = `ฉันได้ ${score} คะแนนในเกม Pixel Dodge! มาแข่งกันมั้ย?`;
+        const shareData = {
+            title: 'Pixel Dodge High Score!',
+            text: text,
+            url: window.location.href
+        };
+
+        try {
+            if (navigator.share) {
+                await navigator.share(shareData);
+            } else if (navigator.clipboard) {
+                await navigator.clipboard.writeText(text);
+                alert('คัดลอกคะแนนไปยังคลิปบอร์ดแล้ว!');
+            } else {
+                alert('เบราว์เซอร์ของคุณไม่รองรับการแชร์');
+            }
+        } catch (err) {
+             if (err instanceof Error && err.name !== 'AbortError') {
+                console.error('Error sharing score:', err);
+                alert('ไม่สามารถแชร์คะแนนได้');
+             }
+        }
+    }, [score, playSound]);
+
     const renderMenu = () => (
         <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/50">
-            <div className="flex flex-col gap-4">
-                 <button onClick={() => startGame('easy')} className="w-64 p-4 bg-brand-lime text-black border-4 border-brand-light shadow-pixel transition-all hover:bg-brand-yellow active:shadow-pixel-active active:translate-y-[2px] active:translate-x-[2px]">
-                    ง่าย
+            <div className="flex flex-col gap-4 text-center">
+                 <button onClick={() => startGame('easy')} className="w-64 p-3 bg-brand-lime text-black border-4 border-brand-light shadow-pixel transition-all hover:bg-brand-yellow active:shadow-pixel-active active:translate-y-[2px] active:translate-x-[2px]">
+                    <span className="text-lg">ง่าย</span>
+                    <span className="block text-xs font-sans mt-1">ผู้เล่นเร็ว, ศัตรูช้า</span>
                 </button>
-                <button onClick={() => startGame('normal')} className="w-64 p-4 bg-brand-cyan text-black border-4 border-brand-light shadow-pixel transition-all hover:bg-brand-yellow active:shadow-pixel-active active:translate-y-[2px] active:translate-x-[2px]">
-                    ปกติ
+                <button onClick={() => startGame('normal')} className="w-64 p-3 bg-brand-cyan text-black border-4 border-brand-light shadow-pixel transition-all hover:bg-brand-yellow active:shadow-pixel-active active:translate-y-[2px] active:translate-x-[2px]">
+                    <span className="text-lg">ปกติ</span>
+                    <span className="block text-xs font-sans mt-1">สมดุลและท้าทาย</span>
                 </button>
-                <button onClick={() => startGame('hard')} className="w-64 p-4 bg-brand-magenta text-white border-4 border-brand-light shadow-pixel transition-all hover:bg-brand-yellow hover:text-black active:shadow-pixel-active active:translate-y-[2px] active:translate-x-[2px]">
-                    ยาก
+                <button onClick={() => startGame('hard')} className="w-64 p-3 bg-brand-magenta text-white border-4 border-brand-light shadow-pixel transition-all hover:bg-brand-yellow hover:text-black active:shadow-pixel-active active:translate-y-[2px] active:translate-x-[2px]">
+                    <span className="text-lg">ยาก</span>
+                    <span className="block text-xs font-sans mt-1">ผู้เล่นช้า, ศัตรูเร็ว</span>
                 </button>
             </div>
         </div>
@@ -322,11 +365,22 @@ export const Minigame: React.FC<MinigameProps> = ({ playerImageUrl, obstacleImag
                 {(gameState === 'idle' || gameState === 'gameOver') && renderMenu()}
             </div>
             <div className="w-full flex justify-center gap-4 mt-4">
+                 {gameState === 'gameOver' && (
+                    <button
+                        onClick={handleShareScore}
+                        className="w-full max-w-xs p-3 bg-brand-cyan text-black border-4 border-brand-light shadow-pixel transition-all hover:bg-brand-yellow active:shadow-pixel-active active:translate-y-[2px] active:translate-x-[2px] font-press-start"
+                    >
+                        <div className="flex items-center justify-center gap-2">
+                            <ShareIcon className="w-5 h-5" />
+                            <span>แชร์คะแนน</span>
+                        </div>
+                    </button>
+                )}
                 <button
                     onClick={onClose}
-                    className="w-full max-w-xs p-3 bg-brand-magenta text-white border-4 border-brand-light shadow-pixel transition-all hover:bg-red-500 active:shadow-pixel-active active:translate-y-[2px] active:translate-x-[2px]"
+                    className="w-full max-w-xs p-3 bg-brand-magenta text-white border-4 border-brand-light shadow-pixel transition-all hover:bg-red-500 active:shadow-pixel-active active:translate-y-[2px] active:translate-x-[2px] font-press-start"
                 >
-                    Quit Game
+                    ออกจากเกม
                 </button>
             </div>
         </div>

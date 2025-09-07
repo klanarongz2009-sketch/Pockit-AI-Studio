@@ -1,7 +1,7 @@
-
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import * as geminiService from '../services/geminiService';
 import * as audioService from '../services/audioService';
+import * as preferenceService from '../services/preferenceService';
 import { OutputDisplay } from './ImageDisplay';
 import { SparklesIcon } from './icons/SparklesIcon';
 import { UploadIcon } from './icons/UploadIcon';
@@ -10,9 +10,14 @@ import { TrashIcon } from './icons/TrashIcon';
 import { Minigame } from './Minigame';
 import { PlusSquareIcon } from './icons/PlusSquareIcon';
 import { useCredits } from '../contexts/CreditContext';
+import { LinkIcon } from './icons/LinkIcon';
+import { ShareIcon } from './icons/ShareIcon';
+import * as galleryService from '../services/galleryService';
+import { GalleryIcon } from './icons/GalleryIcon';
 
 type GenerationMode = 'image' | 'gif' | 'video' | 'spritesheet';
 type GameAssetState = { player: string | null; obstacle: string | null; };
+type UploadedImageData = { base64: string; mimeType: string; };
 
 const videoLoadingMessages = [
     "กำลังเรนเดอร์โลกพิกเซล...",
@@ -33,11 +38,14 @@ export const ImageGeneratorPage: React.FC<{
     const [generatedImage, setGeneratedImage] = useState<string | null>(null);
     const [generatedFrames, setGeneratedFrames] = useState<string[] | null>(null);
     const [generatedVideoUrl, setGeneratedVideoUrl] = useState<string | null>(null);
-    const [generationMode, setGenerationMode] = useState<GenerationMode>('image');
-    const [fps, setFps] = useState(12);
-    const [frameCount, setFrameCount] = useState(8);
+    const [generatedCode, setGeneratedCode] = useState<string | null>(null);
+    const [uploadedImageData, setUploadedImageData] = useState<UploadedImageData | null>(null);
+    const [generationMode, setGenerationMode] = useState<GenerationMode>(() => preferenceService.getPreference('imageGeneratorMode', 'image'));
+    const [fps, setFps] = useState(() => preferenceService.getPreference('imageGeneratorFps', 12));
+    const [frameCount, setFrameCount] = useState(() => preferenceService.getPreference('imageGeneratorFrameCount', 8));
     const [loadingText, setLoadingText] = useState('กำลังสร้าง...');
     const [currentFrame, setCurrentFrame] = useState(0);
+    const [isSaved, setIsSaved] = useState(false);
 
     const [isGameMode, setIsGameMode] = useState(false);
     const [gameAssets, setGameAssets] = useState<GameAssetState>({ player: null, obstacle: null });
@@ -46,6 +54,17 @@ export const ImageGeneratorPage: React.FC<{
     const fileInputRef = useRef<HTMLInputElement>(null);
     const frameIntervalRef = useRef<number | null>(null);
     const { credits, spendCredits } = useCredits();
+
+    // Save preferences when they change
+    useEffect(() => {
+        preferenceService.setPreference('imageGeneratorMode', generationMode);
+    }, [generationMode]);
+    useEffect(() => {
+        preferenceService.setPreference('imageGeneratorFps', fps);
+    }, [fps]);
+    useEffect(() => {
+        preferenceService.setPreference('imageGeneratorFrameCount', frameCount);
+    }, [frameCount]);
 
     const stopFrameAnimation = () => {
         if (frameIntervalRef.current) {
@@ -72,9 +91,12 @@ export const ImageGeneratorPage: React.FC<{
         setGeneratedImage(null);
         setGeneratedFrames(null);
         setGeneratedVideoUrl(null);
+        setGeneratedCode(null);
+        setUploadedImageData(null);
         setIsGameMode(false);
         setGameAssets({ player: null, obstacle: null });
         setSuggestions([]);
+        setIsSaved(false);
         if (fileInputRef.current) fileInputRef.current.value = "";
     }, [playSound]);
 
@@ -92,7 +114,7 @@ export const ImageGeneratorPage: React.FC<{
         setLoadingText('กำลังวิเคราะห์ภาพ...');
 
         try {
-            const toBase64 = (file: File): Promise<{ base64: string; mimeType: string }> =>
+            const toBase64 = (file: File): Promise<UploadedImageData> =>
                 new Promise((resolve, reject) => {
                     const reader = new FileReader();
                     reader.readAsDataURL(file);
@@ -100,10 +122,11 @@ export const ImageGeneratorPage: React.FC<{
                     reader.onerror = error => reject(error);
                 });
             
-            const { base64, mimeType } = await toBase64(file);
-            const imageUrl = `data:${mimeType};base64,${base64}`;
+            const imageData = await toBase64(file);
+            setUploadedImageData(imageData);
+            const imageUrl = `data:${imageData.mimeType};base64,${imageData.base64}`;
             setGeneratedImage(imageUrl); // Show the uploaded image
-            const newPrompt = await geminiService.generatePromptFromImage(base64, mimeType);
+            const newPrompt = await geminiService.generatePromptFromImage(imageData.base64, imageData.mimeType);
             setPrompt(newPrompt);
             playSound(audioService.playSuccess);
         } catch (err) {
@@ -114,6 +137,68 @@ export const ImageGeneratorPage: React.FC<{
         }
     }, [handleClear, playSound, isOnline]);
     
+    const handleUrlClick = useCallback(async () => {
+        if (isLoading || !isOnline) return;
+        playSound(audioService.playClick);
+        const url = window.prompt("Please enter the image URL:");
+
+        if (!url) {
+            return; // User cancelled
+        }
+        
+        // Basic validation for common image extensions
+        if (!/\.(jpeg|jpg|gif|png|webp)$/i.test(url)) {
+            setError("Invalid URL. Please provide a direct link to a JPG, PNG, GIF, or WEBP image.");
+            playSound(audioService.playError);
+            return;
+        }
+
+        handleClear();
+        setIsLoading(true);
+        setLoadingText('Fetching image from URL...');
+
+        try {
+            const response = await fetch(url);
+            if (!response.ok) {
+                throw new Error(`Failed to fetch image. Status: ${response.status}`);
+            }
+            
+            const blob = await response.blob();
+            
+            if (!blob.type.startsWith('image/')) {
+                throw new Error(`URL did not point to an image file. Mime type: ${blob.type}.`);
+            }
+
+            const toBase64 = (blob: Blob): Promise<UploadedImageData> =>
+                new Promise((resolve, reject) => {
+                    const reader = new FileReader();
+                    reader.readAsDataURL(blob);
+                    reader.onload = () => resolve({ base64: (reader.result as string).split(',')[1], mimeType: blob.type });
+                    reader.onerror = error => reject(error);
+                });
+
+            const imageData = await toBase64(blob);
+            setUploadedImageData(imageData);
+            const imageUrl = `data:${imageData.mimeType};base64,${imageData.base64}`;
+            setGeneratedImage(imageUrl);
+            
+            setLoadingText('Analyzing image...');
+            const newPrompt = await geminiService.generatePromptFromImage(imageData.base64, imageData.mimeType);
+            setPrompt(newPrompt);
+            playSound(audioService.playSuccess);
+
+        } catch (err) {
+            playSound(audioService.playError);
+            let message = geminiService.parseApiError(err);
+             if (message.toLowerCase().includes('failed to fetch')) {
+                message = "Failed to fetch image. This may be due to a network issue or security restrictions (CORS) on the source website. Try a different image host.";
+            }
+            setError(message);
+        } finally {
+            setIsLoading(false);
+        }
+    }, [isLoading, isOnline, playSound, handleClear]);
+
     const pollVideoOperation = useCallback(async (operation: any, retries = 20) => {
         if (retries <= 0) {
             throw new Error('การสร้างวิดีโอใช้เวลานานเกินไป โปรดลองอีกครั้ง');
@@ -172,6 +257,39 @@ export const ImageGeneratorPage: React.FC<{
         const currentPrompt = prompt.trim();
         if (!currentPrompt || isLoading || !isOnline) return;
         
+        // Check for special "Code" command
+        if (currentPrompt.toLowerCase() === 'code') {
+            if (!uploadedImageData) {
+                setError('กรุณาอัปโหลดรูปภาพก่อนใช้คำสั่ง "Code"');
+                playSound(audioService.playError);
+                return;
+            }
+
+            if (!spendCredits(50)) { // Cost for code generation
+                 setError(`เครดิตไม่เพียงพอ! ต้องการ 50 เครดิต แต่คุณมี ${Math.floor(credits)} เครดิต`);
+                 playSound(audioService.playError);
+                 return;
+            }
+
+            setIsLoading(true);
+            setLoadingText('AI กำลังเขียนโค้ด...');
+            setError(null);
+            setGeneratedCode(null);
+            playSound(audioService.playGenerate);
+
+            try {
+                const code = await geminiService.generateCodeFromImage(uploadedImageData.base64, uploadedImageData.mimeType);
+                setGeneratedCode(code);
+                playSound(audioService.playSuccess);
+            } catch (err) {
+                 playSound(audioService.playError);
+                 setError(geminiService.parseApiError(err));
+            } finally {
+                setIsLoading(false);
+            }
+            return;
+        }
+
         const gameTrigger = "มาเล่นกัน";
         const isGameRequest = currentPrompt.endsWith(gameTrigger);
         let cost = 0;
@@ -262,14 +380,20 @@ export const ImageGeneratorPage: React.FC<{
             setError(geminiService.parseApiError(err));
             setIsLoading(false); // Stop loading on ANY error
         }
-    }, [prompt, isLoading, isOnline, playSound, generationMode, frameCount, handleClear, pollVideoOperation, combineFramesToSpritesheet, spendCredits, credits]);
+    }, [prompt, isLoading, isOnline, playSound, generationMode, frameCount, handleClear, pollVideoOperation, combineFramesToSpritesheet, spendCredits, credits, uploadedImageData]);
+
+    const hasContent = generatedImage || (generatedFrames && generatedFrames.length > 0) || generatedVideoUrl || generatedCode;
 
     const handleDownload = useCallback(async () => {
         playSound(audioService.playDownload);
         let url: string | null = null;
         let filename = 'pixel-art';
 
-        if (generatedVideoUrl) {
+        if (generatedCode) {
+            const blob = new Blob([generatedCode], { type: 'text/html' });
+            url = URL.createObjectURL(blob);
+            filename = `${prompt.slice(0, 20).replace(/\s/g, '_') || 'ai-app'}.html`;
+        } else if (generatedVideoUrl) {
             url = `${generatedVideoUrl}&key=${process.env.API_KEY}`;
             filename = `${prompt.slice(0, 20)}.mp4`;
              // For videos, we fetch the blob because the URL might be temporary
@@ -304,8 +428,71 @@ export const ImageGeneratorPage: React.FC<{
                 URL.revokeObjectURL(url);
             }
         }
-    }, [playSound, generatedImage, generatedFrames, generatedVideoUrl, generationMode, prompt, combineFramesToSpritesheet]);
+    }, [playSound, generatedImage, generatedFrames, generatedVideoUrl, generatedCode, generationMode, prompt, combineFramesToSpritesheet]);
     
+    const handleShare = useCallback(async () => {
+        if (!hasContent) return;
+        playSound(audioService.playClick);
+
+        const text = `ดูผลงานศิลปะที่ฉันสร้างด้วยจักรวาล AI สร้างสรรค์! คำสั่ง: "${prompt}"`;
+        
+        if (generationMode === 'video' && generatedVideoUrl) {
+             if (navigator.share) {
+                try {
+                    await navigator.share({
+                        title: 'วิดีโอจาก AI',
+                        text: `ดูวิดีโอที่ฉันสร้างด้วย AI! คำสั่ง: "${prompt}"`,
+                        url: window.location.href
+                    });
+                } catch(err) {
+                    if (err instanceof Error && err.name !== 'AbortError') {
+                         console.error('Share failed:', err);
+                         alert('ไม่สามารถแชร์ได้');
+                    }
+                }
+            } else {
+                 alert('เบราว์เซอร์นี้ไม่รองรับการแชร์ กรุณาดาวน์โหลดแล้วแชร์ด้วยตนเอง');
+            }
+            return;
+        }
+
+        let dataUrl: string | null = null;
+        let fileName = 'ai-art.png';
+
+        if (generationMode === 'spritesheet' && generatedImage) {
+            dataUrl = generatedImage;
+            fileName = 'ai-spritesheet.png';
+        } else if (generationMode === 'gif' && generatedFrames && generatedFrames.length > 0) {
+            dataUrl = await combineFramesToSpritesheet(generatedFrames);
+            fileName = 'ai-animation-sheet.png';
+        } else if (generatedImage) {
+            dataUrl = generatedImage;
+        }
+
+        if (!dataUrl) return;
+
+        try {
+            const response = await fetch(dataUrl);
+            const blob = await response.blob();
+            const file = new File([blob], fileName, { type: blob.type });
+
+            if (navigator.share && navigator.canShare({ files: [file] })) {
+                await navigator.share({
+                    files: [file],
+                    title: 'ผลงานจาก AI',
+                    text: text,
+                });
+            } else {
+                alert('เบราว์เซอร์นี้ไม่รองรับการแชร์ไฟล์ กรุณาดาวน์โหลดแล้วแชร์ด้วยตนเอง');
+            }
+        } catch (err) {
+            if (err instanceof Error && err.name !== 'AbortError') {
+                 console.error('Share failed:', err);
+                 alert('ไม่สามารถแชร์ได้');
+            }
+        }
+    }, [hasContent, playSound, generatedImage, generatedFrames, generatedVideoUrl, generationMode, prompt, combineFramesToSpritesheet]);
+
     const handleGetSuggestions = useCallback(async () => {
         if (!prompt.trim() || !isOnline) return;
         playSound(audioService.playClick);
@@ -317,11 +504,23 @@ export const ImageGeneratorPage: React.FC<{
         }
     }, [prompt, isOnline, playSound]);
 
+    const handleSaveToGallery = useCallback(() => {
+        if (!generatedImage || !prompt || isSaved) return;
+        try {
+            galleryService.addArtwork(generatedImage, prompt);
+            playSound(audioService.playSuccess);
+            setIsSaved(true);
+        } catch(e) {
+            playSound(audioService.playError);
+            setError(e instanceof Error ? e.message : 'ไม่สามารถบันทึกลงแกลเลอรีได้');
+        }
+    }, [generatedImage, prompt, isSaved, playSound]);
+
     if (isGameMode && gameAssets.player && gameAssets.obstacle) {
         return <Minigame playerImageUrl={gameAssets.player} obstacleImageUrl={gameAssets.obstacle} onClose={() => setIsGameMode(false)} playSound={playSound} />;
     }
 
-    const hasContent = generatedImage || (generatedFrames && generatedFrames.length > 0) || generatedVideoUrl;
+    const canSave = (generationMode === 'image' || generationMode === 'spritesheet') && generatedImage;
 
     return (
         <div className="w-full h-full flex flex-col items-center px-4">
@@ -337,7 +536,7 @@ export const ImageGeneratorPage: React.FC<{
                                 id="prompt-input"
                                 value={prompt}
                                 onChange={(e) => setPrompt(e.target.value)}
-                                placeholder="เช่น อัศวินขี่ไดโนเสาร์ในอวกาศ"
+                                placeholder="เช่น อัศวินขี่ไดโนเสาร์ในอวกาศ หรืออัปโหลดภาพแล้วพิมพ์ 'Code' เพื่อให้ AI เขียนโค้ด"
                                 className="w-full h-24 p-2 bg-brand-light text-black rounded-none border-2 border-black focus:outline-none focus:ring-2 focus:ring-brand-yellow resize-y"
                                 disabled={isLoading || !isOnline}
                             />
@@ -392,15 +591,24 @@ export const ImageGeneratorPage: React.FC<{
                          </button>
                      </div>
                     {/* Secondary Action Buttons */}
-                    <div className="w-full grid grid-cols-3 gap-2">
-                        <button onClick={handleUploadClick} disabled={isLoading || !isOnline} onMouseEnter={() => playSound(audioService.playHover)} className="flex items-center justify-center gap-2 p-2 bg-black/50 border-2 border-brand-light shadow-sm transition-all hover:bg-brand-cyan/20 disabled:opacity-50">
+                    <div className="w-full grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-2">
+                        <button onClick={handleUploadClick} disabled={isLoading || !isOnline} onMouseEnter={() => playSound(audioService.playHover)} className="lg:col-span-2 flex items-center justify-center gap-2 p-2 bg-black/50 border-2 border-brand-light shadow-sm transition-all hover:bg-brand-cyan/20 disabled:opacity-50 subtle-interactive">
                             <UploadIcon className="w-5 h-5 text-brand-cyan" /> <span className="text-xs font-press-start">จากภาพ</span>
                         </button>
-                        <button onClick={handleDownload} disabled={isLoading || !hasContent} onMouseEnter={() => playSound(audioService.playHover)} className="flex items-center justify-center gap-2 p-2 bg-black/50 border-2 border-brand-light shadow-sm transition-all hover:bg-brand-cyan/20 disabled:opacity-50">
-                            <DownloadIcon className="w-5 h-5 text-brand-cyan" /> <span className="text-xs font-press-start">ดาวน์โหลด</span>
+                        <button onClick={handleUrlClick} disabled={isLoading || !isOnline} onMouseEnter={() => playSound(audioService.playHover)} className="lg:col-span-2 flex items-center justify-center gap-2 p-2 bg-black/50 border-2 border-brand-light shadow-sm transition-all hover:bg-brand-cyan/20 disabled:opacity-50 subtle-interactive">
+                            <LinkIcon className="w-5 h-5 text-brand-cyan" /> <span className="text-xs font-press-start">จาก URL</span>
                         </button>
-                         <button onClick={handleClear} disabled={isLoading} onMouseEnter={() => playSound(audioService.playHover)} className="flex items-center justify-center gap-2 p-2 bg-black/50 border-2 border-brand-light shadow-sm transition-all hover:bg-brand-cyan/20 disabled:opacity-50">
-                            <TrashIcon className="w-5 h-5 text-brand-cyan" /> <span className="text-xs font-press-start">ล้าง</span>
+                        <button onClick={handleDownload} disabled={isLoading || !hasContent} onMouseEnter={() => playSound(audioService.playHover)} className="flex items-center justify-center gap-2 p-2 bg-black/50 border-2 border-brand-light shadow-sm transition-all hover:bg-brand-cyan/20 disabled:opacity-50 subtle-interactive">
+                            <DownloadIcon className="w-5 h-5 text-brand-cyan" />
+                        </button>
+                         <button onClick={handleShare} disabled={isLoading || !hasContent} onMouseEnter={() => playSound(audioService.playHover)} className="flex items-center justify-center gap-2 p-2 bg-black/50 border-2 border-brand-light shadow-sm transition-all hover:bg-brand-cyan/20 disabled:opacity-50 subtle-interactive">
+                            <ShareIcon className="w-5 h-5 text-brand-cyan" />
+                        </button>
+                        <button onClick={handleSaveToGallery} disabled={isLoading || !canSave || isSaved} onMouseEnter={() => playSound(audioService.playHover)} className="flex items-center justify-center gap-2 p-2 bg-black/50 border-2 border-brand-light shadow-sm transition-all hover:bg-brand-cyan/20 disabled:opacity-50 subtle-interactive">
+                            <GalleryIcon className="w-5 h-5 text-brand-cyan" />
+                        </button>
+                         <button onClick={handleClear} disabled={isLoading} onMouseEnter={() => playSound(audioService.playHover)} className="flex items-center justify-center gap-2 p-2 bg-black/50 border-2 border-brand-light shadow-sm transition-all hover:bg-brand-cyan/20 disabled:opacity-50 subtle-interactive">
+                            <TrashIcon className="w-5 h-5 text-brand-cyan" />
                         </button>
                     </div>
                 </div>
@@ -413,6 +621,7 @@ export const ImageGeneratorPage: React.FC<{
                         generatedImage={generatedImage}
                         generatedFrames={generatedFrames}
                         generatedVideoUrl={generatedVideoUrl}
+                        generatedCode={generatedCode}
                         prompt={prompt}
                         generationMode={generationMode}
                         fps={fps}

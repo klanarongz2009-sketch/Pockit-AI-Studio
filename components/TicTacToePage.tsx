@@ -1,5 +1,7 @@
 
 
+
+
 import React, { useState, useEffect, useCallback } from 'react';
 import { PageWrapper } from './PageComponents';
 import * as audioService from '../services/audioService';
@@ -237,10 +239,10 @@ export const TicTacToePage: React.FC<TicTacToePageProps> = ({ onClose, playSound
                                 key={`${rowIndex}-${colIndex}`}
                                 onClick={() => handlePlayerMove(rowIndex, colIndex)}
                                 disabled={!!cell || !!winner || isAiThinking || (gameMode === 'ai' && turn !== player)}
-                                className="w-24 h-24 bg-black flex items-center justify-center text-5xl font-press-start transition-colors disabled:cursor-not-allowed"
+                                className="w-24 h-24 bg-black flex items-center justify-center text-5xl font-press-start transition-all hover:bg-gray-800 disabled:cursor-not-allowed"
                                 aria-label={`ช่อง ${rowIndex + 1}, ${colIndex + 1}: ${cell || 'ว่าง'}`}
                             >
-                                <span className={cell === 'X' ? 'text-brand-cyan' : 'text-brand-yellow'}>
+                                <span className={cell === 'X' ? 'text-brand-cyan animate-piece-appear' : 'text-brand-yellow animate-piece-appear'}>
                                     {cell}
                                 </span>
                             </button>
@@ -249,7 +251,7 @@ export const TicTacToePage: React.FC<TicTacToePageProps> = ({ onClose, playSound
                 </div>
                  
                  {error && (
-                    <div role="alert" className="mt-4 p-2 text-center text-sm text-red-400 bg-red-900/50 border border-red-400 w-full">
+                    <div role="alert" className="mt-4 p-2 text-center text-sm text-brand-light bg-brand-magenta/20 border-2 border-brand-magenta w-full">
                         {error}
                     </div>
                  )}

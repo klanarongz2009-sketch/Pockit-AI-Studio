@@ -1,3 +1,4 @@
+
 import React, { useState, useRef, useCallback } from 'react';
 import * as geminiService from '../services/geminiService';
 import * as audioService from '../services/audioService';
@@ -164,9 +165,14 @@ export const ImageToSoundPage: React.FC<ImageToSoundPageProps> = ({ onClose, pla
                 <div className="w-full min-h-[8rem] p-4 bg-black/50 border-4 border-brand-light flex flex-col items-center justify-center">
                     {isLoading && <LoadingSpinner text="AI กำลังตีความภาพ..." />}
                     {error && (
-                        <div role="alert" className="text-center text-brand-magenta">
-                            <p className="font-press-start">เกิดข้อผิดพลาด</p>
-                            <p className="text-sm mt-2">{error}</p>
+                        <div role="alert" className="w-full p-4 space-y-3 text-center">
+                            <h3 className="font-press-start text-lg text-brand-magenta">เกิดข้อผิดพลาด</h3>
+                            <p className="font-sans text-sm break-words text-brand-light/90">
+                                เรากำลังตรวจสอบและแก้ไขปัญหานี้อยู่ ขออภัยในความไม่สะดวก
+                            </p>
+                            <p className="font-sans text-xs break-words text-brand-light/70 mt-2 p-2 bg-black/30 border border-brand-light/50 max-h-24 overflow-y-auto">
+                                {error}
+                            </p>
                         </div>
                     )}
                     {generatedSound && !isLoading && (

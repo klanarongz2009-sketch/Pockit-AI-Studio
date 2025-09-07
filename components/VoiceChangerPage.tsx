@@ -1,6 +1,6 @@
-
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import * as audioService from '../services/audioService';
+import * as preferenceService from '../services/preferenceService';
 import { PageHeader, PageWrapper } from './PageComponents';
 import { UploadIcon } from './icons/UploadIcon';
 import { LoadingSpinner } from './LoadingSpinner';
@@ -232,7 +232,10 @@ export const VoiceChangerPage: React.FC<VoiceChangerPageProps> = ({ playSound, o
     const [isDownloading, setIsDownloading] = useState<boolean>(false);
     
     const allOptions = voiceSections.flatMap(s => s.options);
-    const [selectedEffect, setSelectedEffect] = useState<VoiceOption>(allOptions[0]);
+    const [selectedEffect, setSelectedEffect] = useState<VoiceOption>(() => {
+        const savedEffect = preferenceService.getPreference('voiceChangerEffect', allOptions[0].effect);
+        return allOptions.find(opt => opt.effect === savedEffect) || allOptions[0];
+    });
     const [effectParams, setEffectParams] = useState<EffectParameters>({});
     const [isDragging, setIsDragging] = useState<boolean>(false);
 
@@ -240,13 +243,14 @@ export const VoiceChangerPage: React.FC<VoiceChangerPageProps> = ({ playSound, o
     const activeAudioSourceRef = useRef<AudioBufferSourceNode | null>(null);
     const { credits, spendCredits, addCredits } = useCredits();
 
-    // Effect to reset params when effect changes
+    // Effect to reset params when effect changes and save the new effect
     useEffect(() => {
         const defaultParams: EffectParameters = {};
         selectedEffect.controls?.forEach(control => {
             (defaultParams as any)[control.param] = control.defaultValue;
         });
         setEffectParams(defaultParams);
+        preferenceService.setPreference('voiceChangerEffect', selectedEffect.effect);
     }, [selectedEffect]);
 
 
@@ -565,15 +569,16 @@ export const VoiceChangerPage: React.FC<VoiceChangerPageProps> = ({ playSound, o
         }
 
         return selectedEffect.controls.map(control => {
-            const currentValue = (effectParams as any)[control.param] ?? control.defaultValue;
+            const paramKey = control.param;
+            const currentValue = effectParams[paramKey] ?? control.defaultValue;
             return (
                 <div key={control.param} className="flex flex-col gap-2">
-                    <label htmlFor={`${control.param}-slider`} className="text-xs font-press-start text-brand-light/80 flex justify-between">
+                    <label htmlFor={`${String(control.param)}-slider`} className="text-xs font-press-start text-brand-light/80 flex justify-between">
                         <span>{control.label}</span>
                         <span>{currentValue}</span>
                     </label>
                     <input
-                        id={`${control.param}-slider`}
+                        id={`${String(control.param)}-slider`}
                         type="range"
                         min={control.min}
                         max={control.max}
@@ -582,10 +587,10 @@ export const VoiceChangerPage: React.FC<VoiceChangerPageProps> = ({ playSound, o
                         onChange={(e) => {
                             playSound(audioService.playSliderChange);
                             const value = parseFloat(e.target.value);
-                            setEffectParams(prev => ({ ...prev, [control.param]: value }));
+                            setEffectParams(prev => ({ ...prev, [paramKey]: value }));
                         }}
                         disabled={isLoading}
-                        aria-valuetext={getAriaValueText(control, currentValue)}
+                        aria-valuetext={getAriaValueText(control, currentValue as number)}
                     />
                 </div>
             )
@@ -675,7 +680,15 @@ export const VoiceChangerPage: React.FC<VoiceChangerPageProps> = ({ playSound, o
                             </button>
 
                             {isLoading && <LoadingSpinner text="กำลังเปลี่ยนเสียง..." />}
-                            {error && <div role="alert" className="text-center text-brand-magenta text-sm">{error}</div>}
+                            
+                            {error && (
+                                <div role="alert" className="w-full p-4 space-y-3 text-center bg-black/40 border-4 border-brand-magenta">
+                                    <h3 className="text-lg font-press-start text-brand-magenta">เกิดข้อผิดพลาด</h3>
+                                    <p className="font-sans text-sm break-words text-brand-light/90 max-w-md mx-auto">
+                                        {error}
+                                    </p>
+                                </div>
+                            )}
 
                             {processedAudio && !isLoading && (
                                 <div aria-live="polite" className="p-4 bg-black/40 border-2 border-brand-lime space-y-4">

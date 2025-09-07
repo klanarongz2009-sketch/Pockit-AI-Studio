@@ -1,5 +1,3 @@
-
-
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { PageWrapper } from './PageComponents';
 import * as audioService from '../services/audioService';
@@ -29,8 +27,17 @@ export const BrickBreakerGame: React.FC<BrickBreakerGameProps> = ({ onClose, pla
     const [ball, setBall] = useState({ x: GAME_WIDTH / 2, y: GAME_HEIGHT - 50, dx: 4, dy: -4 });
     const [bricks, setBricks] = useState<any[]>([]);
     const [score, setScore] = useState(0);
+    const [highScore, setHighScore] = useState(0);
+    const [isNewHighScore, setIsNewHighScore] = useState(false);
     const [lives, setLives] = useState(3);
     const [gameState, setGameState] = useState<'playing' | 'gameOver' | 'win'>('playing');
+
+    useEffect(() => {
+        const savedHighScore = localStorage.getItem('minigame_brickBreaker_highscore');
+        if (savedHighScore) {
+            setHighScore(parseInt(savedHighScore, 10) || 0);
+        }
+    }, []);
 
     const createBricks = useCallback(() => {
         const newBricks = [];
@@ -52,6 +59,19 @@ export const BrickBreakerGame: React.FC<BrickBreakerGameProps> = ({ onClose, pla
         createBricks();
     }, [createBricks]);
     
+    useEffect(() => {
+        if (gameState === 'gameOver' || gameState === 'win') {
+            if (score > highScore) {
+                setHighScore(score);
+                localStorage.setItem('minigame_brickBreaker_highscore', String(score));
+                setIsNewHighScore(true);
+                playSound(audioService.playSuccess);
+            } else {
+                setIsNewHighScore(false);
+            }
+        }
+    }, [gameState, score, highScore, playSound]);
+
     const resetBall = useCallback(() => {
         setBall({ x: GAME_WIDTH / 2, y: GAME_HEIGHT - 50, dx: 4, dy: -4 });
         setPaddleX(GAME_WIDTH / 2 - PADDLE_WIDTH / 2);
@@ -125,14 +145,24 @@ export const BrickBreakerGame: React.FC<BrickBreakerGameProps> = ({ onClose, pla
             ctx.textAlign = 'center';
             if (gameState === 'gameOver') {
                 ctx.fillStyle = '#ff00ff';
-                ctx.fillText('GAME OVER', GAME_WIDTH / 2, GAME_HEIGHT / 2);
+                ctx.fillText('GAME OVER', GAME_WIDTH / 2, GAME_HEIGHT / 2 - 40);
             } else if (gameState === 'win') {
                 ctx.fillStyle = '#00ff00';
-                ctx.fillText('YOU WIN!', GAME_WIDTH / 2, GAME_HEIGHT / 2);
+                ctx.fillText('YOU WIN!', GAME_WIDTH / 2, GAME_HEIGHT / 2 - 40);
             }
+
+            if (isNewHighScore) {
+                ctx.fillStyle = '#00ff00';
+                ctx.font = '24px "Press Start 2P"';
+                ctx.fillText('คะแนนสูงสุดใหม่!', GAME_WIDTH / 2, GAME_HEIGHT / 2 + 10);
+            }
+
+            ctx.fillStyle = 'white';
+            ctx.font = '24px "Press Start 2P"';
+            ctx.fillText(`SCORE: ${score}`, GAME_WIDTH / 2, GAME_HEIGHT / 2 + 50);
         }
 
-    }, [ball, paddleX, bricks, gameState]);
+    }, [ball, paddleX, bricks, gameState, isNewHighScore, score]);
 
     const gameLoop = useCallback(() => {
         if (gameState !== 'playing') {
@@ -224,6 +254,7 @@ export const BrickBreakerGame: React.FC<BrickBreakerGameProps> = ({ onClose, pla
         setLives(3);
         createBricks();
         resetBall();
+        setIsNewHighScore(false);
     };
 
     return (
@@ -235,6 +266,7 @@ export const BrickBreakerGame: React.FC<BrickBreakerGameProps> = ({ onClose, pla
                     </button>
                     <h2 className="text-xl text-brand-yellow font-press-start">Brick Breaker</h2>
                     <div className="text-right font-press-start text-brand-light text-base">
+                        <span className="mr-4">คะแนนสูงสุด: {highScore}</span>
                         <span className="mr-4">คะแนน: {score}</span>
                         <span>ชีวิต: {'♥'.repeat(lives)}</span>
                     </div>

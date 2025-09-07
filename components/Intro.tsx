@@ -10,18 +10,21 @@ interface IntroProps {
 const introSequences = [
   // Sequence 1: Original
   [
+    { text: '', sound: () => {}, duration: 1500 },
     { text: 'ยินดีต้อนรับสู่', sound: audioService.playIntro1, duration: 2000 },
     { text: 'Ai Studio แบบพกพา', sound: audioService.playIntro2, duration: 2000 },
     { text: 'ขับเคลื่อนโดย Google AI', sound: audioService.playIntro3, icon: true, duration: 2500 },
   ],
   // Sequence 2: Creative focus
   [
+    { text: '', sound: () => {}, duration: 1500 },
     { text: 'ปลดปล่อยจินตนาการ', sound: audioService.playScore, duration: 2000 },
     { text: 'สร้างสรรค์ผลงานของคุณ', sound: audioService.playSuccess, duration: 2000 },
     { text: 'ด้วยพลังแห่ง AI', sound: audioService.playGenerate, icon: true, duration: 2500 },
   ],
   // Sequence 3: Quick and punchy
   [
+    { text: '', sound: () => {}, duration: 1500 },
     { text: 'คิด.', sound: audioService.playClick, duration: 1500 },
     { text: 'สร้าง.', sound: audioService.playHover, duration: 1500 },
     { text: 'เล่น.', sound: audioService.playSelection, icon: true, duration: 2000 },
@@ -40,7 +43,10 @@ export const Intro: React.FC<IntroProps> = ({ onComplete }) => {
 
     // After a short delay, play sound and fade in
     const animationTimeout = setTimeout(() => {
-      introSteps[step].sound();
+      // Don't play sound for the blank intro step
+      if (introSteps[step].text) {
+        introSteps[step].sound();
+      }
       setVisible(true);
     }, 300);
 

@@ -1,5 +1,7 @@
 
 
+
+
 import React, { useState, useEffect } from 'react';
 import { LoadingSpinner } from './LoadingSpinner';
 
@@ -11,6 +13,7 @@ interface OutputDisplayProps {
   generatedImage: string | null;
   generatedFrames: string[] | null;
   generatedVideoUrl: string | null;
+  generatedCode: string | null;
   prompt: string;
   generationMode: GenerationMode;
   fps: number;
@@ -18,7 +21,7 @@ interface OutputDisplayProps {
   videoLoadingMessages?: string[];
   currentFrame: number;
 }
-export const OutputDisplay: React.FC<OutputDisplayProps> = ({ isLoading, error, generatedImage, generatedFrames, generatedVideoUrl, prompt, generationMode, fps, loadingText, videoLoadingMessages, currentFrame }) => {
+export const OutputDisplay: React.FC<OutputDisplayProps> = ({ isLoading, error, generatedImage, generatedFrames, generatedVideoUrl, generatedCode, prompt, generationMode, fps, loadingText, videoLoadingMessages, currentFrame }) => {
   const [currentVideoMessage, setCurrentVideoMessage] = useState(0);
 
   useEffect(() => {
@@ -42,7 +45,7 @@ export const OutputDisplay: React.FC<OutputDisplayProps> = ({ isLoading, error, 
       return `${baseText}ที่สร้างจากคำสั่ง: ${prompt}`;
   }
 
-  const hasContent = generatedImage || (generatedFrames && generatedFrames.length > 0) || generatedVideoUrl;
+  const hasContent = generatedImage || (generatedFrames && generatedFrames.length > 0) || generatedVideoUrl || generatedCode;
   const imageSource = generationMode === 'gif' && generatedFrames && generatedFrames.length > 0 ? generatedFrames[currentFrame] : generatedImage;
 
   const renderContent = () => {
@@ -54,12 +57,31 @@ export const OutputDisplay: React.FC<OutputDisplayProps> = ({ isLoading, error, 
     }
     if (error) {
         return (
-            <div role="alert">
-                <div className="text-center text-brand-magenta font-press-start p-4">
-                  <p className="text-lg">ข้อผิดพลาด</p>
-                  <p className="text-xs mt-4 break-words font-sans">{error}</p>
+            <div role="alert" className="w-full h-full p-4 flex flex-col items-center justify-center gap-4 text-center bg-black/40 border-4 border-brand-magenta">
+                <div className="w-12 h-12 text-brand-magenta">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" style={{ imageRendering: 'pixelated' }} aria-hidden="true">
+                        <path d="M11 4H13V14H11V4Z" />
+                        <path d="M11 16H13V18H11V16Z" />
+                        <path d="M4 2H20V3H21V21H20V22H4V21H3V3H4V2Z" />
+                        <path fill="black" d="M5 4H19V20H5V4Z"/>
+                    </svg>
                 </div>
+                <h3 className="font-press-start text-lg text-brand-magenta">เกิดข้อผิดพลาด</h3>
+                <p className="font-sans text-sm break-words text-brand-light/90 max-w-md">
+                    {error}
+                </p>
             </div>
+        );
+    }
+    if (generatedCode) {
+        return (
+            <iframe 
+                srcDoc={generatedCode} 
+                title="Code Preview" 
+                className="w-full h-full border-0 bg-white" 
+                sandbox="allow-scripts"
+                aria-label={`ตัวอย่างโค้ดที่สร้างจากคำสั่ง: ${prompt}`}
+            />
         );
     }
     if (generationMode === 'video' && generatedVideoUrl) {

@@ -1,3 +1,6 @@
+
+
+
 import React, { useState, useEffect, useCallback } from 'react';
 import * as audioService from '../services/audioService';
 import { PageHeader, PageWrapper } from './PageComponents';
@@ -149,13 +152,15 @@ export const SoundLibraryPage: React.FC<SoundLibraryPageProps> = ({ onClose, pla
                 )}
 
                 {error && (
-                    <div role="alert" className="space-y-4 text-center w-full py-4">
+                     <div role="alert" className="w-full p-4 space-y-3 text-center bg-black/40 border-4 border-brand-magenta">
                         <h3 className="text-lg font-press-start text-brand-magenta">เกิดข้อผิดพลาด</h3>
-                        <p className="text-sm break-words">{error}</p>
+                        <p className="font-sans text-sm break-words text-brand-light/90 max-w-md mx-auto">
+                            {error}
+                        </p>
                         <button
                             onClick={handleGenerate}
                             onMouseEnter={() => playSound(audioService.playHover)}
-                            className="w-full mt-4 flex items-center justify-center gap-3 p-3 bg-brand-cyan text-black border-4 border-brand-light shadow-pixel text-base transition-all hover:bg-brand-yellow active:shadow-pixel-active active:translate-y-[2px] active:translate-x-[2px]"
+                            className="w-full max-w-xs mt-2 flex items-center justify-center gap-3 p-3 bg-brand-cyan text-black border-4 border-brand-light shadow-pixel text-base transition-all hover:bg-brand-yellow active:shadow-pixel-active active:translate-y-[2px] active:translate-x-[2px]"
                         >
                             ลองอีกครั้ง
                         </button>

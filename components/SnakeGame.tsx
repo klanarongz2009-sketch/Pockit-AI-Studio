@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { PageWrapper } from './PageComponents';
 import * as audioService from '../services/audioService';
@@ -25,9 +26,18 @@ export const SnakeGame: React.FC<SnakeGameProps> = ({ onClose, playSound, addCre
     const directionRef = useRef<Direction>('RIGHT');
     const nextDirectionRef = useRef<Direction>('RIGHT');
     const [score, setScore] = useState(0);
+    const [highScore, setHighScore] = useState(0);
+    const [isNewHighScore, setIsNewHighScore] = useState(false);
     const [isGameOver, setIsGameOver] = useState(false);
     const [gameStarted, setGameStarted] = useState(false);
     const touchStartRef = useRef<{ x: number, y: number } | null>(null);
+
+    useEffect(() => {
+        const savedHighScore = localStorage.getItem('minigame_snake_highscore');
+        if (savedHighScore) {
+            setHighScore(parseInt(savedHighScore, 10) || 0);
+        }
+    }, []);
 
     const generateFood = useCallback((snakeBody: { x: number, y: number }[]) => {
         let newFoodPos;
@@ -49,6 +59,7 @@ export const SnakeGame: React.FC<SnakeGameProps> = ({ onClose, playSound, addCre
         setScore(0);
         setIsGameOver(false);
         setGameStarted(true);
+        setIsNewHighScore(false);
     }, [playSound, generateFood]);
 
     const handleKeyDown = useCallback((e: KeyboardEvent) => {
@@ -118,6 +129,19 @@ export const SnakeGame: React.FC<SnakeGameProps> = ({ onClose, playSound, addCre
         };
     }, [handleKeyDown]);
     
+    useEffect(() => {
+        if (isGameOver) {
+            if (score > highScore) {
+                setHighScore(score);
+                localStorage.setItem('minigame_snake_highscore', String(score));
+                setIsNewHighScore(true);
+                playSound(audioService.playSuccess);
+            } else {
+                setIsNewHighScore(false);
+            }
+        }
+    }, [isGameOver, score, highScore, playSound]);
+
     const draw = useCallback(() => {
         const canvas = canvasRef.current;
         if (!canvas) return;
@@ -136,14 +160,20 @@ export const SnakeGame: React.FC<SnakeGameProps> = ({ onClose, playSound, addCre
         }
 
         if (isGameOver) {
-             ctx.fillStyle = '#ff00ff';
+            ctx.fillStyle = '#ff00ff';
             ctx.font = '48px "Press Start 2P"';
             ctx.textAlign = 'center';
-            ctx.fillText('GAME OVER', GAME_WIDTH / 2, GAME_HEIGHT / 2 - 20);
+            ctx.fillText('GAME OVER', GAME_WIDTH / 2, GAME_HEIGHT / 2 - 40);
+
+            if (isNewHighScore) {
+                ctx.fillStyle = '#00ff00';
+                ctx.font = '24px "Press Start 2P"';
+                ctx.fillText('คะแนนสูงสุดใหม่!', GAME_WIDTH / 2, GAME_HEIGHT / 2 + 10);
+            }
 
             ctx.fillStyle = 'white';
             ctx.font = '24px "Press Start 2P"';
-            ctx.fillText(`SCORE: ${score}`, GAME_WIDTH / 2, GAME_HEIGHT / 2 + 40);
+            ctx.fillText(`SCORE: ${score}`, GAME_WIDTH / 2, GAME_HEIGHT / 2 + 50);
             return;
         }
 
@@ -156,7 +186,7 @@ export const SnakeGame: React.FC<SnakeGameProps> = ({ onClose, playSound, addCre
         // Draw food
         ctx.fillStyle = '#ffff00';
         ctx.fillRect(food.x * GRID_SIZE, food.y * GRID_SIZE, GRID_SIZE, GRID_SIZE);
-    }, [snake, food, isGameOver, score, gameStarted]);
+    }, [snake, food, isGameOver, score, gameStarted, isNewHighScore]);
 
     const gameLoop = useCallback(() => {
         if (isGameOver || !gameStarted) {
@@ -230,7 +260,8 @@ export const SnakeGame: React.FC<SnakeGameProps> = ({ onClose, playSound, addCre
                     </button>
                     <h2 className="text-xl text-brand-yellow font-press-start">เกมงู</h2>
                      <div className="text-right font-press-start text-brand-light text-base">
-                        คะแนน: {score}
+                        <span className="mr-4">คะแนนสูงสุด: {highScore}</span>
+                        <span>คะแนน: {score}</span>
                      </div>
                 </header>
                  <canvas

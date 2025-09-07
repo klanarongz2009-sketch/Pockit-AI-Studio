@@ -1,7 +1,6 @@
-
-
 import React, { useState, useEffect, useCallback } from 'react';
 import * as audioService from '../services/audioService';
+import * as preferenceService from '../services/preferenceService';
 import { PageHeader, PageWrapper } from './PageComponents';
 import { PlayIcon } from './icons/PlayIcon';
 import { StopIcon } from './icons/StopIcon';
@@ -19,23 +18,48 @@ const isGetDisplayMediaSupported = !!(navigator.mediaDevices && navigator.mediaD
 export const TextToSpeechPage: React.FC<TextToSpeechPageProps> = ({ onClose, playSound }) => {
     const [text, setText] = useState('สวัสดี! ยินดีต้อนรับสู่ Ai Studio แบบพกพา');
     const [voices, setVoices] = useState<SpeechSynthesisVoice[]>([]);
-    const [selectedVoiceURI, setSelectedVoiceURI] = useState<string>('');
-    const [pitch, setPitch] = useState(1);
-    const [rate, setRate] = useState(1);
+    const [selectedVoiceURI, setSelectedVoiceURI] = useState<string>(() => preferenceService.getPreference('textToSpeechVoiceURI', ''));
+    const [pitch, setPitch] = useState(() => preferenceService.getPreference('textToSpeechPitch', 1));
+    const [rate, setRate] = useState(() => preferenceService.getPreference('textToSpeechRate', 1));
     const [isSpeaking, setIsSpeaking] = useState(false);
     const [isDownloading, setIsDownloading] = useState(false);
     const [error, setError] = useState<string | null>(null);
-    const [autoDetectLang, setAutoDetectLang] = useState(true);
+    const [autoDetectLang, setAutoDetectLang] = useState(() => preferenceService.getPreference('textToSpeechAutoDetectLang', true));
     const { addCredits } = useCredits();
+
+    // Save preferences when they change
+    useEffect(() => {
+        preferenceService.setPreference('textToSpeechVoiceURI', selectedVoiceURI);
+    }, [selectedVoiceURI]);
+    useEffect(() => {
+        preferenceService.setPreference('textToSpeechPitch', pitch);
+    }, [pitch]);
+    useEffect(() => {
+        preferenceService.setPreference('textToSpeechRate', rate);
+    }, [rate]);
+    useEffect(() => {
+        preferenceService.setPreference('textToSpeechAutoDetectLang', autoDetectLang);
+    }, [autoDetectLang]);
+
 
     const populateVoiceList = useCallback(() => {
         const newVoices = window.speechSynthesis.getVoices();
         if (newVoices.length === 0) return;
         setVoices(newVoices);
-        // Set default voice to the first Thai voice found, or the first available voice
-        const defaultVoice = newVoices.find(v => v.lang.startsWith('th')) || newVoices[0];
-        if (defaultVoice) {
-            setSelectedVoiceURI(defaultVoice.voiceURI);
+
+        // Get saved voice URI
+        const savedVoiceURI = preferenceService.getPreference('textToSpeechVoiceURI', '');
+        // Check if saved voice is still available
+        const savedVoiceExists = newVoices.some(v => v.voiceURI === savedVoiceURI);
+
+        if (savedVoiceExists) {
+            setSelectedVoiceURI(savedVoiceURI);
+        } else {
+            // Fallback if saved voice is not found or none was saved
+            const defaultVoice = newVoices.find(v => v.lang.startsWith('th')) || newVoices[0];
+            if (defaultVoice) {
+                setSelectedVoiceURI(defaultVoice.voiceURI);
+            }
         }
     }, []);
 
@@ -208,7 +232,7 @@ export const TextToSpeechPage: React.FC<TextToSpeechPageProps> = ({ onClose, pla
                     พิมพ์ข้อความของคุณแล้ว AI จะอ่านให้ฟัง! <strong className="text-brand-yellow">โบนัสสนุกๆ: รับ 1 เครดิตสำหรับทุกตัวอักษรที่ AI อ่าน!</strong>
                 </p>
 
-                {error && <div role="alert" className="w-full p-3 bg-red-800/50 border-2 border-red-500 text-center text-sm">{error}</div>}
+                {error && <div role="alert" className="w-full p-3 bg-brand-magenta/20 border-2 border-brand-magenta text-center text-sm text-brand-light">{error}</div>}
 
                 <div className="w-full flex flex-col gap-4 bg-black/40 p-4 border-4 border-brand-light shadow-pixel">
                     <textarea

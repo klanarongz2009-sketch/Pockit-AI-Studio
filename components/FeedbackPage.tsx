@@ -1,6 +1,8 @@
 
 
 
+
+
 import React, { useState } from 'react';
 import * as audioService from '../services/audioService';
 import { analyzeFeedback } from '../services/geminiService';
@@ -128,7 +130,7 @@ export const FeedbackPage: React.FC<FeedbackPageProps> = ({ onClose, playSound, 
                         {isSummaryLoading && <LoadingSpinner text="AI กำลังอ่าน..." />}
                         
                         {error && (
-                            <div role="alert" className="w-full p-3 text-center text-sm text-brand-magenta border-2 border-brand-magenta/50 bg-brand-magenta/10">
+                            <div role="alert" className="w-full p-3 text-center text-sm text-brand-light bg-brand-magenta/20 border-2 border-brand-magenta">
                                 {error}
                             </div>
                         )}
