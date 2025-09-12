@@ -1,7 +1,9 @@
 
+
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { PageWrapper } from './PageComponents';
 import * as audioService from '../services/audioService';
+import * as preferenceService from '../services/preferenceService';
 
 interface SnakeGameProps {
     onClose: () => void;
@@ -239,7 +241,9 @@ export const SnakeGame: React.FC<SnakeGameProps> = ({ onClose, playSound, addCre
     
     useEffect(() => {
         if (gameStarted && !isGameOver) {
-            const speed = Math.max(50, 200 - score); // Speed increases with score
+            const difficulty = preferenceService.getPreference('defaultMinigameDifficulty', 'normal');
+            const baseSpeed = { easy: 200, normal: 150, hard: 100 }[difficulty];
+            const speed = Math.max(50, baseSpeed - (score * 0.5)); // Speed increases with score
             gameLoopRef.current = window.setInterval(gameLoop, speed);
         } else {
             if (gameLoopRef.current) clearInterval(gameLoopRef.current);

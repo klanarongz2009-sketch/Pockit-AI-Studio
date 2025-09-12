@@ -1,10 +1,9 @@
 
 
-
-
 import React, { useState, useEffect, useCallback } from 'react';
 import { PageWrapper } from './PageComponents';
 import * as audioService from '../services/audioService';
+import * as preferenceService from '../services/preferenceService';
 import { getTicTacToeMove } from '../services/geminiService';
 import { LoadingSpinner } from './LoadingSpinner';
 import { useCredits } from '../contexts/CreditContext';
@@ -59,7 +58,7 @@ export const TicTacToePage: React.FC<TicTacToePageProps> = ({ onClose, playSound
     const [error, setError] = useState<string | null>(null);
     const [gameStarted, setGameStarted] = useState(false);
     const [gameMode, setGameMode] = useState<GameMode>('ai');
-    const [difficulty, setDifficulty] = useState<Difficulty>('hard');
+    const [difficulty, setDifficulty] = useState<Difficulty>(() => preferenceService.getPreference('defaultMinigameDifficulty', 'hard') as Difficulty);
     const { addCredits } = useCredits();
 
     const player: Player = 'X';

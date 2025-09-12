@@ -14,8 +14,17 @@ export interface Preferences {
     textToSpeechPitch: number;
     textToSpeechRate: number;
     textToSpeechAutoDetectLang: boolean;
-    // FIX: Allow 'system' as a valid theme preference to support system theme detection on initial load.
     theme: 'light' | 'dark' | 'system';
+    musicVolume: number;
+    defaultChatModelName: string;
+    imageGenerationQuality: 'fast' | 'quality';
+    saveChatHistory: boolean;
+    defaultMinigameDifficulty: 'easy' | 'normal' | 'hard';
+    confirmCreditSpend: boolean;
+    defaultWebSearch: boolean;
+    autoPlaySounds: boolean;
+    uiAnimations: boolean;
+    language: 'th' | 'en';
 }
 
 const PREFERENCES_STORAGE_KEY = 'ai-studio-user-preferences';
@@ -56,7 +65,7 @@ export function getPreference<K extends keyof Preferences>(key: K, defaultValue:
 
     // FIX: Add explicit check for null/undefined and a type assertion.
     // TypeScript has limitations inferring narrowed types from indexed access on generic objects.
-    // This explicit check and cast is a robust way to handle this.
+    // The previous `if (storedValue)` check was buggy for falsy values like `false` or `0`.
     if (storedValue === null || storedValue === undefined) {
         return defaultValue;
     }

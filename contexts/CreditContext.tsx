@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useEffect, useCallback, FC, ReactNode } from 'react';
 import * as audioService from '../services/audioService';
+import * as preferenceService from '../services/preferenceService';
 
 export const CREDIT_COSTS = {
   IMAGE_GENERATION: 10,
@@ -86,6 +87,12 @@ export const CreditProvider: FC<{ children: ReactNode }> = ({ children }) => {
     }, [updateCredits]);
 
     const spendCredits = useCallback((amount: number): boolean => {
+        if (amount > 0 && preferenceService.getPreference('confirmCreditSpend', false)) {
+            if (!window.confirm(`การกระทำนี้จะใช้ ${amount} เครดิต คุณต้องการดำเนินการต่อหรือไม่?`)) {
+                return false;
+            }
+        }
+
         const hasEnough = credits >= amount;
         if (hasEnough) {
             updateCredits(credits - amount);

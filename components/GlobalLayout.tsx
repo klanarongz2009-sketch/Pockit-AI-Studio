@@ -1,35 +1,27 @@
 import React from 'react';
 import { useCredits } from '../contexts/CreditContext';
-import { EarnCreditsModal } from './EarnCreditsModal';
 import { CoinsIcon } from './icons/CoinsIcon';
 import * as audioService from '../services/audioService';
 import { CurrentPage } from '../App';
 import { PaletteIcon } from './icons/PaletteIcon';
 import { GamepadIcon } from './icons/GamepadIcon';
-import { SpeakerOnIcon } from './icons/SpeakerOnIcon';
-import { SpeakerOffIcon } from './icons/SpeakerOffIcon';
-import { InfoIcon } from './icons/InfoIcon';
-import { useTheme } from '../contexts/ThemeContext';
-import { SunIcon } from './icons/SunIcon';
-import { MoonIcon } from './icons/MoonIcon';
 import { ChatIcon } from './icons/ChatIcon';
 import { GalleryIcon } from './icons/GalleryIcon';
+import { SettingsIcon } from './icons/SettingsIcon';
+import { MenuIcon } from './icons/MenuIcon'; // New Icon
 
 interface GlobalLayoutProps {
     children: React.ReactNode;
     playSound: (player: () => void) => void;
     currentPage: CurrentPage;
     onSetPage: (page: CurrentPage) => void;
-    isSoundOn: boolean;
-    onToggleSound: () => void;
-    onOpenAbout: () => void;
-    onOpenChat: () => void;
+    onOpenSettings: () => void;
     isOnline: boolean;
-    isEarnCreditsModalOpen: boolean;
-    setIsEarnCreditsModalOpen: (isOpen: boolean) => void;
+    isSidebarOpen: boolean;
+    onToggleSidebar: () => void;
 }
 
-const HeaderNavButton: React.FC<{
+const SidebarNavButton: React.FC<{
     label: string;
     icon: React.ReactNode;
     isActive: boolean;
@@ -39,11 +31,11 @@ const HeaderNavButton: React.FC<{
     <button
         onClick={onClick}
         onMouseEnter={playSound}
-        className={`flex items-center justify-center gap-2 px-2 sm:px-3 h-10 border-2 transition-all hover:-translate-y-px ${isActive ? 'bg-brand-yellow text-black border-black' : 'bg-surface-primary border-border-primary text-text-primary hover:bg-brand-cyan/20'}`}
+        className={`flex items-center w-full gap-4 px-4 py-3 text-lg transition-colors ${isActive ? 'bg-brand-yellow text-black' : 'text-text-primary hover:bg-brand-cyan/20'}`}
         aria-current={isActive ? 'page' : undefined}
     >
         {icon}
-        <span className="font-press-start text-xs hidden sm:inline">{label}</span>
+        <span className="font-press-start">{label}</span>
     </button>
 );
 
@@ -52,20 +44,60 @@ const LayoutComponent: React.FC<GlobalLayoutProps> = ({
     playSound,
     currentPage,
     onSetPage,
-    isSoundOn,
-    onToggleSound,
-    onOpenAbout,
-    onOpenChat,
+    onOpenSettings,
     isOnline,
-    isEarnCreditsModalOpen,
-    setIsEarnCreditsModalOpen
+    isSidebarOpen,
+    onToggleSidebar
 }) => {
     const { credits, loading: creditsLoading } = useCredits();
-    const { theme, toggleTheme } = useTheme();
 
     return (
         <>
-            <EarnCreditsModal isOpen={isEarnCreditsModalOpen} onClose={() => setIsEarnCreditsModalOpen(false)} />
+            {/* Sidebar Overlay */}
+            <div 
+                className={`sidebar-overlay fixed inset-0 bg-black/60 z-40 ${isSidebarOpen ? 'open' : ''}`}
+                onClick={onToggleSidebar}
+                aria-hidden="true"
+            />
+            
+            {/* Sidebar */}
+            <aside className={`sidebar fixed top-0 left-0 h-full w-64 bg-background border-r-4 border-border-primary flex flex-col z-50 ${isSidebarOpen ? 'open' : ''}`}>
+                <header className="flex items-center justify-between p-4 border-b-4 border-border-primary">
+                     <h1 className="text-xl text-brand-yellow font-press-start drop-shadow-[2px_2px_0_var(--color-text-primary)]">
+                        เมนู
+                    </h1>
+                </header>
+                <nav className="flex-grow py-4" aria-label="การนำทางหลัก">
+                    <SidebarNavButton
+                        label="สร้างภาพ"
+                        icon={<PaletteIcon className="w-6 h-6" />}
+                        isActive={currentPage === 'imageGenerator'}
+                        onClick={() => onSetPage('imageGenerator')}
+                        playSound={() => playSound(audioService.playHover)}
+                    />
+                    <SidebarNavButton
+                        label="แกลเลอรี"
+                        icon={<GalleryIcon className="w-6 h-6" />}
+                        isActive={currentPage === 'artGallery'}
+                        onClick={() => onSetPage('artGallery')}
+                        playSound={() => playSound(audioService.playHover)}
+                    />
+                    <SidebarNavButton
+                        label="AI โซน"
+                        icon={<GamepadIcon className="w-6 h-6" />}
+                        isActive={currentPage === 'minigameHub'}
+                        onClick={() => onSetPage('minigameHub')}
+                        playSound={() => playSound(audioService.playHover)}
+                    />
+                     <SidebarNavButton
+                        label="AI Chat"
+                        icon={<ChatIcon className="w-6 h-6" />}
+                        isActive={currentPage === 'aiChat'}
+                        onClick={() => onSetPage('aiChat')}
+                        playSound={() => playSound(audioService.playHover)}
+                    />
+                </nav>
+            </aside>
 
             {!isOnline && (
                 <div role="status" className="fixed top-16 left-0 right-0 bg-brand-magenta text-white text-center font-press-start text-xs py-1 z-40 animate-page-enter">
@@ -73,85 +105,38 @@ const LayoutComponent: React.FC<GlobalLayoutProps> = ({
                 </div>
             )}
             
-            <header role="banner" className="fixed top-0 left-0 right-0 h-16 bg-background border-b-4 border-border-primary flex items-center justify-between px-2 sm:px-4 z-50">
+            <header role="banner" className="fixed top-0 left-0 right-0 h-16 bg-background border-b-4 border-border-primary flex items-center justify-between px-2 sm:px-4 z-30">
                 <div className="flex items-center gap-2 sm:gap-4">
-                     <h1 className="text-base sm:text-xl text-brand-yellow font-press-start drop-shadow-[2px_2px_0_var(--color-text-primary)] hidden sm:block">
+                     <button
+                        onClick={onToggleSidebar}
+                        onMouseEnter={() => playSound(audioService.playHover)}
+                        aria-label="เปิดเมนู"
+                        aria-expanded={isSidebarOpen}
+                        className="w-10 h-10 flex-shrink-0 flex items-center justify-center bg-surface-primary border-2 border-border-primary text-text-primary hover:bg-brand-yellow hover:text-text-inverted transition-all hover:-translate-y-px"
+                    >
+                        <MenuIcon className="w-5 h-5" />
+                    </button>
+                     <h1 className="text-base sm:text-xl text-brand-yellow font-press-start drop-shadow-[2px_2px_0_var(--color-text-primary)]">
                         จักรวาล AI
                     </h1>
-                    <nav className="flex items-center gap-1 sm:gap-2" aria-label="การนำทางหลัก">
-                        <HeaderNavButton
-                            label="สร้างภาพ"
-                            icon={<PaletteIcon className="w-5 h-5" />}
-                            isActive={currentPage === 'imageGenerator'}
-                            onClick={() => onSetPage('imageGenerator')}
-                            playSound={() => playSound(audioService.playHover)}
-                        />
-                        <HeaderNavButton
-                            label="แกลเลอรี"
-                            icon={<GalleryIcon className="w-5 h-5" />}
-                            isActive={currentPage === 'artGallery'}
-                            onClick={() => onSetPage('artGallery')}
-                            playSound={() => playSound(audioService.playHover)}
-                        />
-                        <HeaderNavButton
-                            label="AI โซน"
-                            icon={<GamepadIcon className="w-5 h-5" />}
-                            isActive={currentPage === 'minigameHub'}
-                            onClick={() => onSetPage('minigameHub')}
-                            playSound={() => playSound(audioService.playHover)}
-                        />
-                         <button
-                            onClick={onOpenChat}
-                            onMouseEnter={() => playSound(audioService.playHover)}
-                            className="flex items-center justify-center gap-2 px-2 sm:px-3 h-10 border-2 transition-all bg-surface-primary border-border-primary text-text-primary hover:bg-brand-cyan/20 hover:-translate-y-px"
-                            aria-label="เปิด AI Chat"
-                        >
-                            <ChatIcon className="w-5 h-5" />
-                            <span className="font-press-start text-xs hidden sm:inline">AI Chat</span>
-                        </button>
-                    </nav>
                 </div>
 
                 <div className="flex items-center gap-1 sm:gap-2">
                      <button
-                        onClick={() => {
-                            playSound(audioService.playClick);
-                            setIsEarnCreditsModalOpen(true);
-                        }}
-                        onMouseEnter={() => playSound(audioService.playHover)}
-                        aria-label="รับเครดิตเพิ่ม"
-                        className="h-10 flex items-center justify-center gap-2 px-2 sm:px-3 bg-surface-primary border-2 border-border-primary text-text-primary hover:bg-brand-yellow hover:text-text-inverted transition-all hover:-translate-y-px"
+                        aria-label={`เครดิตปัจจุบัน: ${creditsLoading ? '...' : credits.toFixed(0)}`}
+                        className="h-10 flex items-center justify-center gap-2 px-2 sm:px-3 bg-surface-primary border-2 border-border-primary text-text-primary"
                     >
                         <CoinsIcon className="w-5 h-5 text-brand-yellow" />
                         <span className="font-press-start text-xs sm:text-sm">{creditsLoading ? '...' : credits.toFixed(0)}</span>
-                        <span className="font-sans text-lg hidden sm:inline">+</span>
                     </button>
                     
-                    <button
-                        onClick={() => { playSound(audioService.playToggle); toggleTheme(); }}
-                        onMouseEnter={() => playSound(audioService.playHover)}
-                        aria-label={theme === 'dark' ? "เปลี่ยนเป็นธีมสว่าง" : "เปลี่ยนเป็นธีมมืด"}
-                        className="w-10 h-10 flex-shrink-0 flex items-center justify-center bg-surface-primary border-2 border-border-primary text-text-primary hover:bg-brand-yellow hover:text-text-inverted transition-all hover:-translate-y-px"
-                    >
-                        {theme === 'dark' ? <SunIcon className="w-5 h-5" /> : <MoonIcon className="w-5 h-5" />}
-                    </button>
-
-                    <button
-                        onClick={onOpenAbout}
-                        onMouseEnter={() => playSound(audioService.playHover)}
-                        aria-label="เกี่ยวกับแอปพลิเคชัน"
-                        className="w-10 h-10 flex-shrink-0 flex items-center justify-center bg-surface-primary border-2 border-border-primary text-text-primary hover:bg-brand-yellow hover:text-text-inverted transition-all hover:-translate-y-px"
-                    >
-                        <InfoIcon className="w-5 h-5" />
-                    </button>
-
                      <button
-                        onClick={onToggleSound}
+                        onClick={onOpenSettings}
                         onMouseEnter={() => playSound(audioService.playHover)}
-                        aria-label={isSoundOn ? "ปิดเสียงประกอบ" : "เปิดเสียงประกอบ"}
+                        aria-label="การตั้งค่า"
                         className="w-10 h-10 flex-shrink-0 flex items-center justify-center bg-surface-primary border-2 border-border-primary text-text-primary hover:bg-brand-yellow hover:text-text-inverted transition-all hover:-translate-y-px"
                     >
-                        {isSoundOn ? <SpeakerOnIcon className="w-5 h-5" /> : <SpeakerOffIcon className="w-5 h-5" />}
+                        <SettingsIcon className="w-5 h-5" />
                     </button>
                 </div>
             </header>

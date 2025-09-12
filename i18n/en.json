@@ -1,0 +1,95 @@
+{
+    "header": {
+        "title": "Creative AI Universe",
+        "credits": "Credits",
+        "settings": "Settings",
+        "menu": "Menu"
+    },
+    "sidebar": {
+        "imageGenerator": "Image Gen",
+        "gallery": "Gallery",
+        "aiZone": "AI Zone",
+        "aiChat": "AI Chat"
+    },
+    "offline": {
+        "message": "You are offline. AI features are disabled."
+    },
+    "imageGenerator": {
+        "title": "AI Image Generator",
+        "promptLabel": "Prompt",
+        "promptPlaceholder": "e.g., A knight riding a dinosaur in space, or upload an image and type 'Code' to have AI write code for it",
+        "suggestions": "Ideas:",
+        "generate": "Generate",
+        "getIdeas": "Get Ideas",
+        "fromImage": "From Image",
+        "fromUrl": "From URL",
+        "download": "Download",
+        "share": "Share",
+        "saveToGallery": "Save",
+        "clear": "Clear"
+    },
+    "outputDisplay": {
+        "emptyArea": "Empty result area",
+        "errorTitle": "An Error Occurred",
+        "welcomeTitle": "Welcome!",
+        "welcomeMessage": "Enter a prompt or upload an image to get started!",
+        "altBase": {
+            "image": "Pixel art image",
+            "gif": "Looping pixel art GIF animation",
+            "video": "Pixel art video",
+            "spritesheet": "Pixel art animation spritesheet"
+        },
+        "altGeneratedFrom": "generated from the prompt:",
+        "codePreview": "Code preview generated from the prompt:",
+        "videoNotSupported": "Your browser does not support the video tag."
+    },
+    "aiChat": {
+        "title": "AI Chat",
+        "selectAssistant": "Select AI Assistant",
+        "searchAssistant": "Search assistants...",
+        "webSearch": "Web Search",
+        "newChat": "New Chat",
+        "startConversation": "Start a conversation",
+        "startMessage": "Ask a question, request ideas, or get help with code!",
+        "sendMessage": "Send Message",
+        "inputPlaceholder": "Type your message...",
+        "inputOffline": "You are offline",
+        "translate": "Translate",
+        "copyCode": "Copy Code"
+    },
+    "settings": {
+        "title": "Settings",
+        "general": "General",
+        "aboutApp": "About App",
+        "theme": "Theme",
+        "themeLight": "Light",
+        "themeDark": "Dark",
+        "themeSystem": "System",
+        "sound": "Sound",
+        "soundEffects": "Sound Effects",
+        "backgroundMusic": "Background Music",
+        "on": "On",
+        "off": "Off",
+        "display": "Display",
+        "uiAnimations": "UI Animations",
+        "creation": "Creation",
+        "defaultImageMode": "Default Image Mode",
+        "imageQuality": "Image Generation Quality",
+        "qualityFast": "Fast",
+        "qualityHigh": "Quality",
+        "defaultAiChat": "Default AI Chat",
+        "saveChatHistory": "Save Chat History",
+        "minigames": "Minigames",
+        "defaultDifficulty": "Default Difficulty",
+        "difficultyEasy": "Easy",
+        "difficultyNormal": "Normal",
+        "difficultyHard": "Hard",
+        "dataManagement": "Data Management",
+        "clearArtData": "Clear Gallery & Song History",
+        "clearAllData": "Clear All Data",
+        "clearAllDataWarning": "Clearing all data will remove your credits, history, gallery images, and all settings.",
+        "language": "Language / ภาษา",
+        "langTh": "ไทย",
+        "langEn": "English"
+    }
+}

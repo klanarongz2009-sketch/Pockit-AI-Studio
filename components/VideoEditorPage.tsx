@@ -110,7 +110,8 @@ export const VideoEditorPage: React.FC<VideoEditorPageProps> = ({ onClose, playS
         const updatedOperation = await getVideosOperation(operation);
         if (updatedOperation.done) {
             if (updatedOperation.error) {
-                throw new Error(updatedOperation.error.message);
+                // FIX: Ensure the error message is a string before passing to new Error().
+                throw new Error(String(updatedOperation.error.message));
             }
             const downloadLink = updatedOperation.response?.generatedVideos?.[0]?.video?.uri;
             if (downloadLink) {

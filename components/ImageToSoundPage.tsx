@@ -1,7 +1,9 @@
 
+
 import React, { useState, useRef, useCallback } from 'react';
 import * as geminiService from '../services/geminiService';
 import * as audioService from '../services/audioService';
+import * as preferenceService from '../services/preferenceService';
 import { PageHeader, PageWrapper } from './PageComponents';
 import { UploadIcon } from './icons/UploadIcon';
 import { LoadingSpinner } from './LoadingSpinner';
@@ -82,7 +84,10 @@ export const ImageToSoundPage: React.FC<ImageToSoundPageProps> = ({ onClose, pla
             const soundParams = await geminiService.generateSoundFromImage(base64Data, uploadedFile.type);
             setGeneratedSound(soundParams);
             playSound(audioService.playSuccess);
-            audioService.playSoundFromParams(soundParams); // Auto-play
+            
+            if (preferenceService.getPreference('autoPlaySounds', true)) {
+                audioService.playSoundFromParams(soundParams); // Auto-play
+            }
         } catch (err) {
             playSound(audioService.playError);
             const errorMessage = err instanceof Error ? err.message : 'เกิดข้อผิดพลาดที่ไม่คาดคิด';

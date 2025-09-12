@@ -1,189 +1,332 @@
-import React, { useState, useEffect, useCallback, useRef } from 'react';
-import { PageWrapper } from './PageComponents';
-import * as audioService from '../services/audioService';
+import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import * as geminiService from '../services/geminiService';
+import * as audioService from '../services/audioService';
+import * as preferenceService from '../services/preferenceService';
+import { ALL_AI_MODELS, AiModel } from '../services/aiModels';
 import { LoadingSpinner } from './LoadingSpinner';
 import { SendIcon } from './icons/SendIcon';
-import { useCredits, CREDIT_COSTS } from '../contexts/CreditContext';
+import { SparklesIcon } from './icons/SparklesIcon';
+import { TrashIcon } from './icons/TrashIcon';
+import { CopyIcon } from './icons/CopyIcon';
 import { Modal } from './Modal';
+import { SearchIcon } from './icons/SearchIcon';
 
 interface AiChatPageProps {
-    onClose: () => void;
-    playSound: (player: () => void) => void;
-    isOnline: boolean;
+  isOnline: boolean;
+  playSound: (player: () => void) => void;
 }
 
-interface ChatMessage {
-    role: 'user' | 'model';
-    content: string;
-    sources?: { uri: string; title: string }[];
+interface Message {
+  role: 'user' | 'model';
+  text: string;
+  sources?: { uri: string; title:string }[];
 }
 
-interface Model {
-    id: string;
-    name: string;
-    provider: 'Gemini';
-    description: string;
-    systemInstruction?: string;
-    webSearchEnabled?: boolean;
-}
+const ModelSelectionModal: React.FC<{
+  isOpen: boolean;
+  onClose: () => void;
+  onSelect: (model: AiModel) => void;
+  models: AiModel[];
+}> = ({ isOpen, onClose, onSelect, models }) => {
+    const [searchQuery, setSearchQuery] = useState('');
+    const categories = useMemo(() => ['All', ...Array.from(new Set(models.map(m => m.category)))], [models]);
+    const [activeCategory, setActiveCategory] = useState<'All' | AiModel['category']>('All');
 
-const models: Model[] = [
-    { 
-        id: 'gemini-2.5-flash', 
-        name: 'Chatwaff V0.5', 
-        provider: 'Gemini',
-        description: 'โมเดลเริ่มต้น รองรับบางภาษาเท่านั้น ภาษาอังกฤษ ภาษาจีน. ไม่รองรับการค้นหาเว็บ',
-        systemInstruction: 'You are Chatwaff V0.5, a foundational language model. You primarily understand English and Chinese. You do not have access to real-time web search. Your responses should be direct and informative. Respond in Thai.',
-        webSearchEnabled: false
-    },
-    { 
-        id: 'gemini-2.5-flash', 
-        name: 'Gemini 2.5 Pro', 
-        provider: 'Gemini',
-        description: 'ผู้ช่วย AI รอบรู้สำหรับตอบคำถามทั่วไป, ระดมสมอง, และสนทนา',
-        systemInstruction: 'You are a friendly and helpful AI assistant for a creative suite application. You are an expert in generative art, video, music, and sound design. Your tone is encouraging and slightly playful. You should respond in Thai.',
-        webSearchEnabled: true
-    },
-    { 
-        id: 'gemini-2.5-flash', 
-        name: 'นักเขียนสร้างสรรค์', 
-        provider: 'Gemini',
-        description: 'ผู้เชี่ยวชาญด้านการเขียนเรื่องราว, บทกวี, และเนื้อหาเชิงสร้างสรรค์',
-        systemInstruction: 'You are a master storyteller and creative writer. Your goal is to inspire with imaginative ideas, compelling narratives, and poetic language. You should respond in Thai.',
-        webSearchEnabled: true
-    },
-    { 
-        id: 'gemini-2.5-flash', 
-        name: 'ผู้ช่วยเขียนโค้ด', 
-        provider: 'Gemini',
-        description: 'ผู้เชี่ยวชาญด้านการเขียนโค้ด, แก้บั๊ก, และอธิบายแนวคิดทางโปรแกรมมิ่ง',
-        systemInstruction: 'You are an expert programmer and code assistant. Provide clear, efficient, and well-explained code snippets. You can assist with HTML, CSS, JavaScript, and concepts related to web development. You should respond in Thai.',
-        webSearchEnabled: true
-    },
-];
+    const filteredModels = useMemo(() => {
+        return models
+            .filter(model => activeCategory === 'All' || model.category === activeCategory)
+            .filter(model => 
+                model.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                model.description.toLowerCase().includes(searchQuery.toLowerCase())
+            );
+    }, [models, activeCategory, searchQuery]);
 
-const defaultModel = models[0];
+    const groupedModels = useMemo(() => {
+        return filteredModels.reduce((acc, model) => {
+            const key = model.subCategory;
+            if (!acc[key]) {
+                acc[key] = [];
+            }
+            acc[key].push(model);
+            return acc;
+        }, {} as Record<string, AiModel[]>);
+    }, [filteredModels]);
 
-export const AiChatPage: React.FC<AiChatPageProps> = ({ onClose, playSound, isOnline }) => {
-    const [selectedModel, setSelectedModel] = useState<Model>(defaultModel);
-    const [isModelSelectorOpen, setIsModelSelectorOpen] = useState(false);
-    const [messages, setMessages] = useState<ChatMessage[]>([
-        { role: 'model', content: `สวัสดี! ฉันคือ ${defaultModel.name} มีอะไรให้ช่วยไหม?` }
-    ]);
-    const [input, setInput] = useState('');
+    return (
+        <Modal isOpen={isOpen} onClose={onClose} title="เลือกผู้ช่วย AI">
+            <div className="flex flex-col h-[calc(100vh-100px)] font-sans">
+                <div className="p-2 mb-4 bg-brand-cyan/10 border border-brand-cyan text-center text-xs text-brand-cyan font-press-start">
+                    โมเดลใหม่จะถูกเพิ่มที่นี่!
+                </div>
+                <div className="relative mb-4">
+                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-text-secondary pointer-events-none">
+                        <SearchIcon className="w-5 h-5" />
+                    </span>
+                    <input
+                        type="search"
+                        placeholder="ค้นหาผู้ช่วย..."
+                        value={searchQuery}
+                        onChange={(e) => setSearchQuery(e.target.value)}
+                        className="w-full p-2 pl-10 bg-surface-primary border-2 border-border-secondary text-text-primary focus:outline-none focus:border-brand-yellow"
+                    />
+                </div>
+                <div className="flex flex-wrap gap-2 mb-4">
+                    {categories.map(cat => (
+                        <button
+                            key={cat}
+                            onClick={() => setActiveCategory(cat as any)}
+                            className={`px-3 py-1 text-xs font-press-start border-2 transition-colors ${activeCategory === cat ? 'bg-brand-yellow text-black border-black' : 'bg-surface-primary border-border-secondary text-text-primary hover:bg-brand-cyan/20'}`}
+                        >
+                            {cat}
+                        </button>
+                    ))}
+                </div>
+                <div className="flex-grow overflow-y-auto pr-2">
+                    {Object.entries(groupedModels).map(([subCategory, models]) => (
+                        <div key={subCategory} className="mb-4">
+                            <h3 className="font-press-start text-sm text-brand-cyan mb-2">{subCategory}</h3>
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                                {models.map(model => (
+                                    <button
+                                        key={model.name}
+                                        onClick={() => onSelect(model)}
+                                        className="w-full h-full text-left p-3 bg-surface-primary border-2 border-border-secondary hover:border-brand-yellow hover:bg-brand-cyan/10 transition-colors"
+                                    >
+                                        <p className="font-press-start text-xs text-brand-light">{model.name}</p>
+                                        <p className="text-xs text-text-secondary mt-1">{model.description}</p>
+                                    </button>
+                                ))}
+                            </div>
+                        </div>
+                    ))}
+                </div>
+            </div>
+        </Modal>
+    );
+};
+
+
+export const AiChatPage: React.FC<AiChatPageProps> = ({ isOnline, playSound }) => {
+    const [userInput, setUserInput] = useState('');
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
-    const { credits, spendCredits, addCredits } = useCredits();
+    const [isModelModalOpen, setIsModelModalOpen] = useState(false);
+    
+    const [selectedModel, setSelectedModel] = useState<AiModel>(() => {
+        const savedName = preferenceService.getPreference('defaultChatModelName', ALL_AI_MODELS[0]?.name || '');
+        return ALL_AI_MODELS.find(m => m.name === savedName) || ALL_AI_MODELS[0];
+    });
+    
+    const canUseWebSearch = useMemo(() => selectedModel.id !== 'local-robot', [selectedModel]);
+    const [webSearchEnabled, setWebSearchEnabled] = useState(() => preferenceService.getPreference('defaultWebSearch', false) && canUseWebSearch);
+    
+    const [messages, setMessages] = useState<Message[]>([]);
+    
+    const messagesEndRef = useRef<HTMLDivElement>(null);
+    
+    const SAVE_HISTORY = preferenceService.getPreference('saveChatHistory', true);
+    const getHistoryKey = (modelName: string) => `chat-history-${modelName.replace(/\s/g, '_')}`;
 
-    const messagesEndRef = useRef<HTMLDivElement | null>(null);
-    const textareaRef = useRef<HTMLTextAreaElement | null>(null);
+    // Load history on model change
+    useEffect(() => {
+        if (SAVE_HISTORY) {
+            try {
+                const saved = localStorage.getItem(getHistoryKey(selectedModel.name));
+                setMessages(saved ? JSON.parse(saved) : []);
+            } catch (e) {
+                console.error("Failed to load chat history:", e);
+                setMessages([]);
+            }
+        } else {
+            setMessages([]);
+        }
+        geminiService.resetChatSession();
+        setError(null);
+    }, [selectedModel, SAVE_HISTORY]);
+
+    // Save history on message change
+    useEffect(() => {
+        if (SAVE_HISTORY && messages.length > 0) {
+            try {
+                localStorage.setItem(getHistoryKey(selectedModel.name), JSON.stringify(messages));
+            } catch (e) {
+                console.error("Failed to save chat history:", e);
+            }
+        }
+    }, [messages, selectedModel, SAVE_HISTORY]);
+
 
     useEffect(() => {
         messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-    }, [messages]);
+    }, [messages, isLoading]);
     
-    useEffect(() => {
-        if (textareaRef.current) {
-            textareaRef.current.style.height = 'auto';
-            textareaRef.current.style.height = `${textareaRef.current.scrollHeight}px`;
-        }
-    }, [input]);
-    
-    useEffect(() => {
-        return () => {
-            geminiService.resetChatSession();
-        };
-    }, []);
-
-    const handleSelectModel = (model: Model) => {
-        if (model.name === selectedModel.name) {
-            setIsModelSelectorOpen(false);
-            return;
-        }
-        playSound(audioService.playClick);
-        setSelectedModel(model);
-        setMessages([{ role: 'model', content: `สวัสดี! ฉันคือ ${model.name} มีอะไรให้ช่วยไหม?` }]);
+    const handleNewChat = useCallback(() => {
+        playSound(audioService.playTrash);
         geminiService.resetChatSession();
-        setIsModelSelectorOpen(false);
-    };
-
+        setMessages([]);
+        setError(null);
+        setUserInput('');
+        if (SAVE_HISTORY) {
+            try {
+                localStorage.removeItem(getHistoryKey(selectedModel.name));
+            } catch (e) {
+                console.error("Failed to clear chat history:", e);
+            }
+        }
+    }, [playSound, SAVE_HISTORY, selectedModel]);
+    
     const handleSendMessage = useCallback(async () => {
-        const trimmedInput = input.trim();
-        if (!trimmedInput || isLoading || !selectedModel) return;
+        const trimmedInput = userInput.trim();
+        if (!trimmedInput || isLoading) return;
         
-        if (!spendCredits(CREDIT_COSTS.CHAT_MESSAGE)) {
-            setError(`เครดิตไม่เพียงพอ! ต้องการ ${CREDIT_COSTS.CHAT_MESSAGE} เครดิต`);
-            playSound(audioService.playError);
-            return;
+        if (selectedModel.id !== 'local-robot' && !isOnline) {
+             setError("คุณต้องเชื่อมต่ออินเทอร์เน็ตเพื่อใช้โมเดลนี้");
+             return;
         }
 
-        const userMessage: ChatMessage = { role: 'user', content: trimmedInput };
-        setMessages(prev => [...prev, userMessage]);
-        setInput('');
-        setIsLoading(true);
-        setError(null);
         playSound(audioService.playClick);
+        setError(null);
+        const userMessage: Message = { role: 'user', text: trimmedInput };
+        setMessages(prev => [...prev, userMessage]);
+        setUserInput('');
+        setIsLoading(true);
 
         try {
             const response = await geminiService.sendMessageToChat(
-                trimmedInput, 
-                selectedModel.id, 
-                selectedModel.systemInstruction || '',
-                selectedModel.webSearchEnabled ?? false
+                trimmedInput,
+                selectedModel.id,
+                selectedModel.systemInstruction,
+                webSearchEnabled && canUseWebSearch
             );
-            const modelMessage: ChatMessage = { 
-                role: 'model', 
-                content: response.text,
+
+            const modelMessage: Message = {
+                role: 'model',
+                text: response.text,
                 sources: response.sources
             };
             setMessages(prev => [...prev, modelMessage]);
+
         } catch (err) {
-            const errorMessage = err instanceof Error ? err.message : 'เกิดข้อผิดพลาดในการสื่อสารกับ AI';
+            const errorMessage = err instanceof Error ? err.message : 'An unknown error occurred.';
             setError(errorMessage);
-            addCredits(CREDIT_COSTS.CHAT_MESSAGE); // Refund on error
         } finally {
             setIsLoading(false);
         }
-    }, [input, isLoading, selectedModel, playSound, spendCredits, addCredits]);
+    }, [userInput, isLoading, isOnline, playSound, selectedModel, webSearchEnabled, canUseWebSearch]);
+
+    const handleCopyToClipboard = (text: string) => {
+        navigator.clipboard.writeText(text);
+        playSound(audioService.playSelection);
+    };
+
+    const renderMessageContent = (text: string) => {
+        const parts = text.split(/(```[\s\S]*?```)/g).filter(Boolean);
+    
+        return (
+            <div className="prose prose-sm prose-invert max-w-none break-words">
+                {parts.map((part, i) => {
+                    if (part.startsWith('```') && part.endsWith('```')) {
+                        const code = part.slice(3, -3);
+                        const langMatch = code.match(/^(\w+)\n/);
+                        const codeContent = langMatch ? code.substring(langMatch[0].length) : code;
+                        
+                        return (
+                            <div key={i} className="relative group my-2">
+                                <pre className="bg-black p-3 border border-brand-light/50 overflow-x-auto text-xs font-mono">
+                                    <code>{codeContent.trim()}</code>
+                                </pre>
+                                <button
+                                    onClick={() => handleCopyToClipboard(codeContent.trim())}
+                                    className="absolute top-2 right-2 p-1 bg-gray-700 text-white rounded opacity-0 group-hover:opacity-100 transition-opacity"
+                                    aria-label="Copy code"
+                                >
+                                    <CopyIcon className="w-4 h-4" />
+                                </button>
+                            </div>
+                        );
+                    }
+                    return <div key={i} dangerouslySetInnerHTML={{ __html: part.replace(/\n/g, '<br />') }} />;
+                })}
+            </div>
+        );
+    };
 
     return (
-        <PageWrapper>
-            <header className="w-full max-w-2xl flex items-center justify-between p-3 border-b-4 border-border-primary bg-background/20 flex-shrink-0">
-                <button onClick={onClose} className="text-sm underline hover:text-brand-yellow transition-colors pr-4 font-sans" aria-label="กลับ">
-                    &#x2190; กลับ
-                </button>
-                <h2 className="text-base sm:text-lg text-brand-yellow font-press-start truncate">
-                    {selectedModel.name}
-                </h2>
-                <button 
-                    onClick={() => { playSound(audioService.playClick); setIsModelSelectorOpen(true); }}
-                    onMouseEnter={() => playSound(audioService.playHover)}
-                    className="text-xs font-press-start p-2 border-2 border-brand-light bg-surface-primary hover:bg-brand-cyan/20 transition-colors"
-                >
-                    เปลี่ยน
-                </button>
-            </header>
-            <main id="main-content" className="w-full max-w-2xl flex-grow flex flex-col p-4 overflow-hidden font-sans">
-                <div className="flex flex-col h-full">
-                    <div className="flex-grow overflow-y-auto mb-4 pr-2 space-y-4">
+        <div className="w-full h-full flex flex-col items-center px-4 font-sans">
+             <ModelSelectionModal 
+                isOpen={isModelModalOpen}
+                onClose={() => setIsModelModalOpen(false)}
+                onSelect={(model) => {
+                    playSound(audioService.playClick);
+                    setSelectedModel(model);
+                    preferenceService.setPreference('defaultChatModelName', model.name);
+                    setIsModelModalOpen(false);
+                    if (model.id === 'local-robot') {
+                        setWebSearchEnabled(false);
+                    }
+                }}
+                models={ALL_AI_MODELS}
+            />
+
+            <h1 className="text-3xl sm:text-4xl text-brand-yellow text-center drop-shadow-[3px_3px_0_#000] mb-4">AI Chat</h1>
+            <div className="w-full max-w-3xl flex-grow flex flex-col bg-black/40 border-4 border-brand-light shadow-pixel">
+                <header className="flex-shrink-0 p-2 border-b-4 border-brand-light flex flex-wrap items-center justify-between gap-2">
+                    <div className="flex items-center gap-2">
+                        <button 
+                            onClick={() => setIsModelModalOpen(true)}
+                            onMouseEnter={() => playSound(audioService.playHover)}
+                            className="flex items-center gap-2 p-2 bg-surface-primary border-2 border-border-primary text-text-primary hover:bg-brand-cyan/20 transition-colors"
+                        >
+                            <SparklesIcon className="w-4 h-4 text-brand-cyan" />
+                            <span className="text-xs font-press-start truncate max-w-32 sm:max-w-xs">{selectedModel.name}</span>
+                        </button>
+                    </div>
+                     <div className="flex items-center gap-4">
+                        <label className={`flex items-center gap-2 cursor-pointer transition-opacity ${!canUseWebSearch ? 'opacity-50' : ''}`}>
+                            <input
+                                type="checkbox"
+                                checked={webSearchEnabled && canUseWebSearch}
+                                onChange={(e) => {
+                                    if(canUseWebSearch) {
+                                        playSound(audioService.playToggle);
+                                        setWebSearchEnabled(e.target.checked);
+                                    }
+                                }}
+                                className="w-4 h-4 accent-brand-magenta"
+                                disabled={isLoading || !canUseWebSearch}
+                                title={!canUseWebSearch ? "Web Search is not available for this model" : ""}
+                            />
+                            <span className="text-xs font-press-start text-brand-cyan">Web Search</span>
+                        </label>
+                        <button onClick={handleNewChat} onMouseEnter={() => playSound(audioService.playHover)} disabled={isLoading} className="flex items-center gap-2 p-2 bg-brand-magenta/80 text-white border-2 border-black hover:bg-brand-magenta" aria-label="New Chat">
+                            <TrashIcon className="w-4 h-4"/>
+                        </button>
+                    </div>
+                </header>
+                
+                <main className="flex-grow p-4 overflow-y-auto">
+                    {messages.length === 0 && !isLoading && (
+                        <div className="text-center text-brand-light/70 h-full flex flex-col justify-center items-center">
+                            <SparklesIcon className="w-16 h-16 text-brand-cyan mb-4" />
+                            <p className="font-press-start">เริ่มการสนทนา</p>
+                            <p className="text-xs mt-2">ถามคำถาม, ขอไอเดีย, หรือให้ช่วยเขียนโค้ด!</p>
+                        </div>
+                    )}
+
+                    <div className="space-y-6">
                         {messages.map((msg, index) => (
-                            <div key={index} className={`flex items-end gap-2 animate-fadeIn ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
-                                <div className={`p-3 max-w-lg shadow-sm rounded-lg ${msg.role === 'user' ? 'bg-brand-cyan text-black' : 'bg-surface-secondary text-text-primary'}`}>
-                                    <p className="whitespace-pre-wrap break-words">{msg.content}</p>
-                                    {msg.sources && msg.sources.length > 0 && (
-                                        <div className="mt-3 pt-2 border-t border-brand-light/30">
-                                            <h4 className="font-press-start text-xs mb-2 text-brand-light/80">แหล่งข้อมูล:</h4>
-                                            <ul className="list-disc list-inside space-y-1">
+                            <div key={index} className={`flex gap-4 ${msg.role === 'user' ? 'justify-end' : ''}`}>
+                                {msg.role === 'model' && <div className="flex-shrink-0 w-8 h-8 text-brand-cyan mt-1"><SparklesIcon/></div>}
+                                <div className={`max-w-xl p-3 text-sm rounded-lg ${msg.role === 'user' ? 'bg-brand-cyan/80 text-black' : 'bg-surface-primary text-text-primary'}`}>
+                                    {renderMessageContent(msg.text)}
+                                     {msg.sources && msg.sources.length > 0 && (
+                                        <div className="mt-4 pt-2 border-t border-brand-light/30">
+                                            <h4 className="text-xs font-bold mb-1">Sources:</h4>
+                                            <ul className="text-xs space-y-1">
                                                 {msg.sources.map((source, i) => (
-                                                    <li key={i} className="text-xs">
-                                                        <a 
-                                                            href={source.uri} 
-                                                            target="_blank" 
-                                                            rel="noopener noreferrer"
-                                                            className="text-brand-yellow underline hover:text-brand-lime transition-colors break-all"
-                                                        >
-                                                            {source.title}
+                                                    <li key={i}>
+                                                        <a href={source.uri} target="_blank" rel="noopener noreferrer" className="text-brand-yellow underline hover:text-brand-lime break-all">
+                                                            {i+1}. {source.title}
                                                         </a>
                                                     </li>
                                                 ))}
@@ -193,60 +336,47 @@ export const AiChatPage: React.FC<AiChatPageProps> = ({ onClose, playSound, isOn
                                 </div>
                             </div>
                         ))}
-                        {isLoading && (
-                            <div className="flex justify-start">
-                                <div className="p-3 bg-surface-secondary text-text-primary rounded-lg">
-                                    <LoadingSpinner text="AI กำลังคิด..." />
-                                </div>
-                            </div>
-                        )}
-                        <div ref={messagesEndRef} />
                     </div>
-                    {error && <div role="alert" className="text-brand-magenta text-xs text-center mb-2 p-2 bg-brand-magenta/10 border border-brand-magenta">{error}</div>}
-                    <div className="flex items-end gap-2 border-t-2 border-brand-light/30 pt-4">
+                    
+                    {isLoading && (
+                        <div className="flex gap-4 mt-6">
+                            <div className="flex-shrink-0 w-8 h-8 text-brand-cyan mt-1"><SparklesIcon/></div>
+                            <div className="max-w-xl p-3 text-sm bg-surface-primary text-text-primary rounded-lg">
+                                <LoadingSpinner text="AI is thinking..." />
+                            </div>
+                        </div>
+                    )}
+
+                    {error && (
+                         <div role="alert" className="w-full p-3 mt-4 text-center text-sm text-brand-light bg-brand-magenta/20 border-2 border-brand-magenta">
+                            {error}
+                        </div>
+                    )}
+                    <div ref={messagesEndRef} />
+                </main>
+
+                <footer className="flex-shrink-0 p-2 border-t-4 border-brand-light">
+                    <div className="flex items-center gap-2">
                         <textarea
-                            ref={textareaRef}
-                            value={input}
-                            onChange={e => setInput(e.target.value)}
-                            onKeyPress={e => {
+                            value={userInput}
+                            onChange={(e) => setUserInput(e.target.value)}
+                            onKeyDown={(e) => {
                                 if (e.key === 'Enter' && !e.shiftKey) {
                                     e.preventDefault();
                                     handleSendMessage();
                                 }
                             }}
-                            placeholder="พิมพ์ข้อความของคุณ..."
+                            placeholder={isOnline || selectedModel.id === 'local-robot' ? "พิมพ์ข้อความของคุณ..." : "คุณกำลังออฟไลน์"}
+                            className="flex-grow p-2 bg-brand-light text-black rounded-none border-2 border-black focus:outline-none focus:ring-2 focus:ring-brand-yellow resize-none"
                             rows={1}
-                            className="w-full p-2 bg-brand-light text-black rounded-none border-2 border-black focus:outline-none focus:ring-2 focus:ring-brand-yellow resize-none max-h-32"
-                            disabled={isLoading || !isOnline}
+                            disabled={isLoading || (!isOnline && selectedModel.id !== 'local-robot')}
                         />
-                        <button
-                            onClick={handleSendMessage}
-                            disabled={isLoading || !input.trim() || !isOnline}
-                            className="w-12 h-12 flex-shrink-0 flex items-center justify-center bg-brand-magenta text-white border-2 border-brand-light shadow-sm transition-all hover:bg-brand-yellow hover:text-black disabled:bg-gray-500"
-                            aria-label="ส่งข้อความ"
-                        >
-                            <SendIcon className="w-6 h-6" />
+                        <button onClick={handleSendMessage} disabled={!userInput.trim() || isLoading || (!isOnline && selectedModel.id !== 'local-robot')} className="w-12 h-12 flex-shrink-0 flex items-center justify-center bg-brand-magenta text-white border-2 border-black hover:bg-brand-yellow hover:text-black disabled:bg-gray-500 disabled:cursor-not-allowed" aria-label="Send Message">
+                            <SendIcon className="w-6 h-6"/>
                         </button>
                     </div>
-                </div>
-            </main>
-            
-            <Modal isOpen={isModelSelectorOpen} onClose={() => setIsModelSelectorOpen(false)} title="เลือกผู้ช่วย AI">
-                <div className="w-full grid grid-cols-1 gap-4">
-                    {models.map(model => (
-                        <button
-                            key={model.name}
-                            onClick={() => handleSelectModel(model)}
-                            disabled={!isOnline}
-                            className={`w-full text-left p-4 border-4 shadow-pixel transition-all hover:bg-brand-cyan/20 hover:border-brand-yellow 
-                                ${selectedModel.name === model.name ? 'bg-brand-yellow/80 border-black' : 'bg-black/40 border-brand-light'}`}
-                        >
-                            <h3 className={`font-press-start text-base ${selectedModel.name === model.name ? 'text-black' : 'text-brand-yellow'}`}>{model.name}</h3>
-                            <p className={`text-xs mt-1 ${selectedModel.name === model.name ? 'text-black/80' : 'text-brand-light/80'}`}>{model.description}</p>
-                        </button>
-                    ))}
-                </div>
-            </Modal>
-        </PageWrapper>
+                </footer>
+            </div>
+        </div>
     );
 };

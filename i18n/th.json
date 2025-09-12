@@ -1,0 +1,95 @@
+{
+    "header": {
+        "title": "จักรวาล AI สร้างสรรค์",
+        "credits": "เครดิต",
+        "settings": "การตั้งค่า",
+        "menu": "เมนู"
+    },
+    "sidebar": {
+        "imageGenerator": "สร้างภาพ",
+        "gallery": "แกลเลอรี",
+        "aiZone": "AI โซน",
+        "aiChat": "AI Chat"
+    },
+    "offline": {
+        "message": "คุณกำลังออฟไลน์ ฟีเจอร์ AI ถูกปิดใช้งาน"
+    },
+    "imageGenerator": {
+        "title": "เครื่องมือสร้างภาพ AI",
+        "promptLabel": "คำสั่ง (Prompt)",
+        "promptPlaceholder": "เช่น อัศวินขี่ไดโนเสาร์ในอวกาศ หรืออัปโหลดภาพแล้วพิมพ์ 'Code' เพื่อให้ AI เขียนโค้ด",
+        "suggestions": "ไอเดีย:",
+        "generate": "สร้าง",
+        "getIdeas": "รับไอเดีย",
+        "fromImage": "จากภาพ",
+        "fromUrl": "จาก URL",
+        "download": "ดาวน์โหลด",
+        "share": "แชร์",
+        "saveToGallery": "บันทึก",
+        "clear": "ล้าง"
+    },
+    "outputDisplay": {
+        "emptyArea": "พื้นที่แสดงผลลัพธ์ว่างเปล่า",
+        "errorTitle": "เกิดข้อผิดพลาด",
+        "welcomeTitle": "ยินดีต้อนรับ!",
+        "welcomeMessage": "ป้อนคำสั่ง หรือ อัปโหลดภาพเพื่อเริ่มต้น!",
+        "altBase": {
+            "image": "ภาพพิกเซลอาร์ต",
+            "gif": "แอนิเมชัน GIF พิกเซลอาร์ตแบบวนลูป",
+            "video": "วิดีโอพิกเซลอาร์ต",
+            "spritesheet": "สไปรต์ชีตแอนิเมชันพิกเซลอาร์ต"
+        },
+        "altGeneratedFrom": "ที่สร้างจากคำสั่ง:",
+        "codePreview": "ตัวอย่างโค้ดที่สร้างจากคำสั่ง:",
+        "videoNotSupported": "เบราว์เซอร์ของคุณไม่รองรับแท็กวิดีโอ"
+    },
+    "aiChat": {
+        "title": "AI Chat",
+        "selectAssistant": "เลือกผู้ช่วย AI",
+        "searchAssistant": "ค้นหาผู้ช่วย...",
+        "webSearch": "Web Search",
+        "newChat": "แชทใหม่",
+        "startConversation": "เริ่มการสนทนา",
+        "startMessage": "ถามคำถาม, ขอไอเดีย, หรือให้ช่วยเขียนโค้ด!",
+        "sendMessage": "ส่งข้อความ",
+        "inputPlaceholder": "พิมพ์ข้อความของคุณ...",
+        "inputOffline": "คุณกำลังออฟไลน์",
+        "translate": "แปลภาษา",
+        "copyCode": "คัดลอกโค้ด"
+    },
+    "settings": {
+        "title": "การตั้งค่า",
+        "general": "ทั่วไป",
+        "aboutApp": "เกี่ยวกับแอป",
+        "theme": "ธีม",
+        "themeLight": "สว่าง",
+        "themeDark": "มืด",
+        "themeSystem": "ตามระบบ",
+        "sound": "เสียง",
+        "soundEffects": "เสียงประกอบ",
+        "backgroundMusic": "เพลงพื้นหลัง",
+        "on": "เปิด",
+        "off": "ปิด",
+        "display": "การแสดงผล",
+        "uiAnimations": "UI Animations",
+        "creation": "การสร้างผลงาน",
+        "defaultImageMode": "โหมดสร้างภาพเริ่มต้น",
+        "imageQuality": "คุณภาพการสร้างภาพ",
+        "qualityFast": "รวดเร็ว",
+        "qualityHigh": "คุณภาพสูง",
+        "defaultAiChat": "AI Chat เริ่มต้น",
+        "saveChatHistory": "บันทึกประวัติแชท",
+        "minigames": "มินิเกม",
+        "defaultDifficulty": "ระดับความยากเริ่มต้น",
+        "difficultyEasy": "ง่าย",
+        "difficultyNormal": "ปกติ",
+        "difficultyHard": "ยาก",
+        "dataManagement": "การจัดการข้อมูล",
+        "clearArtData": "ล้างแกลเลอรีและประวัติเพลง",
+        "clearAllData": "ล้างข้อมูลทั้งหมด",
+        "clearAllDataWarning": "การล้างข้อมูลทั้งหมดจะลบเครดิต, ประวัติ, รูปภาพในแกลเลอรี และการตั้งค่าทั้งหมด",
+        "language": "Language / ภาษา",
+        "langTh": "ไทย",
+        "langEn": "English"
+    }
+}

@@ -48,10 +48,12 @@ import { GuessThePromptPage } from './GuessThePromptPage';
 import { PetIcon } from './icons/PetIcon';
 import { MusicInspectIcon } from './icons/MusicInspectIcon';
 import { MusicMemoryGamePage } from './MusicMemoryGamePage';
+import { SparklesIcon } from './icons/SparklesIcon';
 
 interface MinigameHubPageProps {
     playSound: (player: () => void) => void;
     isOnline: boolean;
+    onOpenAbout: () => void;
 }
 
 type ActiveGame =
@@ -91,7 +93,7 @@ const GameButton: React.FC<{ icon: React.ReactNode; title: string; description: 
 );
 
 
-export const MinigameHubPage: React.FC<MinigameHubPageProps> = ({ playSound, isOnline }) => {
+export const MinigameHubPage: React.FC<MinigameHubPageProps> = ({ playSound, isOnline, onOpenAbout }) => {
     const [activeGame, setActiveGame] = useState<ActiveGame>('hub');
     const [isLoadingAssets, setIsLoadingAssets] = useState(false);
     const [gameAssets, setGameAssets] = useState<{ player: string | null; obstacle: string | null; }>({ player: null, obstacle: null });

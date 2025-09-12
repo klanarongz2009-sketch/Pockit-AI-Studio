@@ -377,23 +377,27 @@ export const VoiceChangerPage: React.FC<VoiceChangerPageProps> = ({ playSound, o
                 setProcessedMidi(midiNotes);
                 playSound(audioService.playSuccess);
                 
-                setIsPlayingMidi(true);
-                audioService.playMidi(midiNotes, () => {
-                    setIsPlayingMidi(false);
-                });
+                if (preferenceService.getPreference('autoPlaySounds', true)) {
+                    setIsPlayingMidi(true);
+                    audioService.playMidi(midiNotes, () => {
+                        setIsPlayingMidi(false);
+                    });
+                }
 
             } else {
                  const audioBuffer = await audioService.applyVoiceEffect(uploadedFile, selectedEffect.effect, effectParams);
                  setProcessedAudio(audioBuffer);
                  playSound(audioService.playSuccess);
                  
-                 const source = audioService.playAudioBuffer(audioBuffer);
-                 activeAudioSourceRef.current = source;
-                 setIsPlaying(true);
-                 source.onended = () => {
-                     setIsPlaying(false);
-                     activeAudioSourceRef.current = null;
-                 };
+                 if (preferenceService.getPreference('autoPlaySounds', true)) {
+                    const source = audioService.playAudioBuffer(audioBuffer);
+                    activeAudioSourceRef.current = source;
+                    setIsPlaying(true);
+                    source.onended = () => {
+                        setIsPlaying(false);
+                        activeAudioSourceRef.current = null;
+                    };
+                 }
             }
 
         } catch (err) {
