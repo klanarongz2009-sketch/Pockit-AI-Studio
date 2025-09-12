@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
-import type { Song } from '../services/geminiService';
+// FIX: Changed from `import type` to a regular import.
+import { Song } from '../services/geminiService';
 import { generateSongFromText } from '../services/geminiService';
 import * as audioService from '../services/audioService';
 import * as preferenceService from '../services/preferenceService';

@@ -9,10 +9,12 @@ import { PlayIcon } from './icons/PlayIcon';
 import { StopIcon } from './icons/StopIcon';
 import { MusicNoteIcon } from './icons/MusicNoteIcon';
 import { DownloadIcon } from './icons/DownloadIcon';
-import type { EffectParameters } from '../services/audioService';
+// FIX: Changed from `import type` to regular import.
+import { EffectParameters } from '../services/audioService';
 import { useCredits, CREDIT_COSTS } from '../contexts/CreditContext';
 import * as geminiService from '../services/geminiService';
-import type { MidiNote } from '../services/geminiService';
+// FIX: Changed from `import type` to regular import.
+import { MidiNote } from '../services/geminiService';
 
 
 interface VoiceChangerPageProps {
@@ -574,7 +576,7 @@ export const VoiceChangerPage: React.FC<VoiceChangerPageProps> = ({ playSound, o
 
         return selectedEffect.controls.map(control => {
             const paramKey = control.param;
-            const currentValue = effectParams[paramKey] ?? control.defaultValue;
+            const currentValue = (effectParams as any)[paramKey] ?? control.defaultValue;
             return (
                 <div key={control.param} className="flex flex-col gap-2">
                     <label htmlFor={`${String(control.param)}-slider`} className="text-xs font-press-start text-brand-light/80 flex justify-between">
@@ -591,7 +593,8 @@ export const VoiceChangerPage: React.FC<VoiceChangerPageProps> = ({ playSound, o
                         onChange={(e) => {
                             playSound(audioService.playSliderChange);
                             const value = parseFloat(e.target.value);
-                            setEffectParams(prev => ({ ...prev, [paramKey]: value }));
+                            // FIX: Ensure paramKey is treated as a string for indexing
+                            setEffectParams(prev => ({ ...prev, [paramKey as string]: value }));
                         }}
                         disabled={isLoading}
                         aria-valuetext={getAriaValueText(control, currentValue as number)}

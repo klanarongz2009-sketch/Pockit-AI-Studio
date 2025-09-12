@@ -1,4 +1,3 @@
-
 import * as audioService from './audioService';
 
 export const IMAGE_ASSETS = {
@@ -7,7 +6,7 @@ export const IMAGE_ASSETS = {
 };
 
 export const AUDIO_ASSETS = {
-  backgroundMusic: '/assets/music/bgm.mp3',
+  backgroundMusic: '/assets/music/bgm_new.mp3',
 };
 
 async function preloadImages(): Promise<void> {

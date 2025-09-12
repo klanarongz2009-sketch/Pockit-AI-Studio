@@ -1,6 +1,7 @@
 
 
 
+
 import React, { useState, useEffect, useCallback } from 'react';
 import * as audioService from '../services/audioService';
 import * as geminiService from '../services/geminiService';
@@ -117,7 +118,6 @@ export const GuessThePromptPage: React.FC<GuessThePromptPageProps> = ({ onClose,
 
     const renderContent = () => {
         // FIX: Prioritize showing errors, especially those that occur during loading.
-        // This also resolves the TypeScript error about a redundant condition.
         if (error) {
             return (
                 <div role="alert" className="text-center text-brand-magenta">

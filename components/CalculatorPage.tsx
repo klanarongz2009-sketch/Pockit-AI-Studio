@@ -1,4 +1,3 @@
-
 import React, { useState, useCallback } from 'react';
 import { PageHeader, PageWrapper } from './PageComponents';
 import * as audioService from '../services/audioService';
@@ -128,7 +127,7 @@ export const CalculatorPage: React.FC<{
         { value: '3', handler: () => handleButtonClick('3'), style: 'bg-brand-light text-black', label: '3' },
         { value: '+', handler: () => handleButtonClick('+'), style: 'bg-brand-cyan/80 text-black', label: 'Add' },
         { value: '0', handler: () => handleButtonClick('0'), style: 'bg-brand-light text-black col-span-2', label: '0' },
-        { value: '.', handler: () => handleButtonClick('.'), style: 'bg-brand-light text-black', label: 'Decimal' },
+        { value: '.', handler: () => handleButtonClick('.'), style: 'bg-brand-light text-black', label: 'Decimal point' },
         { value: '=', handler: handleCalculate, style: 'bg-brand-yellow text-black', label: 'Equals' },
     ];
 

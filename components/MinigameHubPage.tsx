@@ -25,22 +25,9 @@ import { SearchMusicIcon } from './icons/SearchMusicIcon';
 import { SongSearchPage } from './SongSearchPage';
 import { MagicButtonIcon } from './icons/MagicButtonIcon';
 import { MagicButtonPage } from './MagicButtonPage';
-import { MusicKeyboardIcon } from './icons/MusicKeyboardIcon';
-import { PixelSynthesizerPage } from './PixelSynthesizerPage';
-import { VoiceChangerPage } from './VoiceChangerPage';
-import { AnalyzeMediaPage } from './AnalyzeMediaPage';
-import { TextToSongPage } from './TextToSongPage';
-import { ImageToSoundPage } from './ImageToSoundPage';
 import { VideoEditorPage } from './VideoEditorPage';
-import { VoiceChangerIcon } from './icons/VoiceChangerIcon';
 import { AnalyzeIcon } from './icons/AnalyzeIcon';
-import { TextMusicIcon } from './icons/TextMusicIcon';
-import { ImageSoundIcon } from './icons/ImageSoundIcon';
 import { VideoEditorIcon } from './icons/VideoEditorIcon';
-import { SoundLibraryPage } from './SoundLibraryPage';
-import { SoundWaveIcon } from './icons/SoundWaveIcon';
-import { TextToSpeechPage } from './TextToSpeechPage';
-import { TextToSpeechIcon } from './icons/TextToSpeechIcon';
 import { SearchIcon } from './icons/SearchIcon';
 import { IMAGE_ASSETS } from '../services/assetLoader';
 import { GuessThePromptIcon } from './icons/GuessThePromptIcon';
@@ -48,7 +35,9 @@ import { GuessThePromptPage } from './GuessThePromptPage';
 import { PetIcon } from './icons/PetIcon';
 import { MusicInspectIcon } from './icons/MusicInspectIcon';
 import { MusicMemoryGamePage } from './MusicMemoryGamePage';
-import { SparklesIcon } from './icons/SparklesIcon';
+import { FileChatIcon } from './icons/FileChatIcon';
+import { FileChatPage } from './FileChatPage';
+import { AnalyzeMediaPage } from './AnalyzeMediaPage';
 
 interface MinigameHubPageProps {
     playSound: (player: () => void) => void;
@@ -59,9 +48,8 @@ interface MinigameHubPageProps {
 type ActiveGame =
     | 'hub' | 'pixelDodge' | 'ticTacToe' | 'snake' | 'platformer'
     | 'brickBreaker' | 'calculator' | 'aiOracle' | 'wordMatch' | 'aiBugSquasher'
-    | 'songSearch' | 'magicButton' | 'pixelSynthesizer' | 'voiceChanger' | 'analyzeMedia'
-    | 'textToSong' | 'imageToSound' | 'videoEditor' | 'soundLibrary' | 'textToSpeech'
-    | 'guessThePrompt' | 'musicMemory';
+    | 'songSearch' | 'magicButton' | 'videoEditor'
+    | 'guessThePrompt' | 'musicMemory' | 'fileChat' | 'analyzeMedia';
 
 const GameButton: React.FC<{ icon: React.ReactNode; title: string; description: string; onClick?: () => void; disabled?: boolean; comingSoon?: boolean; beta?: boolean; highScore?: number; }> = ({ icon, title, description, onClick, disabled, comingSoon, beta, highScore }) => (
     <div className="relative group h-full">
@@ -69,6 +57,7 @@ const GameButton: React.FC<{ icon: React.ReactNode; title: string; description: 
             onClick={onClick}
             disabled={disabled || comingSoon}
             className="w-full h-full flex items-start text-left gap-4 p-4 bg-black/40 border-4 border-brand-light shadow-pixel transition-all hover:bg-brand-cyan/20 hover:border-brand-yellow hover:-translate-y-1 hover:-translate-x-1 hover:shadow-[6px_6px_0_#f0f0f0] active:shadow-pixel-active active:translate-y-[2px] active:translate-x-[2px] disabled:opacity-50 disabled:cursor-not-allowed"
+            aria-label={`เปิด ${title}`}
         >
             <div className="flex-shrink-0 w-16 h-16 text-brand-cyan">{icon}</div>
             <div className="font-sans">
@@ -98,8 +87,7 @@ export const MinigameHubPage: React.FC<MinigameHubPageProps> = ({ playSound, isO
     const [isLoadingAssets, setIsLoadingAssets] = useState(false);
     const [gameAssets, setGameAssets] = useState<{ player: string | null; obstacle: string | null; }>({ player: null, obstacle: null });
     const [error, setError] = useState<string | null>(null);
-    const { addCredits, spendCredits, credits } = useCredits();
-    const [isPlayingSong, setIsPlayingSong] = useState(false);
+    const { addCredits } = useCredits();
     const [searchQuery, setSearchQuery] = useState('');
     const [highScores, setHighScores] = useState({
         pixelDodge: 0,
@@ -136,6 +124,14 @@ export const MinigameHubPage: React.FC<MinigameHubPageProps> = ({ playSound, isO
     
     const aiToolsData = useMemo(() => [
         {
+            icon: <FileChatIcon className="w-16 h-16" />,
+            title: "File Q&A (PDF.AI)",
+            description: "อัปโหลดไฟล์ (รูป, เสียง, ข้อความ) แล้วเริ่มแชทกับ AI เกี่ยวกับเนื้อหาในไฟล์นั้นได้เลย",
+            onClick: () => handleLaunchGame('fileChat'),
+            disabled: !isOnline,
+            beta: true
+        },
+        {
             icon: <VideoEditorIcon className="w-16 h-16" />,
             title: "ตัดต่อวิดีโอ",
             description: "ตัดต่อวิดีโอของคุณด้วยพลังของ AI เปลี่ยนสไตล์, สร้างคำบรรยายอัตโนมัติ, และอื่นๆ อีกมากมาย",
@@ -144,45 +140,10 @@ export const MinigameHubPage: React.FC<MinigameHubPageProps> = ({ playSound, isO
             beta: true
         },
         {
-            icon: <VoiceChangerIcon className="w-16 h-16" />,
-            title: "สตูดิโอเสียง",
-            description: "แปลงไฟล์เสียง/วิดีโอด้วยเอฟเฟกต์มากมาย หรือแปลงเสียงร้องเป็นโน้ตดนตรี (MIDI)",
-            onClick: () => handleLaunchGame('voiceChanger'),
-            beta: true,
-        },
-        {
             icon: <SearchMusicIcon className="w-16 h-16" />,
             title: "ค้นหาเพลง/เสียง",
             description: "อัปโหลดคลิปเสียงหรือวิดีโอ แล้วให้ AI ช่วยค้นหาข้อมูลเพลงให้คุณทันที",
             onClick: () => handleLaunchGame('songSearch'),
-            disabled: !isOnline,
-            beta: true
-        },
-        {
-            icon: <TextToSpeechIcon className="w-16 h-16" />,
-            title: "AI อ่านออกเสียง",
-            description: "แปลงข้อความเป็นเสียงพูดด้วย AI พร้อมปรับแต่งเสียงได้หลากหลาย รับเครดิตตามความยาวข้อความ!",
-            onClick: () => handleLaunchGame('textToSpeech'),
-        },
-        {
-            icon: <TextMusicIcon className="w-16 h-16" />,
-            title: "สร้างเพลงจากข้อความ",
-            description: "เปลี่ยนเรื่องราว, บทกวี, หรือเนื้อเพลงของคุณให้กลายเป็นเพลง 8-bit ที่มีเอกลักษณ์ไม่ซ้ำใคร",
-            onClick: () => handleLaunchGame('textToSong'),
-            disabled: !isOnline
-        },
-        {
-            icon: <SoundWaveIcon className="w-16 h-16" />,
-            title: "คลังเสียง 8-Bit",
-            description: "สร้างเสียงประกอบ 8-bit ที่เป็นเอกลักษณ์สำหรับโปรเจกต์ของคุณด้วย AI",
-            onClick: () => handleLaunchGame('soundLibrary'),
-            disabled: !isOnline
-        },
-        {
-            icon: <ImageSoundIcon className="w-16 h-16" />,
-            title: "สร้างเสียงจากภาพ",
-            description: "อัปโหลดภาพ แล้วให้ AI ตีความอารมณ์เพื่อสร้างสรรค์เสียงประกอบ 8-bit ที่เข้ากับภาพนั้น",
-            onClick: () => handleLaunchGame('imageToSound'),
             disabled: !isOnline,
             beta: true
         },
@@ -253,12 +214,6 @@ export const MinigameHubPage: React.FC<MinigameHubPageProps> = ({ playSound, isO
             title: "Platformer",
             description: "เกมกระโดดผจญภัยสุดท้าทาย บังคับตัวละครของคุณผ่านด่านเพื่อไปให้ถึงเส้นชัย",
             onClick: () => handleLaunchGame('platformer'),
-        },
-        {
-            icon: <MusicKeyboardIcon className="w-16 h-16" />,
-            title: "Pixel Synthesizer",
-            description: "เล่นสนุกกับซินธิไซเซอร์ 8-bit! สร้างสรรค์เมโลดี้ของคุณเองด้วยเสียงต่างๆ และคีย์บอร์ดสไตล์เรโทร",
-            onClick: () => handleLaunchGame('pixelSynthesizer'),
         },
         {
             icon: <BugIcon className="w-16 h-16" />,
@@ -346,35 +301,20 @@ export const MinigameHubPage: React.FC<MinigameHubPageProps> = ({ playSound, isO
     if (activeGame === 'magicButton') {
         return <MagicButtonPage onClose={() => setActiveGame('hub')} playSound={playSound} addCredits={addCredits} />;
     }
-    if (activeGame === 'pixelSynthesizer') {
-        return <PixelSynthesizerPage onClose={() => handleLaunchGame('hub')} playSound={playSound} />;
-    }
-    if (activeGame === 'voiceChanger') {
-        return <VoiceChangerPage onClose={() => handleLaunchGame('hub')} playSound={playSound} />;
-    }
-    if (activeGame === 'analyzeMedia') {
-        return <AnalyzeMediaPage onClose={() => handleLaunchGame('hub')} playSound={playSound} isOnline={isOnline} />;
-    }
-    if (activeGame === 'textToSong') {
-        return <TextToSongPage onClose={() => handleLaunchGame('hub')} playSound={playSound} isPlayingSong={isPlayingSong} setIsPlayingSong={setIsPlayingSong} isOnline={isOnline} />;
-    }
-    if (activeGame === 'imageToSound') {
-        return <ImageToSoundPage onClose={() => handleLaunchGame('hub')} playSound={playSound} isOnline={isOnline} />;
-    }
     if (activeGame === 'videoEditor') {
         return <VideoEditorPage onClose={() => handleLaunchGame('hub')} playSound={playSound} isOnline={isOnline} />;
-    }
-    if (activeGame === 'soundLibrary') {
-        return <SoundLibraryPage onClose={() => setActiveGame('hub')} playSound={playSound} isOnline={isOnline} />;
-    }
-    if (activeGame === 'textToSpeech') {
-        return <TextToSpeechPage onClose={() => handleLaunchGame('hub')} playSound={playSound} />;
     }
     if (activeGame === 'guessThePrompt') {
         return <GuessThePromptPage onClose={() => setActiveGame('hub')} playSound={playSound} isOnline={isOnline} />;
     }
     if (activeGame === 'musicMemory') {
         return <MusicMemoryGamePage onClose={() => setActiveGame('hub')} playSound={playSound} />;
+    }
+    if (activeGame === 'fileChat') {
+        return <FileChatPage onClose={() => setActiveGame('hub')} playSound={playSound} isOnline={isOnline} />;
+    }
+    if (activeGame === 'analyzeMedia') {
+        return <AnalyzeMediaPage onClose={() => setActiveGame('hub')} playSound={playSound} isOnline={isOnline} />;
     }
 
     return (

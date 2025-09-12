@@ -1,5 +1,7 @@
 
 
+
+
 import React, { useState, useRef, useCallback } from 'react';
 import * as geminiService from '../services/geminiService';
 import * as audioService from '../services/audioService';
@@ -11,6 +13,8 @@ import { SparklesIcon } from './icons/SparklesIcon';
 import { PlayIcon } from './icons/PlayIcon';
 import { DownloadIcon } from './icons/DownloadIcon';
 import { useCredits, CREDIT_COSTS } from '../contexts/CreditContext';
+// FIX: Added missing import for SoundEffectParameters.
+import { SoundEffectParameters } from '../services/geminiService';
 
 interface ImageToSoundPageProps {
     onClose: () => void;
@@ -23,7 +27,7 @@ export const ImageToSoundPage: React.FC<ImageToSoundPageProps> = ({ onClose, pla
     const [previewUrl, setPreviewUrl] = useState<string | null>(null);
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
-    const [generatedSound, setGeneratedSound] = useState<geminiService.SoundEffectParameters | null>(null);
+    const [generatedSound, setGeneratedSound] = useState<SoundEffectParameters | null>(null);
     const [isDownloading, setIsDownloading] = useState(false);
 
     const fileInputRef = useRef<HTMLInputElement>(null);

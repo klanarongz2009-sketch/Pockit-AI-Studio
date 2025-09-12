@@ -1,20 +1,30 @@
-
-
-
-import { GoogleGenAI, Type, Chat, Modality } from "@google/genai";
+import { GoogleGenAI, Type, Chat, Modality, Content } from "@google/genai";
 import * as preferenceService from './preferenceService';
 
 // Interfaces remain as exports for type safety across the app
-export interface SongNote {
-    pitch: string;
-    duration: string;
-}
-export type Song = SongNote[][];
-
 export interface AnimationIdea {
     title: string;
     prompt: string;
 }
+
+// FIX: Added missing type definitions.
+export type Song = string[][];
+
+export interface MidiNote {
+    pitch: number;
+    startTime: number;
+    duration: number;
+}
+
+export interface SoundEffectParameters {
+    name: string;
+    type: 'sine' | 'square' | 'sawtooth' | 'triangle';
+    startFreq: number;
+    endFreq: number;
+    duration: number;
+    volume: number;
+}
+
 
 export interface PromptSuggestion {
     title: string;
@@ -25,29 +35,6 @@ export interface PromptEnhancement {
     title: string;
     description: string;
     prompt: string;
-}
-
-export interface VoicePreset {
-    title: string;
-    description: string;
-    effect: string; 
-    parameters?: {
-        pitchShift?: number;
-        delayTime?: number;
-        delayFeedback?: number;
-        radioFrequency?: number;
-        clarityLevel?: number;
-    }
-}
-
-
-export interface SoundEffectParameters {
-    name: string;
-    waveType: 'square' | 'sine' | 'sawtooth' | 'triangle';
-    startFrequency: number;
-    endFrequency: number;
-    duration: number;
-    volume: number;
 }
 
 export interface WordMatch {
@@ -68,13 +55,6 @@ export interface SearchResult {
         uri: string;
         title: string;
     }[];
-}
-
-export interface MidiNote {
-    pitch: string;
-    startTime: number; // in seconds
-    duration: number; // in seconds
-    velocity: number; // 0-127
 }
 
 export interface PromptEvaluation {
@@ -367,8 +347,6 @@ export async function getTicTacToeMove(board: string[][], aiPlayer: 'X' | 'O'): 
       });
 
       const jsonResponse = safeJsonParse<{row: number, col: number}>(response.text);
-      // FIX: A function whose declared type is neither 'undefined', 'void', nor 'any' must return a value.
-      // Refactored to an early throw to make the control flow clearer for the compiler.
       if (typeof jsonResponse.row !== 'number' || typeof jsonResponse.col !== 'number' || jsonResponse.row < 0 || jsonResponse.row > 2 || jsonResponse.col < 0 || jsonResponse.col > 2) {
         throw new Error('AI returned an invalid move format.');
       }
@@ -378,8 +356,6 @@ export async function getTicTacToeMove(board: string[][], aiPlayer: 'X' | 'O'): 
     throw new Error(`ไม่สามารถรับการเคลื่อนที่จาก AI ได้: ${parseApiError(error)}`);
   }
 }
-
-// FIX: Added all missing exported functions for Gemini API calls.
 
 export const getVideosOperation = async (operation: any) => {
     const ai = checkApi();
@@ -506,121 +482,6 @@ export const generatePromptSuggestions = async (prompt: string): Promise<PromptS
     }
 };
 
-export const generateSongFromText = async (text: string, modelVersion: string): Promise<Song> => {
-    const ai = checkApi();
-    let systemInstruction = "You are a musical composer specializing in 8-bit chiptune music. The user will provide text, and you will translate its mood and story into a short, looping musical piece. Respond ONLY with the JSON for the song structure. Do not include any other text or markdown. ";
-    let maxNotes = 40;
-
-    if (modelVersion === 'v1.5') {
-        systemInstruction += "The song should have 5 tracks: Lead Melody, Harmony, Bassline, Drums (use C2 for kick, D2 for snare), and Arpeggio. Make the song more complex and longer, up to 120 notes total across all tracks.";
-        maxNotes = 120;
-    } else if (modelVersion === 'v2.0-beta') {
-         systemInstruction += "The song should be a full-length piece, around 3 minutes long, with a clear structure (intro, verse, chorus, etc.). It should have 6 tracks: Lead Melody, Counter-Melody, Harmony, Bassline, Drums (use C2 for kick, D2 for snare), and Pads/Arpeggio. Aim for a total of around 800 notes.";
-         maxNotes = 800;
-    } else { // v1
-         systemInstruction += "The song should have 3 tracks: Lead Melody, Bassline, and Drums (use C2 for kick, D2 for snare). Keep it simple and catchy, around 40 notes total across all tracks.";
-    }
-
-    try {
-        const response = await ai.models.generateContent({
-            model: 'gemini-2.5-flash',
-            contents: `Compose a chiptune song based on this text: "${text}". The song should have a total of approximately ${maxNotes} notes across all tracks.`,
-            config: {
-                systemInstruction,
-                responseMimeType: "application/json",
-                responseSchema: {
-                    type: Type.ARRAY,
-                    description: "An array of tracks. Each track is an array of notes.",
-                    items: {
-                        type: Type.ARRAY,
-                        description: "A track, which is an array of song notes.",
-                        items: {
-                            type: Type.OBJECT,
-                            properties: {
-                                pitch: { type: Type.STRING, description: "The note pitch (e.g., 'C4', 'F#3', or 'rest')." },
-                                duration: { type: Type.STRING, description: "The note duration (e.g., '8n', '4n')." }
-                            },
-                            required: ["pitch", "duration"]
-                        }
-                    }
-                }
-            }
-        });
-
-        return safeJsonParse<Song>(response.text);
-    } catch (error) {
-        throw new Error(parseApiError(error));
-    }
-};
-
-export const generateSongFromMedia = async (base64: string, mimeType: string): Promise<Song> => {
-    const ai = checkApi();
-    try {
-        const response = await ai.models.generateContent({
-            model: 'gemini-2.5-flash',
-            contents: {
-                parts: [
-                    { inlineData: { data: base64, mimeType } },
-                    { text: "Analyze the mood, pacing, and content of this media. Based on your analysis, compose a short, looping 8-bit chiptune soundtrack. The song should have 3 tracks: Lead Melody, Bassline, and Drums (use C2 for kick, D2 for snare). Respond ONLY with the JSON for the song structure." }
-                ]
-            },
-            config: {
-                responseMimeType: "application/json",
-                responseSchema: {
-                    type: Type.ARRAY,
-                    items: {
-                        type: Type.ARRAY,
-                        items: {
-                            type: Type.OBJECT,
-                            properties: {
-                                pitch: { type: Type.STRING },
-                                duration: { type: Type.STRING }
-                            },
-                            required: ["pitch", "duration"]
-                        }
-                    }
-                }
-            }
-        });
-
-        return safeJsonParse<Song>(response.text);
-    } catch (error) {
-        throw new Error(parseApiError(error));
-    }
-};
-
-export const generateSoundEffectIdeas = async (prompt: string): Promise<SoundEffectParameters[]> => {
-    const ai = checkApi();
-    try {
-        const response = await ai.models.generateContent({
-            model: 'gemini-2.5-flash',
-            contents: `Generate a list of 4 distinct 8-bit sound effect ideas based on the user's prompt: "${prompt}". For each, provide a name and parameters. Respond ONLY with a JSON array of objects.`,
-            config: {
-                systemInstruction: `You are a sound designer for retro video games. You will generate parameters for sound effects. Wave types can be 'square', 'sine', 'sawtooth', or 'triangle'. Frequencies are in Hz (20-20000). Duration is in seconds (0.01-2.0). Volume is 0.0 to 1.0.`,
-                responseMimeType: "application/json",
-                responseSchema: {
-                    type: Type.ARRAY,
-                    items: {
-                        type: Type.OBJECT,
-                        properties: {
-                            name: { type: Type.STRING },
-                            waveType: { type: Type.STRING, enum: ['square', 'sine', 'sawtooth', 'triangle'] },
-                            startFrequency: { type: Type.NUMBER },
-                            endFrequency: { type: Type.NUMBER },
-                            duration: { type: Type.NUMBER },
-                            volume: { type: Type.NUMBER }
-                        },
-                        required: ["name", "waveType", "startFrequency", "endFrequency", "duration", "volume"]
-                    }
-                }
-            }
-        });
-        return safeJsonParse<SoundEffectParameters[]>(response.text);
-    } catch (error) {
-        throw new Error(parseApiError(error));
-    }
-};
-
 export const analyzeFeedback = async (feedback: string): Promise<string> => {
     const ai = checkApi();
     try {
@@ -738,40 +599,6 @@ export const generateSecret = async (topic: string): Promise<string> => {
     }
 };
 
-export const generateSoundFromImage = async (base64: string, mimeType: string): Promise<SoundEffectParameters> => {
-    const ai = checkApi();
-    try {
-        const response = await ai.models.generateContent({
-            model: 'gemini-2.5-flash',
-            contents: {
-                parts: [
-                    { inlineData: { data: base64, mimeType } },
-                    { text: "Analyze the mood, colors, and content of this image. Based on your analysis, generate a single 8-bit sound effect that represents it. Provide a name and parameters. Respond ONLY with a JSON object." }
-                ]
-            },
-            config: {
-                systemInstruction: `You are a sound designer for retro video games. You will generate parameters for sound effects. Wave types can be 'square', 'sine', 'sawtooth', or 'triangle'. Frequencies are in Hz (20-20000). Duration is in seconds (0.01-2.0). Volume is 0.0 to 1.0.`,
-                responseMimeType: "application/json",
-                responseSchema: {
-                    type: Type.OBJECT,
-                    properties: {
-                        name: { type: Type.STRING },
-                        waveType: { type: Type.STRING, enum: ['square', 'sine', 'sawtooth', 'triangle'] },
-                        startFrequency: { type: Type.NUMBER },
-                        endFrequency: { type: Type.NUMBER },
-                        duration: { type: Type.NUMBER },
-                        volume: { type: Type.NUMBER }
-                    },
-                    required: ["name", "waveType", "startFrequency", "endFrequency", "duration", "volume"]
-                }
-            }
-        });
-        return safeJsonParse<SoundEffectParameters>(response.text);
-    } catch (error) {
-        throw new Error(parseApiError(error));
-    }
-};
-
 export const evaluatePromptGuess = async (secretPrompt: string, userGuess: string): Promise<PromptEvaluation> => {
     const ai = checkApi();
     try {
@@ -862,41 +689,6 @@ export const enhanceImageQuality = async (base64: string, mimeType: string): Pro
     }
 };
 
-export const convertAudioToMidi = async (base64: string, mimeType: string): Promise<MidiNote[]> => {
-    const ai = checkApi();
-    try {
-        const response = await ai.models.generateContent({
-            model: 'gemini-2.5-flash',
-            contents: {
-                parts: [
-                    { inlineData: { data: base64, mimeType } },
-                    { text: "Analyze this audio and transcribe the main melody into a series of MIDI notes. Capture the pitch, start time, duration, and velocity for each note. Respond ONLY with a JSON array of MIDI note objects." }
-                ]
-            },
-            config: {
-                systemInstruction: "You are an expert audio-to-MIDI transcriber. Velocity should be between 0 and 127. Times are in seconds.",
-                responseMimeType: "application/json",
-                responseSchema: {
-                    type: Type.ARRAY,
-                    items: {
-                        type: Type.OBJECT,
-                        properties: {
-                            pitch: { type: Type.STRING, description: "Note pitch, e.g., 'C4'." },
-                            startTime: { type: Type.NUMBER, description: "Start time in seconds from the beginning." },
-                            duration: { type: Type.NUMBER, description: "Duration in seconds." },
-                            velocity: { type: Type.INTEGER, description: "MIDI velocity (0-127)." }
-                        },
-                        required: ["pitch", "startTime", "duration", "velocity"]
-                    }
-                }
-            }
-        });
-        return safeJsonParse<MidiNote[]>(response.text);
-    } catch (error) {
-        throw new Error(parseApiError(error));
-    }
-};
-
 export const analyzeAudioFromMedia = async (base64: string, mimeType: string): Promise<string> => {
     const ai = checkApi();
     try {
@@ -928,6 +720,144 @@ export const generateCodeFromImage = async (base64: string, mimeType: string): P
             }
         });
         return response.text;
+    } catch (error) {
+        throw new Error(parseApiError(error));
+    }
+};
+
+export interface FileChatMessage {
+    role: 'user' | 'model';
+    text: string;
+}
+
+export const chatWithFile = async (
+    fileData: { base64: string, mimeType: string },
+    history: FileChatMessage[],
+    userMessage: string
+): Promise<string> => {
+    const ai = checkApi();
+
+    try {
+        // Construct the history for the generateContent call
+        const contents: Content[] = history.map(msg => ({
+            role: msg.role,
+            parts: [{ text: msg.text }]
+        }));
+
+        // Add the current user message with the file data
+        contents.push({
+            role: 'user',
+            parts: [
+                { inlineData: { data: fileData.base64, mimeType: fileData.mimeType } },
+                { text: userMessage }
+            ]
+        });
+
+        const response = await ai.models.generateContent({
+            model: 'gemini-2.5-flash',
+            contents,
+            config: {
+                systemInstruction: "You are an AI assistant that answers questions based on the content of a file provided by the user. Analyze the file and answer the user's questions concisely."
+            }
+        });
+
+        return response.text;
+    } catch (error) {
+        throw new Error(parseApiError(error));
+    }
+};
+
+// FIX: Added missing functions
+export const generateSongFromText = async (text: string, modelVersion: string): Promise<Song> => {
+    const ai = checkApi();
+    try {
+        const response = await ai.models.generateContent({
+            model: "gemini-2.5-flash",
+            contents: `Based on the following text, create a chiptune song. Text: "${text}". Respond ONLY with a JSON array of tracks, where each track is an array of notes (e.g., "C4", "E4", "G4"). Model version: ${modelVersion}`,
+            config: {
+                responseMimeType: "application/json",
+            }
+        });
+        return safeJsonParse<Song>(response.text);
+    } catch (error) {
+        throw new Error(parseApiError(error));
+    }
+};
+
+export const generateSongFromMedia = async (base64: string, mimeType: string): Promise<Song> => {
+    const ai = checkApi();
+    try {
+        const response = await ai.models.generateContent({
+            model: "gemini-2.5-flash",
+            contents: {
+                parts: [
+                    { inlineData: { data: base64, mimeType } },
+                    { text: "Analyze the mood of this media and create a short, fitting 8-bit chiptune song. Respond ONLY with a JSON array of tracks, where each track is an array of notes (e.g., \"C4\", \"E4\", \"G4\")." }
+                ]
+            },
+            config: {
+                responseMimeType: "application/json",
+            }
+        });
+        return safeJsonParse<Song>(response.text);
+    } catch (error) {
+        throw new Error(parseApiError(error));
+    }
+};
+
+export const convertAudioToMidi = async (base64: string, mimeType: string): Promise<MidiNote[]> => {
+    const ai = checkApi();
+    try {
+        const response = await ai.models.generateContent({
+            model: "gemini-2.5-flash",
+            contents: {
+                parts: [
+                    { inlineData: { data: base64, mimeType } },
+                    { text: "Transcribe the main melody of this audio into MIDI notes. Respond ONLY with a JSON array of objects, each with 'pitch' (MIDI number), 'startTime' (seconds), and 'duration' (seconds)." }
+                ]
+            },
+            config: {
+                responseMimeType: "application/json",
+            }
+        });
+        return safeJsonParse<MidiNote[]>(response.text);
+    } catch (error) {
+        throw new Error(parseApiError(error));
+    }
+};
+
+export const generateSoundEffectIdeas = async (prompt: string): Promise<SoundEffectParameters[]> => {
+    const ai = checkApi();
+    try {
+        const response = await ai.models.generateContent({
+            model: 'gemini-2.5-flash',
+            contents: `Generate a list of 4 creative 8-bit sound effect ideas based on the prompt: "${prompt}". Respond ONLY with a JSON array of objects, each with "name", "type" ('sine', 'square', 'sawtooth', 'triangle'), "startFreq", "endFreq", "duration", and "volume".`,
+            config: {
+                responseMimeType: "application/json",
+            }
+        });
+        return safeJsonParse<SoundEffectParameters[]>(response.text);
+    } catch (error) {
+        throw new Error(parseApiError(error));
+    }
+};
+
+export const generateSoundFromImage = async (base64: string, mimeType: string): Promise<SoundEffectParameters> => {
+    const ai = checkApi();
+    try {
+        const response = await ai.models.generateContent({
+            model: 'gemini-2.5-flash',
+            contents: {
+                parts: [
+                    { inlineData: { data: base64, mimeType } },
+                    { text: "Interpret this image and create a single 8-bit sound effect that represents its mood and content. Respond ONLY with a JSON object with 'name', 'type' ('sine', 'square', 'sawtooth', 'triangle'), 'startFreq', 'endFreq', 'duration', and 'volume'." }
+                ]
+            },
+            config: {
+                responseMimeType: "application/json",
+            }
+        });
+        return safeJsonParse<SoundEffectParameters>(response.text);
     } catch (error) {
         throw new Error(parseApiError(error));
     }

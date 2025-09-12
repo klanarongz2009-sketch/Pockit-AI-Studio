@@ -1,31 +1,4 @@
-import type { Song, SongNote, SoundEffectParameters, MidiNote } from './geminiService';
-
-export interface EffectParameters {
-    [key: string]: number | string | undefined;
-    aiLevel?: number;
-    sunoVersion?: number;
-    clarityLevel?: number;
-    humFrequency?: number;
-    lofiVintage?: number;
-    bitCrushLevel?: number;
-    sampleRateCrushLevel?: number;
-    bassBoostLevel?: number;
-    snareBoost?: number;
-    radioFrequency?: number;
-    pitchShift?: number;
-    delayTime?: number;
-    delayFeedback?: number;
-    vibratoDepth?: number;
-    chorusDepth?: number;
-    reverbRoomSize?: number;
-    reverbWet?: number;
-    remasterIntensity?: number;
-    distortionLevel?: number;
-    filterCutoff?: number;
-}
-
 export type SoundType = 'sine' | 'square' | 'sawtooth' | 'triangle';
-
 
 let audioContext: AudioContext | null = null;
 let isInitialized = false;
@@ -33,14 +6,6 @@ let isInitialized = false;
 // NEW: Store preloaded raw data and decoded buffers
 const preloadedAudioData = new Map<string, ArrayBuffer>();
 const decodedAudioBuffers = new Map<string, AudioBuffer>();
-
-// Module-level state for song playback
-let activeSources: AudioScheduledSourceNode[] = [];
-let songEndTimeoutId: number | null = null;
-
-// Module-level state for MIDI playback
-let activeMidiSources: AudioScheduledSourceNode[] = [];
-let midiEndTimeoutId: number | null = null;
 
 // Module-level state for background music
 let musicSource: AudioBufferSourceNode | null = null;
@@ -142,154 +107,8 @@ export const playPaddleHit = () => playSoundInternal('square', 400, 400, 0.05, 0
 export const playWallHit = () => playSoundInternal('sine', 200, 200, 0.05, 0.1);
 export const playMiss = () => playSoundInternal('sawtooth', 200, 100, 0.3, 0.3);
 
-export const playSoundFromParams = (params: SoundEffectParameters) => {
-    playSoundInternal(params.waveType, params.startFrequency, params.endFrequency, params.duration, params.volume);
-};
-
 export const playMusicalNote = (frequency: number, type: SoundType, duration: number) => {
     playSoundInternal(type, frequency, frequency, duration, 0.3);
-};
-
-export const playAudioBuffer = (buffer: AudioBuffer): AudioBufferSourceNode => {
-    if (!audioContext) throw new Error("Audio context not initialized");
-    const source = audioContext.createBufferSource();
-    source.buffer = buffer;
-    source.connect(audioContext.destination);
-    source.start(0);
-    return source;
-};
-
-// ... Implement other complex functions
-// NOTE: These are simplified implementations. A full implementation would be more complex.
-export const stopSong = () => {
-    activeSources.forEach(source => source.stop());
-    activeSources = [];
-    if (songEndTimeoutId) clearTimeout(songEndTimeoutId);
-};
-
-export const playSong = (song: Song, bpm: number, onEnd?: () => void) => {
-    // Implementation would go here...
-};
-
-export const stopMidi = () => {
-    // Implementation would go here...
-};
-
-export const playMidi = (notes: MidiNote[], onEnd?: () => void) => {
-    // Implementation
-};
-
-export const exportSongToWav = async (song: Song, bpm: number): Promise<Blob | null> => {
-    // Implementation
-    return new Blob();
-};
-export const exportMidiToWav = async (notes: MidiNote[]): Promise<Blob | null> => {
-     // Implementation
-    return new Blob();
-};
-
-export const exportSoundEffectToWav = async (params: SoundEffectParameters): Promise<Blob | null> => {
-     // Implementation
-    return new Blob();
-};
-
-export const applyVoiceEffect = async (file: File, effect: string, params: EffectParameters): Promise<AudioBuffer> => {
-    if (!audioContext) throw new Error("Audio context not initialized");
-    const arrayBuffer = await file.arrayBuffer();
-    const sourceBuffer = await audioContext.decodeAudioData(arrayBuffer);
-
-    const offlineContext = new OfflineAudioContext(
-        sourceBuffer.numberOfChannels,
-        sourceBuffer.length,
-        // FIX: Corrected typo from 'samplerate' to 'sampleRate'.
-        sourceBuffer.sampleRate
-    );
-
-    const source = offlineContext.createBufferSource();
-    source.buffer = sourceBuffer;
-    
-    let lastNode: AudioNode = source;
-
-    switch (effect) {
-        case 'robot': {
-            const modulator = offlineContext.createOscillator();
-            modulator.frequency.value = 50;
-            modulator.type = 'sawtooth';
-
-            const modulatorGain = offlineContext.createGain();
-            modulatorGain.gain.value = 0.5;
-
-            const destinationGain = offlineContext.createGain();
-            
-            source.connect(destinationGain);
-            modulator.connect(modulatorGain);
-            modulatorGain.connect(destinationGain.gain);
-
-            lastNode = destinationGain;
-            modulator.start(0);
-            break;
-        }
-        
-        case 'pitch-shift':
-        case 'monster': {
-             let pitchShift = params.pitchShift || 0;
-             if (effect === 'monster') pitchShift = -8;
-             source.playbackRate.value = Math.pow(2, pitchShift / 12);
-             break;
-        }
-
-        case 'echo': {
-            const delay = offlineContext.createDelay(1.0);
-            delay.delayTime.value = params.delayTime || 0.3;
-            const feedback = offlineContext.createGain();
-            feedback.gain.value = params.delayFeedback || 0.4;
-            const wetGain = offlineContext.createGain();
-            wetGain.gain.value = 0.5;
-
-            source.connect(delay);
-            delay.connect(feedback);
-            feedback.connect(delay);
-            source.connect(offlineContext.destination);
-            delay.connect(wetGain);
-            wetGain.connect(offlineContext.destination);
-            
-            source.start(0);
-            return await offlineContext.startRendering();
-        }
-        
-        // Add other simple placeholders
-        case 'old-radio':
-        case 'clarity-adjust':
-        case '8-bit-classic':
-        case 'old-computer':
-        case 'telephone':
-        case 'underwater':
-        case 'bass-boost':
-        case 'vibrato':
-        case 'chorus':
-        case 'reverb':
-        case 'ai-lofi-remix':
-        case 'electric-piano':
-        case 'ai-voice-enhancer':
-        case 'ai-noise-removal':
-        case 'ai-vocal-isolation':
-        case 'ai-narrator':
-            // These effects are not yet implemented and will pass audio through.
-            break;
-
-        default:
-            // No effect, just pass through
-            break;
-    }
-
-    lastNode.connect(offlineContext.destination);
-    source.start(0);
-    return await offlineContext.startRendering();
-};
-
-export const bufferToWav = (buffer: AudioBuffer): Blob => {
-    // Implementation
-    return new Blob();
 };
 
 export const startBackgroundMusic = () => { 

@@ -120,6 +120,22 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({
             <main id="main-content" className="w-full max-w-2xl flex-grow overflow-y-auto font-sans pr-2 space-y-6">
                 
                 <Section title="ทั่วไป">
+                     <div>
+                        <label htmlFor="language-select" className="font-press-start">Language / ภาษา</label>
+                        <select
+                            id="language-select"
+                            // value={language}
+                            // onChange={(e) => setLanguage(e.target.value)}
+                            disabled // Placeholder UI
+                            className="w-full mt-2 p-2 bg-brand-light text-black border-2 border-black disabled:opacity-50"
+                        >
+                            <option value="th">ไทย</option>
+                            <option value="en">English</option>
+                             <option value="zh">中文 (简体)</option>
+                             <option value="fr">Français</option>
+                        </select>
+                         <p className="text-xs text-brand-light/70 mt-1">การแปลภาษาจะพร้อมใช้งานในเวอร์ชันถัดไป</p>
+                    </div>
                     <button
                         onClick={() => { playSound(audioService.playClick); onOpenAbout(); }}
                         className="w-full p-3 bg-surface-primary border-4 border-border-primary text-text-primary shadow-pixel font-press-start text-sm transition-all hover:bg-brand-cyan/20 flex items-center justify-center gap-2"
@@ -148,8 +164,8 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({
 
                 <Section title="เสียง">
                     <div className="flex items-center justify-between">
-                        <label className="font-press-start">เสียงประกอบ</label>
-                        <button onClick={onToggleSound} className="p-2 border-2 border-border-primary">
+                        <label className="font-press-start" htmlFor="sound-toggle-btn">เสียงประกอบ</label>
+                        <button id="sound-toggle-btn" onClick={onToggleSound} className="p-2 border-2 border-border-primary">
                             {isSoundOn ? 'เปิด' : 'ปิด'}
                         </button>
                     </div>
@@ -173,8 +189,9 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({
 
                 <Section title="การแสดงผล">
                     <div className="flex items-center justify-between">
-                        <label className="font-press-start">UI Animations</label>
+                        <label className="font-press-start" htmlFor="animations-toggle-btn">UI Animations</label>
                         <button
+                            id="animations-toggle-btn"
                             onClick={() => {
                                 playSound(audioService.playToggle);
                                 onUiAnimationsChange(!uiAnimations);
@@ -234,8 +251,8 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({
                         </select>
                     </div>
                     <div className="flex items-center justify-between">
-                        <label className="font-press-start">บันทึกประวัติแชท</label>
-                         <button onClick={() => setSaveChatHistory(prev => !prev)} className="p-2 border-2 border-border-primary">
+                        <label className="font-press-start" htmlFor="save-history-btn">บันทึกประวัติแชท</label>
+                         <button id="save-history-btn" onClick={() => setSaveChatHistory(prev => !prev)} className="p-2 border-2 border-border-primary">
                             {saveChatHistory ? 'เปิด' : 'ปิด'}
                         </button>
                     </div>

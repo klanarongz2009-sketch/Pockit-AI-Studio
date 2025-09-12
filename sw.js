@@ -12,7 +12,7 @@ const urlsToCache = [
   // Preloaded game and UI assets
   '/assets/images/default_player.png',
   '/assets/images/default_obstacle.png',
-  '/assets/music/bgm.mp3',
+  '/assets/music/bgm_new.mp3',
   // External Dependencies
   'https://cdn.tailwindcss.com',
   'https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap',
