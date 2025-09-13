@@ -66,10 +66,10 @@ export function getPreference<K extends keyof Preferences>(key: K, defaultValue:
     // FIX: Add explicit check for null/undefined and a type assertion.
     // TypeScript has limitations inferring narrowed types from indexed access on generic objects.
     // The previous `if (storedValue)` check was buggy for falsy values like `false` or `0`.
-    if (storedValue === null || storedValue === undefined) {
-        return defaultValue;
+    if (storedValue !== null && storedValue !== undefined) {
+        return storedValue as Preferences[K];
     }
-    return storedValue as Preferences[K];
+    return defaultValue;
 }
 
 /**

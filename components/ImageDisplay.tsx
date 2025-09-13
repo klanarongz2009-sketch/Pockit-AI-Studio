@@ -1,9 +1,6 @@
-
-
-
-
 import React, { useState, useEffect } from 'react';
 import { LoadingSpinner } from './LoadingSpinner';
+import { useLanguage } from '../contexts/LanguageContext';
 
 type GenerationMode = 'image' | 'gif' | 'video' | 'spritesheet';
 
@@ -23,6 +20,7 @@ interface OutputDisplayProps {
 }
 export const OutputDisplay: React.FC<OutputDisplayProps> = ({ isLoading, error, generatedImage, generatedFrames, generatedVideoUrl, generatedCode, prompt, generationMode, fps, loadingText, videoLoadingMessages, currentFrame }) => {
   const [currentVideoMessage, setCurrentVideoMessage] = useState(0);
+  const { t } = useLanguage();
 
   useEffect(() => {
     if (isLoading && generationMode === 'video' && videoLoadingMessages && videoLoadingMessages.length > 0) {
@@ -35,14 +33,10 @@ export const OutputDisplay: React.FC<OutputDisplayProps> = ({ isLoading, error, 
 
 
   const getAltText = () => {
-      if (!generatedImage && !generatedFrames && !generatedVideoUrl) return "พื้นที่แสดงผลลัพธ์ว่างเปล่า";
-      const baseText = {
-        image: 'ภาพพิกเซลอาร์ต',
-        gif: 'แอนิเมชัน GIF พิกเซลอาร์ตแบบวนลูป',
-        video: 'วิดีโอพิกเซลอาร์ต',
-        spritesheet: 'สไปรต์ชีตแอนิเมชันพิกเซลอาร์ต'
-      }[generationMode];
-      return `${baseText}ที่สร้างจากคำสั่ง: ${prompt}`;
+      if (!generatedImage && !generatedFrames && !generatedVideoUrl) return t('outputDisplay.emptyArea');
+      const baseTextKey = `outputDisplay.altBase.${generationMode}`;
+      const baseText = t(baseTextKey);
+      return `${baseText} ${t('outputDisplay.altGeneratedFrom')} ${prompt}`;
   }
 
   const hasContent = generatedImage || (generatedFrames && generatedFrames.length > 0) || generatedVideoUrl || generatedCode;
@@ -66,7 +60,7 @@ export const OutputDisplay: React.FC<OutputDisplayProps> = ({ isLoading, error, 
                         <path fill="black" d="M5 4H19V20H5V4Z"/>
                     </svg>
                 </div>
-                <h3 className="font-press-start text-lg text-brand-magenta">เกิดข้อผิดพลาด</h3>
+                <h3 className="font-press-start text-lg text-brand-magenta">{t('outputDisplay.errorTitle')}</h3>
                 <p className="font-sans text-sm break-words text-brand-light/90 max-w-md">
                     {error}
                 </p>
@@ -80,7 +74,7 @@ export const OutputDisplay: React.FC<OutputDisplayProps> = ({ isLoading, error, 
                 title="Code Preview" 
                 className="w-full h-full border-0 bg-white" 
                 sandbox="allow-scripts"
-                aria-label={`ตัวอย่างโค้ดที่สร้างจากคำสั่ง: ${prompt}`}
+                aria-label={`${t('outputDisplay.codePreview')} ${prompt}`}
             />
         );
     }
@@ -88,7 +82,7 @@ export const OutputDisplay: React.FC<OutputDisplayProps> = ({ isLoading, error, 
         const videoUrlWithKey = `${generatedVideoUrl}&key=${process.env.API_KEY}`;
         return (
             <video src={videoUrlWithKey} controls autoPlay loop className="w-full h-full object-contain" aria-label={getAltText()}>
-                เบราว์เซอร์ของคุณไม่รองรับแท็กวิดีโอ
+                {t('outputDisplay.videoNotSupported')}
             </video>
         );
     }
@@ -97,8 +91,8 @@ export const OutputDisplay: React.FC<OutputDisplayProps> = ({ isLoading, error, 
     }
     return (
         <div className="text-center text-brand-cyan font-press-start p-4" aria-label="พื้นที่เริ่มต้นใช้งาน">
-          <h2 className="text-lg">ยินดีต้อนรับ!</h2>
-          <p className="text-xs mt-4">ป้อนคำสั่ง หรือ อัปโหลดภาพเพื่อเริ่มต้น!</p>
+          <h2 className="text-lg">{t('outputDisplay.welcomeTitle')}</h2>
+          <p className="text-xs mt-4">{t('outputDisplay.welcomeMessage')}</p>
         </div>
     );
   };

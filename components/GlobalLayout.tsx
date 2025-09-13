@@ -8,7 +8,8 @@ import { GamepadIcon } from './icons/GamepadIcon';
 import { ChatIcon } from './icons/ChatIcon';
 import { GalleryIcon } from './icons/GalleryIcon';
 import { SettingsIcon } from './icons/SettingsIcon';
-import { MenuIcon } from './icons/MenuIcon'; // New Icon
+import { MenuIcon } from './icons/MenuIcon';
+import { useLanguage } from '../contexts/LanguageContext';
 
 interface GlobalLayoutProps {
     children: React.ReactNode;
@@ -50,6 +51,7 @@ const LayoutComponent: React.FC<GlobalLayoutProps> = ({
     onToggleSidebar
 }) => {
     const { credits, loading: creditsLoading } = useCredits();
+    const { t } = useLanguage();
 
     return (
         <>
@@ -64,33 +66,33 @@ const LayoutComponent: React.FC<GlobalLayoutProps> = ({
             <aside className={`sidebar fixed top-0 left-0 h-full w-64 bg-background border-r-4 border-border-primary flex flex-col z-50 ${isSidebarOpen ? 'open' : ''}`}>
                 <header className="flex items-center justify-between p-4 border-b-4 border-border-primary">
                      <h1 className="text-xl text-brand-yellow font-press-start drop-shadow-[2px_2px_0_var(--color-text-primary)]">
-                        เมนู
+                        {t('header.menu')}
                     </h1>
                 </header>
                 <nav className="flex-grow py-4" aria-label="การนำทางหลัก">
                     <SidebarNavButton
-                        label="สร้างภาพ"
+                        label={t('sidebar.imageGenerator')}
                         icon={<PaletteIcon className="w-6 h-6" />}
                         isActive={currentPage === 'imageGenerator'}
                         onClick={() => onSetPage('imageGenerator')}
                         playSound={() => playSound(audioService.playHover)}
                     />
                     <SidebarNavButton
-                        label="แกลเลอรี"
+                        label={t('sidebar.gallery')}
                         icon={<GalleryIcon className="w-6 h-6" />}
                         isActive={currentPage === 'artGallery'}
                         onClick={() => onSetPage('artGallery')}
                         playSound={() => playSound(audioService.playHover)}
                     />
                     <SidebarNavButton
-                        label="AI โซน"
+                        label={t('sidebar.aiZone')}
                         icon={<GamepadIcon className="w-6 h-6" />}
                         isActive={currentPage === 'minigameHub'}
                         onClick={() => onSetPage('minigameHub')}
                         playSound={() => playSound(audioService.playHover)}
                     />
                      <SidebarNavButton
-                        label="AI Chat"
+                        label={t('sidebar.aiChat')}
                         icon={<ChatIcon className="w-6 h-6" />}
                         isActive={currentPage === 'aiChat'}
                         onClick={() => onSetPage('aiChat')}
@@ -101,7 +103,7 @@ const LayoutComponent: React.FC<GlobalLayoutProps> = ({
 
             {!isOnline && (
                 <div role="status" className="fixed top-16 left-0 right-0 bg-brand-magenta text-white text-center font-press-start text-xs py-1 z-40 animate-page-enter">
-                    คุณกำลังออฟไลน์ ฟีเจอร์ AI ถูกปิดใช้งาน
+                    {t('offline.message')}
                 </div>
             )}
             
@@ -110,20 +112,20 @@ const LayoutComponent: React.FC<GlobalLayoutProps> = ({
                      <button
                         onClick={onToggleSidebar}
                         onMouseEnter={() => playSound(audioService.playHover)}
-                        aria-label="เปิดเมนู"
+                        aria-label={t('header.menu')}
                         aria-expanded={isSidebarOpen}
                         className="w-10 h-10 flex-shrink-0 flex items-center justify-center bg-surface-primary border-2 border-border-primary text-text-primary hover:bg-brand-yellow hover:text-text-inverted transition-all hover:-translate-y-px"
                     >
                         <MenuIcon className="w-5 h-5" />
                     </button>
                      <h1 className="text-base sm:text-xl text-brand-yellow font-press-start drop-shadow-[2px_2px_0_var(--color-text-primary)]">
-                        จักรวาล AI
+                        {t('header.title')}
                     </h1>
                 </div>
 
                 <div className="flex items-center gap-1 sm:gap-2">
                      <button
-                        aria-label={`เครดิตปัจจุบัน: ${creditsLoading ? '...' : credits.toFixed(0)}`}
+                        aria-label={`${t('header.credits')}: ${creditsLoading ? '...' : credits.toFixed(0)}`}
                         className="h-10 flex items-center justify-center gap-2 px-2 sm:px-3 bg-surface-primary border-2 border-border-primary text-text-primary"
                     >
                         <CoinsIcon className="w-5 h-5 text-brand-yellow" />
@@ -133,7 +135,7 @@ const LayoutComponent: React.FC<GlobalLayoutProps> = ({
                      <button
                         onClick={onOpenSettings}
                         onMouseEnter={() => playSound(audioService.playHover)}
-                        aria-label="การตั้งค่า"
+                        aria-label={t('header.settings')}
                         className="w-10 h-10 flex-shrink-0 flex items-center justify-center bg-surface-primary border-2 border-border-primary text-text-primary hover:bg-brand-yellow hover:text-text-inverted transition-all hover:-translate-y-px"
                     >
                         <SettingsIcon className="w-5 h-5" />

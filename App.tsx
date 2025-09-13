@@ -8,7 +8,6 @@ import { LanguageProvider } from './contexts/LanguageContext';
 
 // Component Imports
 import { Intro } from './components/Intro';
-import { AboutPage } from './components/AboutPage';
 import { GlobalLayout } from './components/GlobalLayout';
 import { ImageGeneratorPage } from './components/ImageGeneratorPage';
 import { MinigameHubPage } from './components/MinigameHubPage';
@@ -26,7 +25,6 @@ export const App: React.FC = () => {
     const [currentPage, setCurrentPage] = useState<CurrentPage>('imageGenerator');
     const [isOnline, setIsOnline] = useState(navigator.onLine);
     const [showIntro, setShowIntro] = useState(!sessionStorage.getItem('introShown'));
-    const [isAboutPageOpen, setIsAboutPageOpen] = useState(false);
     const [isSettingsOpen, setIsSettingsOpen] = useState(false);
     const [isSidebarOpen, setIsSidebarOpen] = useState(false);
     const [uiAnimations, setUiAnimations] = useState(() => preferenceService.getPreference('uiAnimations', true));
@@ -75,12 +73,12 @@ export const App: React.FC = () => {
     
     // Effect to toggle body class for modal pages
     useEffect(() => {
-        if (isAboutPageOpen || isSettingsOpen) {
+        if (isSettingsOpen) {
             document.body.classList.add('modal-page-active');
         } else {
             document.body.classList.remove('modal-page-active');
         }
-    }, [isAboutPageOpen, isSettingsOpen]);
+    }, [isSettingsOpen]);
 
     // Effect for UI animations
     useEffect(() => {
@@ -126,17 +124,6 @@ export const App: React.FC = () => {
         setShowIntro(false);
     }, []);
 
-    const openAboutPage = useCallback((): void => {
-        playSound(audioService.playClick);
-        setIsSettingsOpen(false); // Close settings before opening about
-        setIsAboutPageOpen(true);
-    }, [playSound]);
-
-    const closeAboutPage = useCallback((): void => {
-        playSound(audioService.playCloseModal);
-        setIsAboutPageOpen(false);
-    }, [playSound]);
-
     const openSettingsPage = useCallback((): void => {
         playSound(audioService.playClick);
         setIsSettingsOpen(true);
@@ -150,22 +137,12 @@ export const App: React.FC = () => {
     if (showIntro) {
         return <Intro onComplete={handleIntroComplete} />;
     }
-    
-    const activeModalPage = isAboutPageOpen || isSettingsOpen;
 
     return (
       <LanguageProvider>
         <ThemeProvider>
           <CreditProvider>
             <div className="h-screen w-screen flex flex-col bg-background text-text-primary">
-              {isAboutPageOpen && (
-                <AboutPage 
-                    isOnline={isOnline}
-                    onClose={closeAboutPage}
-                    playSound={playSound}
-                />
-              )}
-
               {isSettingsOpen && (
                 <SettingsPage 
                   onClose={closeSettingsPage} 
@@ -174,14 +151,13 @@ export const App: React.FC = () => {
                   onToggleSound={handleToggleSound}
                   musicVolume={musicVolume}
                   onMusicVolumeChange={handleMusicVolumeChange}
-                  onOpenAbout={openAboutPage}
                   uiAnimations={uiAnimations}
                   onUiAnimationsChange={handleUiAnimationsChange}
                   aiModels={ALL_AI_MODELS}
                 />
               )}
               
-              {!activeModalPage && (
+              {!isSettingsOpen && (
                 <GlobalLayout
                   currentPage={currentPage}
                   isOnline={isOnline}
@@ -202,7 +178,6 @@ export const App: React.FC = () => {
                         <MinigameHubPage
                           isOnline={isOnline}
                           playSound={playSound}
-                          onOpenAbout={openAboutPage}
                         />
                       )}
                       {currentPage === 'artGallery' && (

@@ -1,7 +1,3 @@
-
-
-
-
 import React, { useState, useEffect, useCallback } from 'react';
 import * as audioService from '../services/audioService';
 import * as geminiService from '../services/geminiService';
@@ -47,12 +43,12 @@ export const GuessThePromptPage: React.FC<GuessThePromptPageProps> = ({ onClose,
 
     const startNewGame = useCallback(async () => {
         if (!isOnline) {
-            setError("คุณต้องออนไลน์เพื่อเล่นเกมนี้");
+            setError("You must be online to play this game.");
             return;
         }
 
         if (!spendCredits(START_COST)) {
-            setError(`เครดิตไม่เพียงพอ! ต้องการ ${START_COST} เครดิตเพื่อเริ่มเกม`);
+            setError(`Not enough credits! You need ${START_COST} credits to start a game.`);
             playSound(audioService.playError);
             return;
         }
@@ -72,7 +68,7 @@ export const GuessThePromptPage: React.FC<GuessThePromptPageProps> = ({ onClose,
             setGameState('playing');
             playSound(audioService.playSuccess);
         } catch (err) {
-            const errorMessage = err instanceof Error ? err.message : 'ไม่สามารถสร้างภาพได้';
+            const errorMessage = err instanceof Error ? err.message : 'Could not generate an image.';
             setError(errorMessage);
             playSound(audioService.playError);
             addCredits(START_COST); // Refund
@@ -87,7 +83,7 @@ export const GuessThePromptPage: React.FC<GuessThePromptPageProps> = ({ onClose,
         if (!userGuess.trim() || gameState !== 'playing' || !isOnline) return;
 
         if (!spendCredits(GUESS_COST)) {
-            setError(`เครดิตไม่เพียงพอ! ต้องการ ${GUESS_COST} เครดิตในการเดา`);
+            setError(`Not enough credits! You need ${GUESS_COST} credits to make a guess.`);
             playSound(audioService.playError);
             return;
         }
@@ -106,7 +102,7 @@ export const GuessThePromptPage: React.FC<GuessThePromptPageProps> = ({ onClose,
             setGameState('result');
             playSound(audioService.playSuccess);
         } catch (err) {
-            const errorMessage = err instanceof Error ? err.message : 'ไม่สามารถประเมินคำทายได้';
+            const errorMessage = err instanceof Error ? err.message : 'Could not evaluate guess.';
             setError(errorMessage);
             setGameState('playing'); // Allow user to try again
             addCredits(GUESS_COST); // Refund
@@ -117,47 +113,52 @@ export const GuessThePromptPage: React.FC<GuessThePromptPageProps> = ({ onClose,
     }, [userGuess, gameState, isOnline, secretPrompt, playSound, spendCredits, addCredits]);
 
     const renderContent = () => {
-        // FIX: Prioritize showing errors, especially those that occur during loading.
         if (error) {
             return (
-                <div role="alert" className="text-center text-brand-magenta">
-                    <p className="font-press-start">เกิดข้อผิดพลาด</p>
+                <div role="alert" className="text-center text-brand-magenta space-y-4">
+                    <p className="font-press-start">An Error Occurred</p>
                     <p className="text-sm mt-2">{error}</p>
+                    <button 
+                        onClick={startNewGame} 
+                        className="w-full max-w-xs mt-2 p-3 bg-brand-cyan text-black border-4 border-brand-light shadow-pixel font-press-start hover:bg-brand-yellow"
+                    >
+                        Try Again
+                    </button>
                 </div>
             );
         }
 
         if (gameState === 'loading') {
-            return <LoadingSpinner text="AI กำลังวาดภาพลับ..." />;
+            return <LoadingSpinner text="AI is painting a secret image..." />;
         }
 
         return (
             <>
                 <div className="w-full h-64 sm:h-80 bg-black/50 border-4 border-brand-light flex items-center justify-center p-2 shadow-pixel mb-4">
-                    {generatedImage ? <img src={generatedImage} alt="ภาพที่สร้างโดย AI" className="max-w-full max-h-full object-contain" style={{imageRendering: 'pixelated'}} /> : <LoadingSpinner />}
+                    {generatedImage ? <img src={generatedImage} alt="AI generated art" className="max-w-full max-h-full object-contain" style={{imageRendering: 'pixelated'}} /> : <LoadingSpinner />}
                 </div>
 
                 {gameState === 'result' && evaluation && (
                     <div className="w-full text-center space-y-4 animate-fadeIn">
-                        <h3 className="font-press-start text-2xl text-brand-yellow">ผลลัพธ์</h3>
-                        <p className="text-4xl font-press-start">{evaluation.similarity}% <span className="text-lg">ตรงกัน</span></p>
+                        <h3 className="font-press-start text-2xl text-brand-yellow">Result</h3>
+                        <p className="text-4xl font-press-start">{evaluation.similarity}% <span className="text-lg">Match</span></p>
                         <p className="text-sm text-brand-light/90 italic">"{evaluation.feedback}"</p>
                         <div className="text-xs bg-black/20 p-2 border border-brand-light/50">
-                            <p className="text-brand-cyan">คำสั่งลับคือ:</p>
+                            <p className="text-brand-cyan">The secret prompt was:</p>
                             <p>"{secretPrompt}"</p>
                         </div>
-                         <p className="font-press-start text-brand-lime">คุณได้รับ {Math.floor(evaluation.similarity * 2)} เครดิต!</p>
-                        <button onClick={startNewGame} className="w-full p-3 bg-brand-cyan text-black border-4 border-brand-light shadow-pixel font-press-start text-lg hover:bg-brand-yellow">เล่นอีกครั้ง</button>
+                         <p className="font-press-start text-brand-lime">You earned {Math.floor(evaluation.similarity * 2)} credits!</p>
+                        <button onClick={startNewGame} className="w-full p-3 bg-brand-cyan text-black border-4 border-brand-light shadow-pixel font-press-start text-lg hover:bg-brand-yellow">Play Again</button>
                     </div>
                 )}
                 
                 {(gameState === 'playing' || gameState === 'evaluating') && (
                     <div className="w-full space-y-4">
-                        <p className="text-center font-press-start text-brand-cyan">คุณคิดว่าคำสั่งคืออะไร? ({guessesLeft} ครั้ง)</p>
+                        <p className="text-center font-press-start text-brand-cyan">What was the prompt? ({guessesLeft} guesses left)</p>
                          <textarea
                             value={userGuess}
                             onChange={(e) => setUserGuess(e.target.value)}
-                            placeholder="พิมพ์คำทายของคุณที่นี่..."
+                            placeholder="Type your guess here..."
                             className="w-full h-24 p-2 bg-brand-light text-black rounded-none border-2 border-black focus:outline-none focus:ring-2 focus:ring-brand-yellow resize-y"
                             disabled={gameState !== 'playing'}
                         />
@@ -166,7 +167,7 @@ export const GuessThePromptPage: React.FC<GuessThePromptPageProps> = ({ onClose,
                             disabled={!userGuess.trim() || gameState !== 'playing'}
                             className="w-full flex items-center justify-center gap-3 p-3 bg-brand-magenta text-white border-4 border-brand-light shadow-pixel text-base transition-all hover:bg-brand-yellow hover:text-black active:shadow-pixel-active active:translate-y-[2px] active:translate-x-[2px] disabled:bg-gray-500"
                         >
-                            {gameState === 'evaluating' ? 'กำลังประเมิน...' : 'ส่งคำทาย'}
+                            {gameState === 'evaluating' ? 'Evaluating...' : 'Submit Guess'}
                         </button>
                     </div>
                 )}
@@ -176,7 +177,7 @@ export const GuessThePromptPage: React.FC<GuessThePromptPageProps> = ({ onClose,
 
     return (
         <PageWrapper>
-            <PageHeader title="ทายคำสั่ง AI" onBack={onClose} />
+            <PageHeader title="Guess The Prompt" onBack={onClose} />
             <main id="main-content" className="w-full max-w-lg flex flex-col items-center gap-4 font-sans">
                  {renderContent()}
             </main>

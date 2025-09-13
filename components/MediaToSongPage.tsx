@@ -1,7 +1,3 @@
-
-
-
-
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 // FIX: Changed from `import type` to a regular import.
 import { Song } from '../services/geminiService';

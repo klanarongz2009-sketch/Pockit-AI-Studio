@@ -7,6 +7,7 @@ import { SunIcon } from './icons/SunIcon';
 import { MoonIcon } from './icons/MoonIcon';
 import { SettingsIcon } from './icons/SettingsIcon';
 import { InfoIcon } from './icons/InfoIcon';
+import { AboutPage } from './AboutPage';
 
 interface SettingsPageProps {
     onClose: () => void;
@@ -16,7 +17,6 @@ interface SettingsPageProps {
     musicVolume: number;
     onMusicVolumeChange: (volume: number) => void;
     aiModels: { name: string; }[];
-    onOpenAbout: () => void;
     uiAnimations: boolean;
     onUiAnimationsChange: (enabled: boolean) => void;
 }
@@ -36,11 +36,11 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({
     musicVolume, 
     onMusicVolumeChange,
     aiModels,
-    onOpenAbout,
     uiAnimations,
     onUiAnimationsChange,
 }) => {
     const { themePreference, setThemePreference } = useTheme();
+    const [isAboutPageOpen, setIsAboutPageOpen] = useState(false);
     const [defaultChatModelName, setDefaultChatModelName] = useState(() => 
         preferenceService.getPreference('defaultChatModelName', aiModels[0]?.name || '')
     );
@@ -81,7 +81,7 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({
 
     const handleClearArtData = () => {
         playSound(audioService.playTrash);
-        if (window.confirm('คุณต้องการลบแกลเลอรีและประวัติเพลงทั้งหมดหรือไม่?')) {
+        if (window.confirm('Are you sure you want to delete your entire gallery and song history?')) {
             try {
                 const keysToRemove = ['ai-art-gallery-artworks', 'ai-studio-song-history'];
                 for (let i = 0; i < localStorage.length; i++) {
@@ -91,10 +91,10 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({
                     }
                 }
                 keysToRemove.forEach(key => localStorage.removeItem(key));
-                alert('ลบข้อมูลเรียบร้อยแล้ว');
+                alert('Data cleared successfully.');
                 window.location.reload();
             } catch (e) {
-                alert('ไม่สามารถล้างข้อมูลได้');
+                alert('Could not clear data.');
                 console.error(e);
             }
         }
@@ -103,49 +103,37 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({
 
     const handleClearData = () => {
         playSound(audioService.playTrash);
-        if (window.confirm('คุณแน่ใจหรือไม่ว่าต้องการล้างข้อมูลทั้งหมด? การกระทำนี้ไม่สามารถย้อนกลับได้ และจะลบเครดิต, แกลเลอรี, และการตั้งค่าทั้งหมดของคุณ')) {
+        if (window.confirm('Are you sure you want to clear all application data? This cannot be undone and will delete your credits, gallery, history, and all settings.')) {
             try {
                 localStorage.clear();
                 window.location.reload();
             } catch (e) {
-                alert('ไม่สามารถล้างข้อมูลได้');
+                alert('Could not clear data.');
                 console.error(e);
             }
         }
     };
 
+    if (isAboutPageOpen) {
+        return <AboutPage isOnline={navigator.onLine} playSound={playSound} onClose={() => setIsAboutPageOpen(false)} />;
+    }
+
     return (
         <PageWrapper>
-            <PageHeader title="การตั้งค่า" onBack={onClose} />
+            <PageHeader title={"Settings"} onBack={onClose} />
             <main id="main-content" className="w-full max-w-2xl flex-grow overflow-y-auto font-sans pr-2 space-y-6">
                 
-                <Section title="ทั่วไป">
-                     <div>
-                        <label htmlFor="language-select" className="font-press-start">Language / ภาษา</label>
-                        <select
-                            id="language-select"
-                            // value={language}
-                            // onChange={(e) => setLanguage(e.target.value)}
-                            disabled // Placeholder UI
-                            className="w-full mt-2 p-2 bg-brand-light text-black border-2 border-black disabled:opacity-50"
-                        >
-                            <option value="th">ไทย</option>
-                            <option value="en">English</option>
-                             <option value="zh">中文 (简体)</option>
-                             <option value="fr">Français</option>
-                        </select>
-                         <p className="text-xs text-brand-light/70 mt-1">การแปลภาษาจะพร้อมใช้งานในเวอร์ชันถัดไป</p>
-                    </div>
+                <Section title={"General"}>
                     <button
-                        onClick={() => { playSound(audioService.playClick); onOpenAbout(); }}
+                        onClick={() => { playSound(audioService.playClick); setIsAboutPageOpen(true); }}
                         className="w-full p-3 bg-surface-primary border-4 border-border-primary text-text-primary shadow-pixel font-press-start text-sm transition-all hover:bg-brand-cyan/20 flex items-center justify-center gap-2"
                     >
                         <InfoIcon className="w-5 h-5" />
-                        <span>เกี่ยวกับแอป</span>
+                        <span>{"About App"}</span>
                     </button>
                 </Section>
                 
-                <Section title="ธีม">
+                <Section title={"Theme"}>
                     <div className="grid grid-cols-3 gap-2">
                         {(['light', 'dark', 'system'] as const).map(pref => (
                             <button
@@ -156,22 +144,22 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({
                                 {pref === 'light' && <SunIcon className="w-6 h-6" />}
                                 {pref === 'dark' && <MoonIcon className="w-6 h-6" />}
                                 {pref === 'system' && <SettingsIcon className="w-6 h-6" />}
-                                <span>{pref === 'light' ? 'สว่าง' : pref === 'dark' ? 'มืด' : 'ตามระบบ'}</span>
+                                <span>{pref.charAt(0).toUpperCase() + pref.slice(1)}</span>
                             </button>
                         ))}
                     </div>
                 </Section>
 
-                <Section title="เสียง">
+                <Section title={"Sound"}>
                     <div className="flex items-center justify-between">
-                        <label className="font-press-start" htmlFor="sound-toggle-btn">เสียงประกอบ</label>
+                        <label className="font-press-start" htmlFor="sound-toggle-btn">{"Sound Effects"}</label>
                         <button id="sound-toggle-btn" onClick={onToggleSound} className="p-2 border-2 border-border-primary">
-                            {isSoundOn ? 'เปิด' : 'ปิด'}
+                            {isSoundOn ? "On" : "Off"}
                         </button>
                     </div>
                     <div>
                         <label htmlFor="music-volume" className="font-press-start flex justify-between">
-                            <span>เพลงพื้นหลัง</span>
+                            <span>{"Background Music"}</span>
                             <span>{Math.round(musicVolume * 100)}%</span>
                         </label>
                         <input
@@ -187,9 +175,9 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({
                     </div>
                 </Section>
 
-                <Section title="การแสดงผล">
+                <Section title={"Display"}>
                     <div className="flex items-center justify-between">
-                        <label className="font-press-start" htmlFor="animations-toggle-btn">UI Animations</label>
+                        <label className="font-press-start" htmlFor="animations-toggle-btn">{"UI Animations"}</label>
                         <button
                             id="animations-toggle-btn"
                             onClick={() => {
@@ -198,14 +186,14 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({
                             }}
                             className="p-2 border-2 border-border-primary"
                         >
-                            {uiAnimations ? 'เปิด' : 'ปิด'}
+                            {uiAnimations ? "On" : "Off"}
                         </button>
                     </div>
                 </Section>
                 
-                <Section title="การสร้างผลงาน">
+                <Section title={"Creation"}>
                      <div>
-                        <label htmlFor="default-image-mode" className="font-press-start">โหมดสร้างภาพเริ่มต้น</label>
+                        <label htmlFor="default-image-mode" className="font-press-start">{"Default Image Mode"}</label>
                         <select
                             id="default-image-mode"
                             value={defaultImageMode}
@@ -219,24 +207,24 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({
                         </select>
                     </div>
                      <div>
-                        <label className="font-press-start">คุณภาพการสร้างภาพ</label>
+                        <label className="font-press-start">{"Image Generation Quality"}</label>
                         <div className="flex gap-4 mt-2">
                             <label className="flex items-center gap-2">
                                 <input type="radio" name="image-quality" value="fast" checked={imageQuality === 'fast'} onChange={() => setImageQuality('fast')} className="w-5 h-5 accent-brand-magenta" />
-                                <span>รวดเร็ว</span>
+                                <span>{"Fast"}</span>
                             </label>
                              <label className="flex items-center gap-2">
                                 <input type="radio" name="image-quality" value="quality" checked={imageQuality === 'quality'} onChange={() => setImageQuality('quality')} className="w-5 h-5 accent-brand-magenta" />
-                                <span>คุณภาพสูง</span>
+                                <span>{"High Quality"}</span>
                             </label>
                         </div>
-                        <p className="text-xs text-brand-light/70 mt-1">หมายเหตุ: การตั้งค่านี้เป็นตัวอย่างและยังไม่มีผลต่อการสร้างภาพจริง</p>
+                        <p className="text-xs text-brand-light/70 mt-1">Note: This setting is illustrative and does not yet affect image generation.</p>
                     </div>
                 </Section>
 
-                <Section title="AI Chat">
+                <Section title={"AI Chat"}>
                      <div>
-                        <label htmlFor="default-model-select" className="font-press-start">AI Chat เริ่มต้น</label>
+                        <label htmlFor="default-model-select" className="font-press-start">{"Default AI Chat"}</label>
                         <select
                             id="default-model-select"
                             value={defaultChatModelName}
@@ -251,46 +239,46 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({
                         </select>
                     </div>
                     <div className="flex items-center justify-between">
-                        <label className="font-press-start" htmlFor="save-history-btn">บันทึกประวัติแชท</label>
+                        <label className="font-press-start" htmlFor="save-history-btn">{"Save Chat History"}</label>
                          <button id="save-history-btn" onClick={() => setSaveChatHistory(prev => !prev)} className="p-2 border-2 border-border-primary">
-                            {saveChatHistory ? 'เปิด' : 'ปิด'}
+                            {saveChatHistory ? "On" : "Off"}
                         </button>
                     </div>
-                     <p className="text-xs text-brand-light/70">หมายเหตุ: ประวัติการแชทจะถูกลบเมื่อปิดแท็บเบราว์เซอร์</p>
+                     <p className="text-xs text-brand-light/70">Note: Chat history is cleared when the browser tab is closed.</p>
                 </Section>
                 
-                 <Section title="มินิเกม">
+                 <Section title={"Minigames"}>
                      <div>
-                        <label htmlFor="default-minigame-difficulty" className="font-press-start">ระดับความยากเริ่มต้น</label>
+                        <label htmlFor="default-minigame-difficulty" className="font-press-start">{"Default Difficulty"}</label>
                         <select
                             id="default-minigame-difficulty"
                             value={defaultMinigameDifficulty}
                             onChange={(e) => setDefaultMinigameDifficulty(e.target.value as any)}
                             className="w-full mt-2 p-2 bg-brand-light text-black border-2 border-black"
                         >
-                            <option value="easy">ง่าย</option>
-                            <option value="normal">ปกติ</option>
-                            <option value="hard">ยาก</option>
+                            <option value="easy">{"Easy"}</option>
+                            <option value="normal">{"Normal"}</option>
+                            <option value="hard">{"Hard"}</option>
                         </select>
-                         <p className="text-xs text-brand-light/70 mt-1">มีผลกับเกมที่รองรับการปรับระดับความยาก</p>
+                         <p className="text-xs text-brand-light/70 mt-1">Applies to games that support difficulty levels.</p>
                     </div>
                 </Section>
 
-                <Section title="การจัดการข้อมูล">
+                <Section title={"Data Management"}>
                     <button
                         onClick={handleClearArtData}
                         className="w-full p-3 bg-brand-yellow text-black border-4 border-brand-light shadow-pixel font-press-start text-sm transition-all hover:bg-yellow-500 active:shadow-pixel-active active:translate-y-[2px] active:translate-x-[2px]"
                     >
-                        ล้างแกลเลอรีและประวัติเพลง
+                        {"Clear Gallery & Song History"}
                     </button>
                      <button
                         onClick={handleClearData}
                         className="w-full p-3 bg-brand-magenta text-white border-4 border-brand-light shadow-pixel font-press-start text-sm transition-all hover:bg-red-500 active:shadow-pixel-active active:translate-y-[2px] active:translate-x-[2px]"
                     >
-                        ล้างข้อมูลทั้งหมด
+                        {"Clear All Data"}
                     </button>
                     <p className="text-xs text-brand-light/70 text-center">
-                        การล้างข้อมูลทั้งหมดจะลบเครดิต, ประวัติ, รูปภาพในแกลเลอรี และการตั้งค่าทั้งหมด
+                        {"Clearing all data will remove your credits, history, gallery images, and all settings."}
                     </p>
                 </Section>
 

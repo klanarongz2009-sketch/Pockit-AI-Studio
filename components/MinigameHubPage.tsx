@@ -3,9 +3,7 @@ import { LoadingSpinner } from './LoadingSpinner';
 import * as geminiService from '../services/geminiService';
 import * as audioService from '../services/audioService';
 import { TicTacToePage } from './TicTacToePage';
-import { Minigame } from './Minigame';
 import { TicTacToeIcon } from './icons/TicTacToeIcon';
-import { GamepadIcon } from './icons/GamepadIcon';
 import { SnakeIcon } from './icons/SnakeIcon';
 import { SnakeGame } from './SnakeGame';
 import { PlatformerIcon } from './icons/PlatformerIcon';
@@ -29,7 +27,6 @@ import { VideoEditorPage } from './VideoEditorPage';
 import { AnalyzeIcon } from './icons/AnalyzeIcon';
 import { VideoEditorIcon } from './icons/VideoEditorIcon';
 import { SearchIcon } from './icons/SearchIcon';
-import { IMAGE_ASSETS } from '../services/assetLoader';
 import { GuessThePromptIcon } from './icons/GuessThePromptIcon';
 import { GuessThePromptPage } from './GuessThePromptPage';
 import { PetIcon } from './icons/PetIcon';
@@ -38,18 +35,22 @@ import { MusicMemoryGamePage } from './MusicMemoryGamePage';
 import { FileChatIcon } from './icons/FileChatIcon';
 import { FileChatPage } from './FileChatPage';
 import { AnalyzeMediaPage } from './AnalyzeMediaPage';
+import { CodeIcon } from './icons/CodeIcon';
+import { RecordIcon } from './icons/RecordIcon';
+import { ImageToCodePage } from './ImageToCodePage';
+import { MediaRecorderPage } from './MediaRecorderPage';
 
 interface MinigameHubPageProps {
     playSound: (player: () => void) => void;
     isOnline: boolean;
-    onOpenAbout: () => void;
 }
 
 type ActiveGame =
-    | 'hub' | 'pixelDodge' | 'ticTacToe' | 'snake' | 'platformer'
+    | 'hub' | 'ticTacToe' | 'snake' | 'platformer'
     | 'brickBreaker' | 'calculator' | 'aiOracle' | 'wordMatch' | 'aiBugSquasher'
     | 'songSearch' | 'magicButton' | 'videoEditor'
-    | 'guessThePrompt' | 'musicMemory' | 'fileChat' | 'analyzeMedia';
+    | 'guessThePrompt' | 'musicMemory' | 'fileChat' | 'analyzeMedia'
+    | 'imageToCode' | 'mediaRecorder';
 
 const GameButton: React.FC<{ icon: React.ReactNode; title: string; description: string; onClick?: () => void; disabled?: boolean; comingSoon?: boolean; beta?: boolean; highScore?: number; }> = ({ icon, title, description, onClick, disabled, comingSoon, beta, highScore }) => (
     <div className="relative group h-full">
@@ -57,7 +58,7 @@ const GameButton: React.FC<{ icon: React.ReactNode; title: string; description: 
             onClick={onClick}
             disabled={disabled || comingSoon}
             className="w-full h-full flex items-start text-left gap-4 p-4 bg-black/40 border-4 border-brand-light shadow-pixel transition-all hover:bg-brand-cyan/20 hover:border-brand-yellow hover:-translate-y-1 hover:-translate-x-1 hover:shadow-[6px_6px_0_#f0f0f0] active:shadow-pixel-active active:translate-y-[2px] active:translate-x-[2px] disabled:opacity-50 disabled:cursor-not-allowed"
-            aria-label={`เปิด ${title}`}
+            aria-label={`Open ${title}`}
         >
             <div className="flex-shrink-0 w-16 h-16 text-brand-cyan">{icon}</div>
             <div className="font-sans">
@@ -72,25 +73,23 @@ const GameButton: React.FC<{ icon: React.ReactNode; title: string; description: 
         </button>
         {comingSoon && (
              <div className="absolute inset-0 bg-black/70 flex flex-col items-center justify-center p-1 pointer-events-none" aria-hidden="true">
-                <p className="text-xs font-press-start text-brand-yellow drop-shadow-[2px_2px_0_#000]">เร็วๆ นี้</p>
+                <p className="text-xs font-press-start text-brand-yellow drop-shadow-[2px_2px_0_#000]">Coming Soon</p>
             </div>
         )}
          {beta && (
-            <div className="absolute top-2 right-2 bg-brand-magenta text-white text-[8px] font-press-start px-1 border border-black pointer-events-none" aria-hidden="true">ทดลอง</div>
+            <div className="absolute top-2 right-2 bg-brand-magenta text-white text-[8px] font-press-start px-1 border border-black pointer-events-none" aria-hidden="true">BETA</div>
         )}
     </div>
 );
 
 
-export const MinigameHubPage: React.FC<MinigameHubPageProps> = ({ playSound, isOnline, onOpenAbout }) => {
+export const MinigameHubPage: React.FC<MinigameHubPageProps> = ({ playSound, isOnline }) => {
     const [activeGame, setActiveGame] = useState<ActiveGame>('hub');
     const [isLoadingAssets, setIsLoadingAssets] = useState(false);
-    const [gameAssets, setGameAssets] = useState<{ player: string | null; obstacle: string | null; }>({ player: null, obstacle: null });
     const [error, setError] = useState<string | null>(null);
     const { addCredits } = useCredits();
     const [searchQuery, setSearchQuery] = useState('');
     const [highScores, setHighScores] = useState({
-        pixelDodge: 0,
         snake: 0,
         brickBreaker: 0,
         musicMemory: 0,
@@ -99,7 +98,6 @@ export const MinigameHubPage: React.FC<MinigameHubPageProps> = ({ playSound, isO
     useEffect(() => {
         if (activeGame === 'hub') {
             const scores = {
-                pixelDodge: parseInt(localStorage.getItem('minigame_pixelDodge_highscore') || '0', 10),
                 snake: parseInt(localStorage.getItem('minigame_snake_highscore') || '0', 10),
                 brickBreaker: parseInt(localStorage.getItem('minigame_brickBreaker_highscore') || '0', 10),
                 musicMemory: parseInt(localStorage.getItem('musicMemoryHighScore') || '0', 10),
@@ -107,15 +105,6 @@ export const MinigameHubPage: React.FC<MinigameHubPageProps> = ({ playSound, isO
             setHighScores(scores);
         }
     }, [activeGame]);
-
-    const handleLaunchPixelDodge = useCallback(() => {
-        playSound(audioService.playClick);
-        setGameAssets({ 
-            player: IMAGE_ASSETS.defaultPlayer,
-            obstacle: IMAGE_ASSETS.defaultObstacle
-        });
-        setActiveGame('pixelDodge');
-    }, [playSound]);
 
     const handleLaunchGame = (game: ActiveGame) => {
         playSound(audioService.playClick);
@@ -125,33 +114,41 @@ export const MinigameHubPage: React.FC<MinigameHubPageProps> = ({ playSound, isO
     const aiToolsData = useMemo(() => [
         {
             icon: <FileChatIcon className="w-16 h-16" />,
-            title: "File Q&A (PDF.AI)",
-            description: "อัปโหลดไฟล์ (รูป, เสียง, ข้อความ) แล้วเริ่มแชทกับ AI เกี่ยวกับเนื้อหาในไฟล์นั้นได้เลย",
+            title: "File Q&A",
+            description: "Upload a file (image, audio, text) and start chatting with an AI about its content.",
             onClick: () => handleLaunchGame('fileChat'),
             disabled: !isOnline,
             beta: true
         },
         {
             icon: <VideoEditorIcon className="w-16 h-16" />,
-            title: "ตัดต่อวิดีโอ",
-            description: "ตัดต่อวิดีโอของคุณด้วยพลังของ AI เปลี่ยนสไตล์, สร้างคำบรรยายอัตโนมัติ, และอื่นๆ อีกมากมาย",
+            title: "Video Editor",
+            description: "Edit your videos with the power of AI. Change styles, generate automatic subtitles, and more.",
             onClick: () => handleLaunchGame('videoEditor'),
             disabled: !isOnline,
             beta: true
         },
         {
             icon: <SearchMusicIcon className="w-16 h-16" />,
-            title: "ค้นหาเพลง/เสียง",
-            description: "อัปโหลดคลิปเสียงหรือวิดีโอ แล้วให้ AI ช่วยค้นหาข้อมูลเพลงให้คุณทันที",
+            title: "Song/Audio Search",
+            description: "Upload an audio or video clip and let an AI help you identify the song and find more information.",
             onClick: () => handleLaunchGame('songSearch'),
             disabled: !isOnline,
             beta: true
         },
         {
             icon: <AnalyzeIcon className="w-16 h-16" />,
-            title: "วิเคราะห์สื่อ",
-            description: "ให้ AI ช่วยวิเคราะห์ไฟล์รูปภาพ, วิดีโอ, หรือเสียงของคุณ เพื่ออธิบาย, ปรับปรุงคุณภาพ, หรือแยกองค์ประกอบ",
+            title: "Media Analyzer",
+            description: "Let an AI analyze your image, video, or audio files to describe, enhance quality, or extract elements.",
             onClick: () => handleLaunchGame('analyzeMedia'),
+            disabled: !isOnline,
+            beta: true
+        },
+        {
+            icon: <CodeIcon className="w-16 h-16" />,
+            title: "Image to Code",
+            description: "Upload a UI mockup and watch AI convert it into HTML and CSS code.",
+            onClick: () => handleLaunchGame('imageToCode'),
             disabled: !isOnline,
             beta: true
         },
@@ -159,16 +156,15 @@ export const MinigameHubPage: React.FC<MinigameHubPageProps> = ({ playSound, isO
 
     const gamesAndFunData = useMemo(() => [
         {
-            icon: <GamepadIcon className="w-16 h-16" />,
-            title: "Pixel Dodge",
-            description: "เกมหลบหลีกสไตล์เรโทรสุดคลาสสิก! มาดูกันว่าคุณจะทำคะแนนได้เท่าไหร่!",
-            onClick: handleLaunchPixelDodge,
-            highScore: highScores.pixelDodge,
+            icon: <RecordIcon className="w-16 h-16" />,
+            title: "Media Recorder",
+            description: "Record audio from your microphone or video from your camera directly in the app.",
+            onClick: () => handleLaunchGame('mediaRecorder'),
         },
         {
             icon: <GuessThePromptIcon className="w-16 h-16" />,
-            title: "ทายคำสั่ง AI",
-            description: "ดูภาพที่ AI สร้าง แล้วทายว่าคำสั่ง (prompt) ที่ใช้คืออะไร! ทดสอบสัญชาตญาณ AI ของคุณ",
+            title: "Guess The Prompt",
+            description: "See an AI-generated image and try to guess what prompt was used to create it! Test your AI intuition.",
             onClick: () => handleLaunchGame('guessThePrompt'),
             disabled: !isOnline,
             beta: true,
@@ -176,78 +172,78 @@ export const MinigameHubPage: React.FC<MinigameHubPageProps> = ({ playSound, isO
          {
             icon: <MusicInspectIcon className="w-16 h-16" />,
             title: "Music Inspector",
-            description: "ทดสอบความจำทางดนตรีของคุณ! ฟังเสียงจาก AI แล้วเล่นตามให้ถูกต้อง",
+            description: "Test your musical memory! Listen to the AI's sequence and play it back correctly.",
             onClick: () => handleLaunchGame('musicMemory'),
             beta: true,
             highScore: highScores.musicMemory,
         },
         {
             icon: <WordMatchIcon className="w-16 h-16" />,
-            title: "AI จับคู่คำ",
-            description: "ป้อนคำใดๆ แล้วให้ AI จับคู่กับสิ่งต่างๆ พร้อมรับ 10,000 เครดิตฟรีทุกครั้งที่เล่น!",
+            title: "AI Word Match",
+            description: "Enter any topic and have the AI generate creative associations. Earn 10,000 free credits every time!",
             onClick: () => handleLaunchGame('wordMatch'),
             disabled: !isOnline
         },
         {
             icon: <TicTacToeIcon className="w-16 h-16" />,
-            title: "OX อัจฉริยะ",
-            description: "ท้าทาย AI ที่ฉลาดเป็นกรดในเกม OX สุดคลาสสิก หรือชวนเพื่อนมาเล่น 2 คนก็ได้",
+            title: "Smart Tic-Tac-Toe",
+            description: "Challenge a surprisingly smart AI in the classic game of Tic-Tac-Toe, or play with a friend.",
             onClick: () => handleLaunchGame('ticTacToe'),
             disabled: !isOnline
         },
         {
             icon: <BrickBreakerIcon className="w-16 h-16" />,
             title: "Brick Breaker",
-            description: "เกมทำลายบล็อกสุดคลาสสิก! ยิ่งทุบบล็อกเยอะ ยิ่งได้เครดิตเยอะ!",
+            description: "The timeless classic block-breaking game! The more bricks you smash, the more credits you earn!",
             onClick: () => handleLaunchGame('brickBreaker'),
             highScore: highScores.brickBreaker,
         },
         {
             icon: <SnakeIcon className="w-16 h-16" />,
-            title: "เกมงู",
-            description: "ควบคุมเจ้างูน้อยให้กินอาหารเพื่อเติบโตและทำคะแนน ทุกครั้งที่กิน รับเครดิตเพิ่ม!",
+            title: "Snake Game",
+            description: "Control the little snake to eat food, grow, and score points. Earn credits for every bite!",
             onClick: () => handleLaunchGame('snake'),
             highScore: highScores.snake,
         },
         {
             icon: <PlatformerIcon className="w-16 h-16" />,
             title: "Platformer",
-            description: "เกมกระโดดผจญภัยสุดท้าทาย บังคับตัวละครของคุณผ่านด่านเพื่อไปให้ถึงเส้นชัย",
+            description: "A challenging platforming adventure. Guide your character through the level to reach the goal.",
             onClick: () => handleLaunchGame('platformer'),
         },
         {
             icon: <BugIcon className="w-16 h-16" />,
-            title: "AI แก้ไขคำผิด",
-            description: "ให้ AI เป็นผู้ช่วยพิสูจน์อักษรภาษาไทยของคุณ (มีค่าใช้จ่ายตามความยาวข้อความ)",
+            title: "AI Text Corrector",
+            description: "Let an AI act as your personal proofreader for Thai text (cost is based on text length).",
             onClick: () => handleLaunchGame('aiBugSquasher'),
             disabled: !isOnline
         },
         {
             icon: <OracleIcon className="w-16 h-16" />,
-            title: "AI พยากรณ์",
-            description: "ถาม AI พยากรณ์ของเราสิ แล้ว AI จะเปิดเผย 'ความลับ' หรือเรื่องราวที่คาดไม่ถึงให้คุณฟัง",
+            title: "AI Oracle",
+            description: "Ask the AI Oracle a question, and it will reveal a mysterious 'secret' or story for you.",
             onClick: () => handleLaunchGame('aiOracle'),
             disabled: !isOnline
         },
         {
             icon: <CalculatorIcon className="w-16 h-16" />,
-            title: "เครื่องคิดเลขเครดิต",
-            description: "เปลี่ยนการคำนวณตัวเลขธรรมดาให้กลายเป็นการสร้างเครดิต! รับเครดิตเท่ากับผลลัพธ์ที่ได้",
+            title: "Credit Calculator",
+            description: "Turn simple calculations into credit generation! Earn credits equal to the calculated result.",
             onClick: () => handleLaunchGame('calculator'),
         },
         {
             icon: <MagicButtonIcon className="w-16 h-16" />,
-            title: "ปุ่มมหัศจรรย์",
-            description: "ปุ่มที่เรียบง่ายแต่ทรงพลัง! ทุกครั้งที่กด คุณจะได้รับ 1 เครดิตฟรีทันที!",
+            title: "The Magic Button",
+            description: "A simple yet powerful button! Every press instantly grants you 1 free credit!",
             onClick: () => handleLaunchGame('magicButton'),
         },
          {
             icon: <PetIcon className="w-16 h-16" />,
             title: "AI Pet Workshop",
-            description: "สร้างและปรับแต่งสัตว์เลี้ยงดิจิทัลของคุณด้วยชิ้นส่วนที่สร้างโดย AI",
+            description: "Create and customize your own digital pet using parts generated by AI.",
             comingSoon: true
         }
-    ], [handleLaunchPixelDodge, highScores, isOnline]);
+    ], [highScores, isOnline]);
 
     const filteredAiTools = useMemo(() => {
         if (!searchQuery.trim()) return aiToolsData;
@@ -268,9 +264,6 @@ export const MinigameHubPage: React.FC<MinigameHubPageProps> = ({ playSound, isO
     }, [searchQuery, gamesAndFunData]);
 
 
-    if (activeGame === 'pixelDodge' && gameAssets.player && gameAssets.obstacle) {
-        return <Minigame playerImageUrl={gameAssets.player} obstacleImageUrl={gameAssets.obstacle} onClose={() => setActiveGame('hub')} playSound={playSound} />;
-    }
     if (activeGame === 'ticTacToe') {
         return <TicTacToePage onClose={() => setActiveGame('hub')} playSound={playSound} isOnline={isOnline} />;
     }
@@ -316,10 +309,16 @@ export const MinigameHubPage: React.FC<MinigameHubPageProps> = ({ playSound, isO
     if (activeGame === 'analyzeMedia') {
         return <AnalyzeMediaPage onClose={() => setActiveGame('hub')} playSound={playSound} isOnline={isOnline} />;
     }
+    if (activeGame === 'imageToCode') {
+        return <ImageToCodePage onClose={() => setActiveGame('hub')} playSound={playSound} isOnline={isOnline} />;
+    }
+    if (activeGame === 'mediaRecorder') {
+        return <MediaRecorderPage onClose={() => setActiveGame('hub')} playSound={playSound} />;
+    }
 
     return (
         <div className="w-full h-full flex flex-col items-center px-4">
-            <h1 className="text-3xl sm:text-4xl text-brand-yellow text-center drop-shadow-[3px_3px_0_#000] mb-6">ฟีเจอร์เสริม & มินิเกม</h1>
+            <h1 className="text-3xl sm:text-4xl text-brand-yellow text-center drop-shadow-[3px_3px_0_#000] mb-6">Features & Minigames</h1>
             
             <div className="w-full max-w-4xl mb-6">
                 <div className="relative">
@@ -328,18 +327,18 @@ export const MinigameHubPage: React.FC<MinigameHubPageProps> = ({ playSound, isO
                     </span>
                     <input
                         type="search"
-                        placeholder="ค้นหาเครื่องมือหรือเกม..."
+                        placeholder="Search for tools or games..."
                         value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)}
                         className="w-full p-4 pl-14 bg-black/50 border-4 border-brand-light text-brand-light font-press-start text-sm focus:outline-none focus:border-brand-yellow placeholder:text-brand-light/50"
-                        aria-label="ค้นหาเครื่องมือและมินิเกม"
+                        aria-label="Search for tools and minigames"
                     />
                 </div>
             </div>
 
             <div className="w-full max-w-4xl flex-grow font-sans">
                 {isLoadingAssets ? (
-                    <LoadingSpinner text="กำลังสร้างตัวละคร..." />
+                    <LoadingSpinner text="Building characters..." />
                 ) : (
                     <>
                         {error && (
@@ -350,7 +349,7 @@ export const MinigameHubPage: React.FC<MinigameHubPageProps> = ({ playSound, isO
                         
                         {filteredAiTools.length > 0 && (
                             <>
-                                <h2 id="tools-heading" className="font-press-start text-2xl text-brand-cyan mb-4 mt-4">เครื่องมือ AI</h2>
+                                <h2 id="tools-heading" className="font-press-start text-2xl text-brand-cyan mb-4 mt-4">AI Tools</h2>
                                 <section 
                                     aria-labelledby="tools-heading"
                                     className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8"
@@ -362,7 +361,7 @@ export const MinigameHubPage: React.FC<MinigameHubPageProps> = ({ playSound, isO
 
                         {filteredGamesAndFun.length > 0 && (
                             <>
-                                <h2 id="games-heading" className="font-press-start text-2xl text-brand-cyan mb-4">มินิเกมและความสนุก</h2>
+                                <h2 id="games-heading" className="font-press-start text-2xl text-brand-cyan mb-4">Minigames & Fun</h2>
                                 <section 
                                     aria-labelledby="games-heading"
                                     className="grid grid-cols-1 md:grid-cols-2 gap-4"
@@ -374,7 +373,7 @@ export const MinigameHubPage: React.FC<MinigameHubPageProps> = ({ playSound, isO
                         
                         {searchQuery && filteredAiTools.length === 0 && filteredGamesAndFun.length === 0 && (
                              <div className="text-center font-press-start text-brand-light/80 p-8">
-                                <p>ไม่พบเครื่องมือหรือเกมที่ตรงกับเกณฑ์การค้นหาของคุณ</p>
+                                <p>No tools or games match your search.</p>
                             </div>
                         )}
                     </>

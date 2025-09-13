@@ -1,7 +1,3 @@
-
-
-
-
 import React, { useState, useRef, useCallback } from 'react';
 import * as geminiService from '../services/geminiService';
 import * as audioService from '../services/audioService';

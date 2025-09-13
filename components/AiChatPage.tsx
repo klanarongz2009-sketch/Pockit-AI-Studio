@@ -10,6 +10,7 @@ import { TrashIcon } from './icons/TrashIcon';
 import { CopyIcon } from './icons/CopyIcon';
 import { Modal } from './Modal';
 import { SearchIcon } from './icons/SearchIcon';
+import { useLanguage } from '../contexts/LanguageContext';
 
 interface AiChatPageProps {
   isOnline: boolean;
@@ -29,6 +30,7 @@ const ModelSelectionModal: React.FC<{
   models: AiModel[];
 }> = ({ isOpen, onClose, onSelect, models }) => {
     const [searchQuery, setSearchQuery] = useState('');
+    const { t } = useLanguage();
     const categories = useMemo(() => ['All', ...Array.from(new Set(models.map(m => m.category)))], [models]);
     const [activeCategory, setActiveCategory] = useState<'All' | AiModel['category']>('All');
 
@@ -53,7 +55,7 @@ const ModelSelectionModal: React.FC<{
     }, [filteredModels]);
 
     return (
-        <Modal isOpen={isOpen} onClose={onClose} title="เลือกผู้ช่วย AI">
+        <Modal isOpen={isOpen} onClose={onClose} title={t('aiChat.selectAssistant')}>
             <div className="flex flex-col h-[calc(100vh-100px)] font-sans">
                 <div className="p-2 mb-4 bg-brand-cyan/10 border border-brand-cyan text-center text-xs text-brand-cyan font-press-start">
                     โมเดลใหม่จะถูกเพิ่มที่นี่!
@@ -64,7 +66,7 @@ const ModelSelectionModal: React.FC<{
                     </span>
                     <input
                         type="search"
-                        placeholder="ค้นหาผู้ช่วย..."
+                        placeholder={t('aiChat.searchAssistant')}
                         value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)}
                         className="w-full p-2 pl-10 bg-surface-primary border-2 border-border-secondary text-text-primary focus:outline-none focus:border-brand-yellow"
@@ -111,6 +113,7 @@ export const AiChatPage: React.FC<AiChatPageProps> = ({ isOnline, playSound }) =
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [isModelModalOpen, setIsModelModalOpen] = useState(false);
+    const { t } = useLanguage();
     
     const [selectedModel, setSelectedModel] = useState<AiModel>(() => {
         const savedName = preferenceService.getPreference('defaultChatModelName', ALL_AI_MODELS[0]?.name || '');
@@ -238,7 +241,7 @@ export const AiChatPage: React.FC<AiChatPageProps> = ({ isOnline, playSound }) =
                                 <button
                                     onClick={() => handleCopyToClipboard(codeContent.trim())}
                                     className="absolute top-2 right-2 p-1 bg-gray-700 text-white rounded opacity-0 group-hover:opacity-100 transition-opacity"
-                                    aria-label="Copy code"
+                                    aria-label={t('aiChat.copyCode')}
                                 >
                                     <CopyIcon className="w-4 h-4" />
                                 </button>
@@ -268,7 +271,7 @@ export const AiChatPage: React.FC<AiChatPageProps> = ({ isOnline, playSound }) =
                 models={ALL_AI_MODELS}
             />
 
-            <h1 className="text-3xl sm:text-4xl text-brand-yellow text-center drop-shadow-[3px_3px_0_#000] mb-4">AI Chat</h1>
+            <h1 className="text-3xl sm:text-4xl text-brand-yellow text-center drop-shadow-[3px_3px_0_#000] mb-4">{t('aiChat.title')}</h1>
             <div className="w-full max-w-3xl flex-grow flex flex-col bg-black/40 border-4 border-brand-light shadow-pixel">
                 <header className="flex-shrink-0 p-2 border-b-4 border-brand-light flex flex-wrap items-center justify-between gap-2">
                     <div className="flex items-center gap-2">
@@ -296,9 +299,9 @@ export const AiChatPage: React.FC<AiChatPageProps> = ({ isOnline, playSound }) =
                                 disabled={isLoading || !canUseWebSearch}
                                 title={!canUseWebSearch ? "Web Search is not available for this model" : ""}
                             />
-                            <span className="text-xs font-press-start text-brand-cyan">Web Search</span>
+                            <span className="text-xs font-press-start text-brand-cyan">{t('aiChat.webSearch')}</span>
                         </label>
-                        <button onClick={handleNewChat} onMouseEnter={() => playSound(audioService.playHover)} disabled={isLoading} className="flex items-center gap-2 p-2 bg-brand-magenta/80 text-white border-2 border-black hover:bg-brand-magenta" aria-label="New Chat">
+                        <button onClick={handleNewChat} onMouseEnter={() => playSound(audioService.playHover)} disabled={isLoading} className="flex items-center gap-2 p-2 bg-brand-magenta/80 text-white border-2 border-black hover:bg-brand-magenta" aria-label={t('aiChat.newChat')}>
                             <TrashIcon className="w-4 h-4"/>
                         </button>
                     </div>
@@ -308,8 +311,8 @@ export const AiChatPage: React.FC<AiChatPageProps> = ({ isOnline, playSound }) =
                     {messages.length === 0 && !isLoading && (
                         <div className="text-center text-brand-light/70 h-full flex flex-col justify-center items-center">
                             <SparklesIcon className="w-16 h-16 text-brand-cyan mb-4" />
-                            <p className="font-press-start">เริ่มการสนทนา</p>
-                            <p className="text-xs mt-2">ถามคำถาม, ขอไอเดีย, หรือให้ช่วยเขียนโค้ด!</p>
+                            <p className="font-press-start">{t('aiChat.startConversation')}</p>
+                            <p className="text-xs mt-2">{t('aiChat.startMessage')}</p>
                         </div>
                     )}
 
@@ -366,12 +369,12 @@ export const AiChatPage: React.FC<AiChatPageProps> = ({ isOnline, playSound }) =
                                     handleSendMessage();
                                 }
                             }}
-                            placeholder={isOnline || selectedModel.id === 'local-robot' ? "พิมพ์ข้อความของคุณ..." : "คุณกำลังออฟไลน์"}
+                            placeholder={isOnline || selectedModel.id === 'local-robot' ? t('aiChat.inputPlaceholder') : t('aiChat.inputOffline')}
                             className="flex-grow p-2 bg-brand-light text-black rounded-none border-2 border-black focus:outline-none focus:ring-2 focus:ring-brand-yellow resize-none"
                             rows={1}
                             disabled={isLoading || (!isOnline && selectedModel.id !== 'local-robot')}
                         />
-                        <button onClick={handleSendMessage} disabled={!userInput.trim() || isLoading || (!isOnline && selectedModel.id !== 'local-robot')} className="w-12 h-12 flex-shrink-0 flex items-center justify-center bg-brand-magenta text-white border-2 border-black hover:bg-brand-yellow hover:text-black disabled:bg-gray-500 disabled:cursor-not-allowed" aria-label="Send Message">
+                        <button onClick={handleSendMessage} disabled={!userInput.trim() || isLoading || (!isOnline && selectedModel.id !== 'local-robot')} className="w-12 h-12 flex-shrink-0 flex items-center justify-center bg-brand-magenta text-white border-2 border-black hover:bg-brand-yellow hover:text-black disabled:bg-gray-500 disabled:cursor-not-allowed" aria-label={t('aiChat.sendMessage')}>
                             <SendIcon className="w-6 h-6"/>
                         </button>
                     </div>

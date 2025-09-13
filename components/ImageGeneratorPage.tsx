@@ -14,6 +14,7 @@ import { LinkIcon } from './icons/LinkIcon';
 import { ShareIcon } from './icons/ShareIcon';
 import * as galleryService from '../services/galleryService';
 import { GalleryIcon } from './icons/GalleryIcon';
+import { useLanguage } from '../contexts/LanguageContext';
 
 type GenerationMode = 'image' | 'gif' | 'video' | 'spritesheet';
 type GameAssetState = { player: string | null; obstacle: string | null; };
@@ -54,6 +55,7 @@ export const ImageGeneratorPage: React.FC<{
     const fileInputRef = useRef<HTMLInputElement>(null);
     const frameIntervalRef = useRef<number | null>(null);
     const { credits, spendCredits } = useCredits();
+    const { t } = useLanguage();
 
     // Save preferences when they change
     useEffect(() => {
@@ -525,19 +527,19 @@ export const ImageGeneratorPage: React.FC<{
 
     return (
         <div className="w-full h-full flex flex-col items-center px-4">
-             <h1 className="text-3xl sm:text-4xl text-brand-yellow text-center drop-shadow-[3px_3px_0_#000] mb-6">เครื่องมือสร้างภาพ AI</h1>
+             <h1 className="text-3xl sm:text-4xl text-brand-yellow text-center drop-shadow-[3px_3px_0_#000] mb-6">{t('imageGenerator.title')}</h1>
              <div className="w-full max-w-5xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-6 items-start">
                 {/* Left Column: Controls */}
                 <div className="w-full flex flex-col gap-4">
                     <div className="w-full flex flex-col gap-4 bg-black/40 p-4 border-4 border-brand-light shadow-pixel font-sans">
                         {/* Prompt */}
                         <div className="flex flex-col gap-2">
-                            <label htmlFor="prompt-input" className="text-xs font-press-start text-brand-cyan">คำสั่ง (Prompt)</label>
+                            <label htmlFor="prompt-input" className="text-xs font-press-start text-brand-cyan">{t('imageGenerator.promptLabel')}</label>
                             <textarea
                                 id="prompt-input"
                                 value={prompt}
                                 onChange={(e) => setPrompt(e.target.value)}
-                                placeholder="เช่น อัศวินขี่ไดโนเสาร์ในอวกาศ หรืออัปโหลดภาพแล้วพิมพ์ 'Code' เพื่อให้ AI เขียนโค้ด"
+                                placeholder={t('imageGenerator.promptPlaceholder')}
                                 className="w-full h-24 p-2 bg-brand-light text-black rounded-none border-2 border-black focus:outline-none focus:ring-2 focus:ring-brand-yellow resize-y"
                                 disabled={isLoading || !isOnline}
                             />
@@ -545,7 +547,7 @@ export const ImageGeneratorPage: React.FC<{
                         {/* Suggestions */}
                         {suggestions.length > 0 && (
                              <div className="space-y-2">
-                                <h3 className="text-xs font-press-start text-brand-cyan">ไอเดีย:</h3>
+                                <h3 className="text-xs font-press-start text-brand-cyan">{t('imageGenerator.suggestions')}</h3>
                                 <div className="flex flex-wrap gap-2">
                                     {suggestions.map((s, i) => (
                                         <button key={i} onClick={() => { playSound(audioService.playSelection); setPrompt(s.prompt); setSuggestions([]); }}
@@ -585,30 +587,30 @@ export const ImageGeneratorPage: React.FC<{
                     <div className="flex gap-2">
                          <button onClick={handleGenerate} disabled={!prompt.trim() || isLoading || !isOnline} onMouseEnter={() => playSound(audioService.playHover)} className="flex-grow flex items-center justify-center gap-2 p-3 bg-brand-magenta text-white border-4 border-brand-light shadow-pixel transition-all hover:bg-brand-yellow hover:text-black active:shadow-pixel-active active:translate-y-[2px] active:translate-x-[2px] disabled:bg-gray-500 disabled:cursor-not-allowed">
                             <SparklesIcon className="w-5 h-5" />
-                            <span className="font-press-start">{isLoading ? loadingText : 'สร้าง'}</span>
+                            <span className="font-press-start">{isLoading ? loadingText : t('imageGenerator.generate')}</span>
                          </button>
-                          <button onClick={handleGetSuggestions} disabled={!prompt.trim() || isLoading || !isOnline} onMouseEnter={() => playSound(audioService.playHover)} title="รับไอเดีย (Alt+S)" aria-label="รับไอเดีย" className="w-14 h-14 flex-shrink-0 flex items-center justify-center bg-brand-cyan text-black border-4 border-brand-light shadow-pixel transition-all hover:bg-brand-yellow active:shadow-pixel-active active:translate-y-[2px] active:translate-x-[2px] disabled:bg-gray-500 disabled:cursor-not-allowed">
+                          <button onClick={handleGetSuggestions} disabled={!prompt.trim() || isLoading || !isOnline} onMouseEnter={() => playSound(audioService.playHover)} title={`${t('imageGenerator.getIdeas')} (Alt+S)`} aria-label={t('imageGenerator.getIdeas')} className="w-14 h-14 flex-shrink-0 flex items-center justify-center bg-brand-cyan text-black border-4 border-brand-light shadow-pixel transition-all hover:bg-brand-yellow active:shadow-pixel-active active:translate-y-[2px] active:translate-x-[2px] disabled:bg-gray-500 disabled:cursor-not-allowed">
                             <PlusSquareIcon className="w-6 h-6" />
                          </button>
                      </div>
                     {/* Secondary Action Buttons */}
                     <div className="w-full grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-2">
                         <button onClick={handleUploadClick} disabled={isLoading || !isOnline} onMouseEnter={() => playSound(audioService.playHover)} className="lg:col-span-2 flex items-center justify-center gap-2 p-2 bg-black/50 border-2 border-brand-light shadow-sm transition-all hover:bg-brand-cyan/20 disabled:opacity-50 subtle-interactive">
-                            <UploadIcon className="w-5 h-5 text-brand-cyan" /> <span className="text-xs font-press-start">จากภาพ</span>
+                            <UploadIcon className="w-5 h-5 text-brand-cyan" /> <span className="text-xs font-press-start">{t('imageGenerator.fromImage')}</span>
                         </button>
                         <button onClick={handleUrlClick} disabled={isLoading || !isOnline} onMouseEnter={() => playSound(audioService.playHover)} className="lg:col-span-2 flex items-center justify-center gap-2 p-2 bg-black/50 border-2 border-brand-light shadow-sm transition-all hover:bg-brand-cyan/20 disabled:opacity-50 subtle-interactive">
-                            <LinkIcon className="w-5 h-5 text-brand-cyan" /> <span className="text-xs font-press-start">จาก URL</span>
+                            <LinkIcon className="w-5 h-5 text-brand-cyan" /> <span className="text-xs font-press-start">{t('imageGenerator.fromUrl')}</span>
                         </button>
-                        <button onClick={handleDownload} disabled={isLoading || !hasContent} onMouseEnter={() => playSound(audioService.playHover)} className="flex items-center justify-center gap-2 p-2 bg-black/50 border-2 border-brand-light shadow-sm transition-all hover:bg-brand-cyan/20 disabled:opacity-50 subtle-interactive">
+                        <button onClick={handleDownload} disabled={isLoading || !hasContent} onMouseEnter={() => playSound(audioService.playHover)} title={t('imageGenerator.download')} className="flex items-center justify-center gap-2 p-2 bg-black/50 border-2 border-brand-light shadow-sm transition-all hover:bg-brand-cyan/20 disabled:opacity-50 subtle-interactive">
                             <DownloadIcon className="w-5 h-5 text-brand-cyan" />
                         </button>
-                         <button onClick={handleShare} disabled={isLoading || !hasContent} onMouseEnter={() => playSound(audioService.playHover)} className="flex items-center justify-center gap-2 p-2 bg-black/50 border-2 border-brand-light shadow-sm transition-all hover:bg-brand-cyan/20 disabled:opacity-50 subtle-interactive">
+                         <button onClick={handleShare} disabled={isLoading || !hasContent} onMouseEnter={() => playSound(audioService.playHover)} title={t('imageGenerator.share')} className="flex items-center justify-center gap-2 p-2 bg-black/50 border-2 border-brand-light shadow-sm transition-all hover:bg-brand-cyan/20 disabled:opacity-50 subtle-interactive">
                             <ShareIcon className="w-5 h-5 text-brand-cyan" />
                         </button>
-                        <button onClick={handleSaveToGallery} disabled={isLoading || !canSave || isSaved} onMouseEnter={() => playSound(audioService.playHover)} className="flex items-center justify-center gap-2 p-2 bg-black/50 border-2 border-brand-light shadow-sm transition-all hover:bg-brand-cyan/20 disabled:opacity-50 subtle-interactive">
+                        <button onClick={handleSaveToGallery} disabled={isLoading || !canSave || isSaved} onMouseEnter={() => playSound(audioService.playHover)} title={t('imageGenerator.saveToGallery')} className="flex items-center justify-center gap-2 p-2 bg-black/50 border-2 border-brand-light shadow-sm transition-all hover:bg-brand-cyan/20 disabled:opacity-50 subtle-interactive">
                             <GalleryIcon className="w-5 h-5 text-brand-cyan" />
                         </button>
-                         <button onClick={handleClear} disabled={isLoading} onMouseEnter={() => playSound(audioService.playHover)} className="flex items-center justify-center gap-2 p-2 bg-black/50 border-2 border-brand-light shadow-sm transition-all hover:bg-brand-cyan/20 disabled:opacity-50 subtle-interactive">
+                         <button onClick={handleClear} disabled={isLoading} onMouseEnter={() => playSound(audioService.playHover)} title={t('imageGenerator.clear')} className="flex items-center justify-center gap-2 p-2 bg-black/50 border-2 border-brand-light shadow-sm transition-all hover:bg-brand-cyan/20 disabled:opacity-50 subtle-interactive">
                             <TrashIcon className="w-5 h-5 text-brand-cyan" />
                         </button>
                     </div>
