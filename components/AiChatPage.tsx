@@ -11,6 +11,11 @@ import { CopyIcon } from './icons/CopyIcon';
 import { Modal } from './Modal';
 import { SearchIcon } from './icons/SearchIcon';
 import { useLanguage } from '../contexts/LanguageContext';
+import { ThumbsUpIcon } from './icons/ThumbsUpIcon';
+import { ThumbsDownIcon } from './icons/ThumbsDownIcon';
+import { RegenerateIcon } from './icons/RegenerateIcon';
+import { ModelInfoPage } from './ModelInfoPage';
+
 
 interface AiChatPageProps {
   isOnline: boolean;
@@ -18,6 +23,7 @@ interface AiChatPageProps {
 }
 
 interface Message {
+  id: string;
   role: 'user' | 'model';
   text: string;
   sources?: { uri: string; title:string }[];
@@ -27,8 +33,9 @@ const ModelSelectionModal: React.FC<{
   isOpen: boolean;
   onClose: () => void;
   onSelect: (model: AiModel) => void;
+  onLearnMore: () => void;
   models: AiModel[];
-}> = ({ isOpen, onClose, onSelect, models }) => {
+}> = ({ isOpen, onClose, onSelect, onLearnMore, models }) => {
     const [searchQuery, setSearchQuery] = useState('');
     const { t } = useLanguage();
     const categories = useMemo(() => ['All', ...Array.from(new Set(models.map(m => m.category)))], [models]);
@@ -57,8 +64,9 @@ const ModelSelectionModal: React.FC<{
     return (
         <Modal isOpen={isOpen} onClose={onClose} title={t('aiChat.selectAssistant')}>
             <div className="flex flex-col h-[calc(100vh-100px)] font-sans">
-                <div className="p-2 mb-4 bg-brand-cyan/10 border border-brand-cyan text-center text-xs text-brand-cyan font-press-start">
-                    โมเดลใหม่จะถูกเพิ่มที่นี่!
+                <div className="p-2 mb-4 bg-brand-cyan/10 border border-brand-cyan text-center text-xs text-brand-cyan">
+                    <p className="font-press-start">New models will be added here!</p>
+                    <button onClick={onLearnMore} className="text-xs underline hover:text-brand-yellow">Learn More</button>
                 </div>
                 <div className="relative mb-4">
                     <span className="absolute left-3 top-1/2 -translate-y-1/2 text-text-secondary pointer-events-none">
@@ -113,6 +121,7 @@ export const AiChatPage: React.FC<AiChatPageProps> = ({ isOnline, playSound }) =
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [isModelModalOpen, setIsModelModalOpen] = useState(false);
+    const [isModelInfoOpen, setIsModelInfoOpen] = useState(false);
     const { t } = useLanguage();
     
     const [selectedModel, setSelectedModel] = useState<AiModel>(() => {
@@ -177,32 +186,26 @@ export const AiChatPage: React.FC<AiChatPageProps> = ({ isOnline, playSound }) =
             }
         }
     }, [playSound, SAVE_HISTORY, selectedModel]);
-    
-    const handleSendMessage = useCallback(async () => {
-        const trimmedInput = userInput.trim();
-        if (!trimmedInput || isLoading) return;
-        
-        if (selectedModel.id !== 'local-robot' && !isOnline) {
-             setError("คุณต้องเชื่อมต่ออินเทอร์เน็ตเพื่อใช้โมเดลนี้");
+
+    const runGemini = useCallback(async (prompt: string) => {
+         if (selectedModel.id !== 'local-robot' && !isOnline) {
+             setError("You must be online to use this model.");
              return;
         }
 
-        playSound(audioService.playClick);
-        setError(null);
-        const userMessage: Message = { role: 'user', text: trimmedInput };
-        setMessages(prev => [...prev, userMessage]);
-        setUserInput('');
         setIsLoading(true);
+        setError(null);
 
         try {
             const response = await geminiService.sendMessageToChat(
-                trimmedInput,
+                prompt,
                 selectedModel.id,
                 selectedModel.systemInstruction,
                 webSearchEnabled && canUseWebSearch
             );
 
             const modelMessage: Message = {
+                id: `msg-${Date.now()}`,
                 role: 'model',
                 text: response.text,
                 sources: response.sources
@@ -215,7 +218,31 @@ export const AiChatPage: React.FC<AiChatPageProps> = ({ isOnline, playSound }) =
         } finally {
             setIsLoading(false);
         }
-    }, [userInput, isLoading, isOnline, playSound, selectedModel, webSearchEnabled, canUseWebSearch]);
+    }, [isOnline, selectedModel, webSearchEnabled, canUseWebSearch]);
+    
+    const handleSendMessage = useCallback(async () => {
+        const trimmedInput = userInput.trim();
+        if (!trimmedInput || isLoading) return;
+        
+        playSound(audioService.playClick);
+        const userMessage: Message = { id: `msg-${Date.now()}`, role: 'user', text: trimmedInput };
+        setMessages(prev => [...prev, userMessage]);
+        setUserInput('');
+        
+        await runGemini(trimmedInput);
+
+    }, [userInput, isLoading, playSound, runGemini]);
+
+    const handleRegenerate = useCallback(() => {
+        const lastUserMessage = messages.slice().reverse().find(m => m.role === 'user');
+        if (!lastUserMessage || isLoading) return;
+
+        playSound(audioService.playClick);
+        // Remove the last model response if it exists
+        setMessages(prev => prev.slice(-1)[0].role === 'model' ? prev.slice(0, -1) : prev);
+        
+        runGemini(lastUserMessage.text);
+    }, [messages, isLoading, playSound, runGemini]);
 
     const handleCopyToClipboard = (text: string) => {
         navigator.clipboard.writeText(text);
@@ -254,6 +281,10 @@ export const AiChatPage: React.FC<AiChatPageProps> = ({ isOnline, playSound }) =
         );
     };
 
+    if (isModelInfoOpen) {
+        return <ModelInfoPage onClose={() => setIsModelInfoOpen(false)} />;
+    }
+
     return (
         <div className="w-full h-full flex flex-col items-center px-4 font-sans">
              <ModelSelectionModal 
@@ -267,6 +298,10 @@ export const AiChatPage: React.FC<AiChatPageProps> = ({ isOnline, playSound }) =
                     if (model.id === 'local-robot') {
                         setWebSearchEnabled(false);
                     }
+                }}
+                onLearnMore={() => {
+                    setIsModelModalOpen(false);
+                    setIsModelInfoOpen(true);
                 }}
                 models={ALL_AI_MODELS}
             />
@@ -312,17 +347,19 @@ export const AiChatPage: React.FC<AiChatPageProps> = ({ isOnline, playSound }) =
                         <div className="text-center text-brand-light/70 h-full flex flex-col justify-center items-center">
                             <SparklesIcon className="w-16 h-16 text-brand-cyan mb-4" />
                             <p className="font-press-start">{t('aiChat.startConversation')}</p>
-                            <p className="text-xs mt-2">{t('aiChat.startMessage')}</p>
+                            <p className="text-xs mt-2">{selectedModel.description}</p>
                         </div>
                     )}
 
                     <div className="space-y-6">
-                        {messages.map((msg, index) => (
-                            <div key={index} className={`flex gap-4 ${msg.role === 'user' ? 'justify-end' : ''}`}>
+                        {messages.map((msg) => (
+                            <div key={msg.id} className={`flex gap-4 ${msg.role === 'user' ? 'justify-end' : ''}`}>
                                 {msg.role === 'model' && <div className="flex-shrink-0 w-8 h-8 text-brand-cyan mt-1"><SparklesIcon/></div>}
-                                <div className={`max-w-xl p-3 text-sm rounded-lg ${msg.role === 'user' ? 'bg-brand-cyan/80 text-black' : 'bg-surface-primary text-text-primary'}`}>
-                                    {renderMessageContent(msg.text)}
-                                     {msg.sources && msg.sources.length > 0 && (
+                                <div className={`max-w-xl text-sm ${msg.role === 'user' ? 'bg-brand-cyan/80 text-black p-3 rounded-lg' : ''}`}>
+                                    <div className={`${msg.role === 'model' ? 'bg-surface-primary text-text-primary p-3 rounded-lg' : ''}`}>
+                                        {renderMessageContent(msg.text)}
+                                    </div>
+                                    {msg.sources && msg.sources.length > 0 && (
                                         <div className="mt-4 pt-2 border-t border-brand-light/30">
                                             <h4 className="text-xs font-bold mb-1">Sources:</h4>
                                             <ul className="text-xs space-y-1">
@@ -334,6 +371,14 @@ export const AiChatPage: React.FC<AiChatPageProps> = ({ isOnline, playSound }) =
                                                     </li>
                                                 ))}
                                             </ul>
+                                        </div>
+                                    )}
+                                    {msg.role === 'model' && (
+                                        <div className="flex items-center gap-2 mt-3">
+                                            <button onClick={() => playSound(audioService.playClick)} className="p-1 text-text-secondary hover:text-brand-lime"><ThumbsUpIcon className="w-4 h-4"/></button>
+                                            <button onClick={() => playSound(audioService.playClick)} className="p-1 text-text-secondary hover:text-brand-magenta"><ThumbsDownIcon className="w-4 h-4"/></button>
+                                            <button onClick={() => handleCopyToClipboard(msg.text)} className="p-1 text-text-secondary hover:text-brand-yellow"><CopyIcon className="w-4 h-4"/></button>
+                                            <button onClick={handleRegenerate} disabled={isLoading} className="p-1 text-text-secondary hover:text-brand-cyan disabled:opacity-50"><RegenerateIcon className="w-4 h-4"/></button>
                                         </div>
                                     )}
                                 </div>
@@ -359,7 +404,21 @@ export const AiChatPage: React.FC<AiChatPageProps> = ({ isOnline, playSound }) =
                 </main>
 
                 <footer className="flex-shrink-0 p-2 border-t-4 border-brand-light">
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-end gap-2">
+                        <div className="relative group">
+                            <button className="w-10 h-10 flex-shrink-0 flex items-center justify-center bg-surface-primary border-2 border-black hover:bg-brand-cyan/20" aria-label="Attach file">
+                                <span className="text-2xl">+</span>
+                            </button>
+                            <div className="absolute bottom-full mb-2 w-48 bg-surface-secondary border-2 border-border-primary shadow-lg p-2 rounded-md opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all pointer-events-none">
+                                <ul className="text-sm text-text-primary">
+                                    <li className="p-1 hover:bg-brand-cyan/20 cursor-pointer">Upload Audio</li>
+                                    <li className="p-1 hover:bg-brand-cyan/20 cursor-pointer">Upload Video</li>
+                                    <li className="p-1 hover:bg-brand-cyan/20 cursor-pointer">Upload Text</li>
+                                    <li className="p-1 hover:bg-brand-cyan/20 cursor-pointer">Upload ZIP</li>
+                                </ul>
+                                <div className="absolute bottom-[-5px] left-4 w-0 h-0 border-x-8 border-x-transparent border-t-8 border-t-border-primary"></div>
+                            </div>
+                        </div>
                         <textarea
                             value={userInput}
                             onChange={(e) => setUserInput(e.target.value)}
@@ -370,12 +429,18 @@ export const AiChatPage: React.FC<AiChatPageProps> = ({ isOnline, playSound }) =
                                 }
                             }}
                             placeholder={isOnline || selectedModel.id === 'local-robot' ? t('aiChat.inputPlaceholder') : t('aiChat.inputOffline')}
-                            className="flex-grow p-2 bg-brand-light text-black rounded-none border-2 border-black focus:outline-none focus:ring-2 focus:ring-brand-yellow resize-none"
+                            className="flex-grow p-2 bg-brand-light text-black rounded-none border-2 border-black focus:outline-none focus:ring-2 focus:ring-brand-yellow resize-none leading-tight"
                             rows={1}
+                            style={{ minHeight: '40px', maxHeight: '120px' }}
+                            onInput={(e) => {
+                                const target = e.target as HTMLTextAreaElement;
+                                target.style.height = 'auto';
+                                target.style.height = `${target.scrollHeight}px`;
+                            }}
                             disabled={isLoading || (!isOnline && selectedModel.id !== 'local-robot')}
                         />
-                        <button onClick={handleSendMessage} disabled={!userInput.trim() || isLoading || (!isOnline && selectedModel.id !== 'local-robot')} className="w-12 h-12 flex-shrink-0 flex items-center justify-center bg-brand-magenta text-white border-2 border-black hover:bg-brand-yellow hover:text-black disabled:bg-gray-500 disabled:cursor-not-allowed" aria-label={t('aiChat.sendMessage')}>
-                            <SendIcon className="w-6 h-6"/>
+                        <button onClick={handleSendMessage} disabled={!userInput.trim() || isLoading || (!isOnline && selectedModel.id !== 'local-robot')} className="w-10 h-10 flex-shrink-0 flex items-center justify-center bg-brand-magenta text-white border-2 border-black hover:bg-brand-yellow hover:text-black disabled:bg-gray-500 disabled:cursor-not-allowed" aria-label={t('aiChat.sendMessage')}>
+                            <SendIcon className="w-5 h-5"/>
                         </button>
                     </div>
                 </footer>

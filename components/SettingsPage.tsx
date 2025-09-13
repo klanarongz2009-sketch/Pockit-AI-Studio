@@ -8,6 +8,7 @@ import { MoonIcon } from './icons/MoonIcon';
 import { SettingsIcon } from './icons/SettingsIcon';
 import { InfoIcon } from './icons/InfoIcon';
 import { AboutPage } from './AboutPage';
+import { ModelInfoPage } from './ModelInfoPage';
 
 interface SettingsPageProps {
     onClose: () => void;
@@ -41,6 +42,7 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({
 }) => {
     const { themePreference, setThemePreference } = useTheme();
     const [isAboutPageOpen, setIsAboutPageOpen] = useState(false);
+    const [isModelInfoOpen, setIsModelInfoOpen] = useState(false);
     const [defaultChatModelName, setDefaultChatModelName] = useState(() => 
         preferenceService.getPreference('defaultChatModelName', aiModels[0]?.name || '')
     );
@@ -116,6 +118,10 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({
 
     if (isAboutPageOpen) {
         return <AboutPage isOnline={navigator.onLine} playSound={playSound} onClose={() => setIsAboutPageOpen(false)} />;
+    }
+    
+    if (isModelInfoOpen) {
+        return <ModelInfoPage onClose={() => setIsModelInfoOpen(false)} />;
     }
 
     return (
@@ -218,7 +224,6 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({
                                 <span>{"High Quality"}</span>
                             </label>
                         </div>
-                        <p className="text-xs text-brand-light/70 mt-1">Note: This setting is illustrative and does not yet affect image generation.</p>
                     </div>
                 </Section>
 
@@ -237,6 +242,7 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({
                                 </option>
                             ))}
                         </select>
+                        <button onClick={() => setIsModelInfoOpen(true)} className="text-xs text-brand-cyan underline mt-2">Learn more about models</button>
                     </div>
                     <div className="flex items-center justify-between">
                         <label className="font-press-start" htmlFor="save-history-btn">{"Save Chat History"}</label>

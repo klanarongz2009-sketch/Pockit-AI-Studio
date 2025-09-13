@@ -1,6 +1,5 @@
-import React, { useState, useCallback, useMemo, useEffect } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { LoadingSpinner } from './LoadingSpinner';
-import * as geminiService from '../services/geminiService';
 import * as audioService from '../services/audioService';
 import { TicTacToePage } from './TicTacToePage';
 import { TicTacToeIcon } from './icons/TicTacToeIcon';
@@ -8,7 +7,7 @@ import { SnakeIcon } from './icons/SnakeIcon';
 import { SnakeGame } from './SnakeGame';
 import { PlatformerIcon } from './icons/PlatformerIcon';
 import { PlatformerGame } from './PlatformerGame';
-import { useCredits, CREDIT_COSTS } from '../contexts/CreditContext';
+import { useCredits } from '../contexts/CreditContext';
 import { BrickBreakerIcon } from './icons/BrickBreakerIcon';
 import { BrickBreakerGame } from './BrickBreakerGame';
 import { CalculatorIcon } from './icons/CalculatorIcon';
@@ -64,7 +63,7 @@ const GameButton: React.FC<{ icon: React.ReactNode; title: string; description: 
             <div className="font-sans">
                 <h3 className="font-press-start text-base md:text-lg text-brand-yellow">{title}</h3>
                 <p className="text-xs text-brand-light/80 mt-1">{description}</p>
-                {highScore > 0 && (
+                {highScore != null && highScore > 0 && (
                     <p className="font-press-start text-xs text-brand-cyan mt-2">
                         HI-SCORE: {highScore.toLocaleString()}
                     </p>
@@ -85,7 +84,6 @@ const GameButton: React.FC<{ icon: React.ReactNode; title: string; description: 
 
 export const MinigameHubPage: React.FC<MinigameHubPageProps> = ({ playSound, isOnline }) => {
     const [activeGame, setActiveGame] = useState<ActiveGame>('hub');
-    const [isLoadingAssets, setIsLoadingAssets] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const { addCredits } = useCredits();
     const [searchQuery, setSearchQuery] = useState('');
@@ -337,46 +335,40 @@ export const MinigameHubPage: React.FC<MinigameHubPageProps> = ({ playSound, isO
             </div>
 
             <div className="w-full max-w-4xl flex-grow font-sans">
-                {isLoadingAssets ? (
-                    <LoadingSpinner text="Building characters..." />
-                ) : (
+                {error && (
+                    <div role="alert" className="w-full p-3 mb-4 text-center text-sm text-brand-light bg-brand-magenta/20 border-2 border-brand-magenta">
+                        {error}
+                    </div>
+                )}
+                
+                {filteredAiTools.length > 0 && (
                     <>
-                        {error && (
-                            <div role="alert" className="w-full p-3 mb-4 text-center text-sm text-brand-light bg-brand-magenta/20 border-2 border-brand-magenta">
-                                {error}
-                            </div>
-                        )}
-                        
-                        {filteredAiTools.length > 0 && (
-                            <>
-                                <h2 id="tools-heading" className="font-press-start text-2xl text-brand-cyan mb-4 mt-4">AI Tools</h2>
-                                <section 
-                                    aria-labelledby="tools-heading"
-                                    className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8"
-                                >
-                                    {filteredAiTools.map(tool => <GameButton key={tool.title} {...tool} />)}
-                                </section>
-                            </>
-                        )}
-
-                        {filteredGamesAndFun.length > 0 && (
-                            <>
-                                <h2 id="games-heading" className="font-press-start text-2xl text-brand-cyan mb-4">Minigames & Fun</h2>
-                                <section 
-                                    aria-labelledby="games-heading"
-                                    className="grid grid-cols-1 md:grid-cols-2 gap-4"
-                                >
-                                   {filteredGamesAndFun.map(game => <GameButton key={game.title} {...game} />)}
-                                </section>
-                            </>
-                        )}
-                        
-                        {searchQuery && filteredAiTools.length === 0 && filteredGamesAndFun.length === 0 && (
-                             <div className="text-center font-press-start text-brand-light/80 p-8">
-                                <p>No tools or games match your search.</p>
-                            </div>
-                        )}
+                        <h2 id="tools-heading" className="font-press-start text-2xl text-brand-cyan mb-4 mt-4">AI Tools</h2>
+                        <section 
+                            aria-labelledby="tools-heading"
+                            className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8"
+                        >
+                            {filteredAiTools.map(tool => <GameButton key={tool.title} {...tool} />)}
+                        </section>
                     </>
+                )}
+
+                {filteredGamesAndFun.length > 0 && (
+                    <>
+                        <h2 id="games-heading" className="font-press-start text-2xl text-brand-cyan mb-4">Minigames & Fun</h2>
+                        <section 
+                            aria-labelledby="games-heading"
+                            className="grid grid-cols-1 md:grid-cols-2 gap-4"
+                        >
+                           {filteredGamesAndFun.map(game => <GameButton key={game.title} {...game} />)}
+                        </section>
+                    </>
+                )}
+                
+                {searchQuery && filteredAiTools.length === 0 && filteredGamesAndFun.length === 0 && (
+                     <div className="text-center font-press-start text-brand-light/80 p-8">
+                        <p>No tools or games match your search.</p>
+                    </div>
                 )}
             </div>
         </div>
