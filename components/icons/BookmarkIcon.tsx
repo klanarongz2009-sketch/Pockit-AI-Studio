@@ -10,7 +10,7 @@ export const BookmarkIcon = ({ className }: { className?: string }): React.React
             style={{ imageRendering: 'pixelated' }}
             aria-hidden="true"
         >
-            <path d="M6 3H18V21L12 15L6 21V3Z" />
+            <path d="M7 4H17V20L12 15L7 20V4Z" />
         </svg>
     );
 };

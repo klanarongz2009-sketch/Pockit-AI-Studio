@@ -1,4 +1,3 @@
-
 import React from 'react';
 
 export const CalculatorIcon = ({ className }: { className?: string }): React.ReactNode => (
@@ -10,19 +9,9 @@ export const CalculatorIcon = ({ className }: { className?: string }): React.Rea
         style={{ imageRendering: 'pixelated' }} 
         aria-hidden="true"
     >
-        {/* Calculator Body */}
-        <path d="M4 3H20V21H4V3Z" />
-        <path fill="black" d="M6 5H18V19H6V5Z" />
-        
-        {/* Screen */}
-        <path d="M7 6H17V10H7V6Z" />
-
-        {/* Buttons */}
-        <path d="M7 12H9V14H7V12Z" />
-        <path d="M11 12H13V14H11V12Z" />
-        <path d="M15 12H17V14H15V12Z" />
-        <path d="M7 16H9V18H7V16Z" />
-        <path d="M11 16H13V18H11V16Z" />
-        <path d="M15 16H17V18H15V16Z" />
+        <path d="M6 3H18V21H6V3Z"/>
+        <path fill="var(--color-bg, black)" d="M8 5H16V19H8V5Z"/>
+        <path d="M9 6H15V10H9V6Z"/>
+        <path d="M9 12H11V14H9V12Z M13 12H15V14H13V12Z M9 16H11V18H9V16Z M13 16H15V18H13V16Z"/>
     </svg>
 );

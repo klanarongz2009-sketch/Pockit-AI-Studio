@@ -10,9 +10,9 @@ export const MagicButtonIcon = ({ className }: { className?: string }): React.Re
             style={{ imageRendering: 'pixelated' }}
             aria-hidden="true"
         >
-            <path d="M4 4H20V20H4V4Z" />
-            <path fill="black" d="M6 6H18V18H6V6Z" />
-            <path d="M8 8H16V16H8V8Z" />
+            <path d="M4 4H20V20H4V4Z"/>
+            <path fill="var(--color-bg, black)" d="M6 6H18V18H6V6Z"/>
+            <path d="M8 8H16V16H8V8Z"/>
         </svg>
     );
 };

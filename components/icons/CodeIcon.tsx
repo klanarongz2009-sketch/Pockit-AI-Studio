@@ -9,7 +9,7 @@ export const CodeIcon = ({ className }: { className?: string }): React.ReactNode
         style={{ imageRendering: 'pixelated' }} 
         aria-hidden="true"
     >
-        <path d="M8 8L4 12L8 16V13H10V11H8V8Z" />
-        <path d="M16 8L20 12L16 16V13H14V11H16V8Z" />
+        <path d="M8 8L4 12L8 16V14H10V10H8V8Z"/>
+        <path d="M16 8L20 12L16 16V14H14V10H16V8Z"/>
     </svg>
 );

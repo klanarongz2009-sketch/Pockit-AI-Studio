@@ -10,12 +10,8 @@ export const ShareIcon = ({ className }: { className?: string }): React.ReactNod
             style={{ imageRendering: 'pixelated' }}
             aria-hidden="true"
         >
-            {/* Arrow */}
-            <path d="M21 3H19V7H17V9H21V3Z" />
-            <path d="M15 9H17V11H15V9Z" />
-            
-            {/* Box */}
-            <path d="M4 5H14V7H6V19H18V12H20V21H4V5Z" />
+            <path d="M14 4H12V10H14V8H18V4H14Z M16 6H14V4H12L16 0L20 4H18V6H16Z"/>
+            <path d="M4 8H14V10H6V20H18V12H20V22H4V8Z"/>
         </svg>
     );
 };

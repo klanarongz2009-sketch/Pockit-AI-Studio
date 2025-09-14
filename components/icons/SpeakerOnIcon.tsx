@@ -1,4 +1,3 @@
-
 import React from 'react';
 
 export const SpeakerOnIcon = ({ className }: { className?: string }): React.ReactNode => {
@@ -11,10 +10,8 @@ export const SpeakerOnIcon = ({ className }: { className?: string }): React.Reac
             style={{ imageRendering: 'pixelated' }}
             aria-hidden="true"
         >
-            <path d="M4 9H8V15H4V9Z" />
-            <path d="M8 7H12L16 3V21L12 17H8V7Z" />
-            <path d="M18 9H20V15H18V9Z" />
-            <path d="M21 6H23V18H21V6Z" />
+            <path d="M4 9H8V15H4V9Z M8 7H12L16 3V21L12 17H8V7Z"/>
+            <path d="M18 9H19V15H18V9Z M20 7H21V17H20V7Z M22 5H23V19H22V5Z"/>
         </svg>
     );
 };

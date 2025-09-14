@@ -1,4 +1,3 @@
-
 import React from 'react';
 
 export const GuessThePromptIcon = ({ className }: { className?: string }): React.ReactNode => (
@@ -10,13 +9,8 @@ export const GuessThePromptIcon = ({ className }: { className?: string }): React
         style={{ imageRendering: 'pixelated' }} 
         aria-hidden="true"
     >
-        {/* Image Frame */}
-        <path d="M4 4H20V18H4V4Z" />
-        <path fill="black" d="M6 6H18V16H6V6Z" />
-        
-        {/* Question Mark inside frame */}
-        <path d="M11 8H13V10H11V8Z" />
-        <path d="M10 10H11V11H12V13H10V10Z" />
-        <path d="M11 14H13V15H11V14Z" />
+        <path d="M4 4H20V20H4V4Z"/>
+        <path fill="var(--color-bg, black)" d="M6 6H18V18H6V6Z"/>
+        <path d="M10 8H14V10H12V12H14V14H10V12H11V11H10V10Z M11 16H13V18H11V16Z"/>
     </svg>
 );

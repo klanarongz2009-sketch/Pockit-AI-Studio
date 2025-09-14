@@ -9,9 +9,7 @@ export const TextToSpeechIcon = ({ className }: { className?: string }): React.R
         style={{ imageRendering: 'pixelated' }}
         aria-hidden="true"
     >
-        {/* Speech Bubble */}
         <path d="M4 4H20V16H14L12 18L10 16H4V4Z" />
-        {/* A character */}
-        <path fill="#000000" d="M11 7H13V8H14V12H13V13H11V12H10V8H11V7ZM11 9H13V11H11V9Z" />
+        <path d="M19 19H21V21H19V19Z M16 19H18V21H16V19Z M13 19H15V21H13V19Z"/>
     </svg>
 );

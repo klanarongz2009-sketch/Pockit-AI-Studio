@@ -9,8 +9,8 @@ export const RegenerateIcon = ({ className }: { className?: string }): React.Rea
         style={{ imageRendering: 'pixelated' }} 
         aria-hidden="true"
     >
-        <path d="M12 4H14V5H15V6H16V8H15V7H14V6H10V8H8V10H6V14H8V16H10V18H14V19H15V20H12V18H11V17H10V16H9V12H10V11H11V10H15V12H17V10H18V6H17V5H15V4H12Z" />
-        <path d="M4 10H6V12H4V10Z" />
-        <path d="M18 12H20V14H18V12Z" />
+        <path d="M12 4H14V5H16V6H18V10H16V8H15V7H10V9H8V11H6V15H8V17H10V18H14V16H16V14H18V12H20V18H18V19H16V20H10V18H8V16H6V10H8V9H12V4Z"/>
+        <path d="M18 4H20V6H18V4Z"/>
+        <path d="M4 14H6V16H4V14Z"/>
     </svg>
 );

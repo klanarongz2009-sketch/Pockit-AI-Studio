@@ -1,4 +1,3 @@
-
 import React from 'react';
 
 export const TicTacToeIcon = ({ className }: { className?: string }): React.ReactNode => {
@@ -11,25 +10,10 @@ export const TicTacToeIcon = ({ className }: { className?: string }): React.Reac
             style={{ imageRendering: 'pixelated' }}
             aria-hidden="true"
         >
-            {/* O */}
-            <path d="M9 4H15V6H9V4Z" />
-            <path d="M7 6H9V12H7V6Z" />
-            <path d="M15 6H17V12H15V6Z" />
-            <path d="M9 12H15V14H9V12Z" />
-
-            {/* X */}
-            <path d="M4 16H6V18H4V16Z" />
-            <path d="M6 18H8V20H6V18Z" />
-            <path d="M8 20H10V22H8V20Z" />
-            <path d="M8 16H10V18H8V16Z" />
-            <path d="M6 20H8V22H6V20Z" />
-            <path d="M4 20H6V22H4V20Z" />
-            <path d="M2 18H4V20H2V18Z" />
-            <path d="M2 20H0V18H2V20Z" />
-
-            {/* Grid Lines */}
-            <path fill="rgba(240,240,240,0.5)" d="M18 3H19V21H18V3Z" />
-            <path fill="rgba(240,240,240,0.5)" d="M3 9H21V10H3V9Z" />
+            <path d="M8 3H10V21H8V3Z M14 3H16V21H14V3Z M3 8H21V10H3V8Z M3 14H21V16H3V14Z"/>
+            <path fill="#00ffff" d="M4 4L7 7L4 10L5 11L8 8L11 11L12 10L9 7L12 4L11 3L8 6L5 3L4 4Z"/>
+            <path fill="#ffff00" d="M13 13H15V14H17V16H15V17H13V16H11V14H13V13Z M12 15H16V19H12V15Z M13 14H12V14Z"/>
+            <path fill="var(--color-bg, black)" d="M13 15H15V18H13V15Z"/>
         </svg>
     );
 };

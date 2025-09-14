@@ -11,8 +11,7 @@ export const FeedbackIcon = ({ className }: { className?: string }): React.React
             aria-hidden="true"
         >
             <path d="M4 4H20V16H14L12 18L10 16H4V4Z" />
-            <path d="M7 7H17V9H7V7Z" />
-            <path d="M7 11H14V13H7V11Z" />
+            <path fill="var(--color-bg, black)" d="M7 7H17V9H7V7Z M7 11H14V13H7V11Z" />
         </svg>
     );
 };

@@ -9,15 +9,8 @@ export const AnalyzeIcon = ({ className }: { className?: string }): React.ReactN
         style={{ imageRendering: 'pixelated' }} 
         aria-hidden="true"
     >
-        {/* Document/Media Frame */}
-        <path d="M4 3H20V21H4V3Z" />
-        <path fill="black" d="M6 5H18V19H6V5Z" />
-        
-        {/* Magnifying Glass */}
-        {/* Handle */}
-        <path d="M14 14L18 18H17L13 14Z" />
-        {/* Circle */}
-        <path d="M9 7H15V8H16V12H15V13H9V12H8V8H9V7Z" />
-        <path fill="black" d="M10 9H14V11H10V9Z" />
+        <path d="M4 3H18V4H20V6H21V15H19V17H18V18H17V19H15V21H5V6H4V3Z M6 5V19H13V17H15V16H17V15H18V6H16V5H6Z"/>
+        <path d="M9 7H15V8H16V12H15V13H9V12H8V8H9V7Z"/>
+        <path fill="var(--color-bg, black)" d="M10 9H14V11H10V9Z"/>
     </svg>
 );

@@ -64,7 +64,6 @@ export function initAudio() {
                     // Use slice to create a copy, preventing the buffer from being detached
                     const decodedBuffer = await audioContext.decodeAudioData(data.slice(0));
                     decodedAudioBuffers.set(name, decodedBuffer);
-                    console.log(`Successfully decoded audio: ${name}`);
                 } catch (e) {
                     console.error(`Error decoding preloaded audio '${name}':`, e);
                 }
@@ -105,6 +104,27 @@ function playSoundInternal(type: SoundType, startFreq: number, endFreq: number, 
     oscillator.stop(audioContext.currentTime + duration);
 }
 
+// NEW: Function to play pre-loaded buffered sounds
+function playBufferedSound(name: string, volume: number = 1) {
+    if (!audioContext || audioContext.state !== 'running') return;
+    const buffer = decodedAudioBuffers.get(name);
+    if (!buffer) {
+        console.warn(`Sound "${name}" not found or not decoded yet.`);
+        return;
+    }
+    
+    const source = audioContext.createBufferSource();
+    source.buffer = buffer;
+
+    const gainNode = audioContext.createGain();
+    gainNode.gain.value = volume;
+
+    source.connect(gainNode);
+    gainNode.connect(audioContext.destination);
+    source.start(0);
+}
+
+
 // FIX: Added missing sound effect playback and export functions.
 export const playSoundFromParams = (params: SoundEffectParameters) => {
     if (!audioContext) return;
@@ -134,32 +154,34 @@ export const exportSoundEffectToWav = async (params: SoundEffectParameters): Pro
 };
 
 
-export const playHover = () => playSoundInternal('square', 800, 800, 0.05, 0.1);
-export const playClick = () => playSoundInternal('square', 600, 1200, 0.08, 0.2);
-export const playToggle = () => playSoundInternal('triangle', 300, 200, 0.1, 0.2);
-export const playCloseModal = () => playSoundInternal('sawtooth', 500, 200, 0.15, 0.2);
-export const playGenerate = () => playSoundInternal('sine', 200, 800, 0.3, 0.3);
-export const playSuccess = () => playSoundInternal('sine', 523.25, 1046.50, 0.3, 0.3);
-export const playError = () => playSoundInternal('sawtooth', 400, 100, 0.4, 0.2);
-export const playSwoosh = () => playSoundInternal('sine', 1500, 500, 0.2, 0.2);
-export const playSelection = () => playSoundInternal('triangle', 440, 660, 0.1, 0.2);
-export const playCameraShutter = () => playSoundInternal('square', 1200, 300, 0.1, 0.3);
-export const playDownload = () => playSoundInternal('sine', 880, 440, 0.3, 0.3);
-export const playSliderChange = () => playSoundInternal('sine', 1000, 1000, 0.03, 0.05);
-export const playScore = () => playSoundInternal('sine', 880, 1760, 0.1, 0.2);
-export const playPlayerHit = () => playSoundInternal('square', 200, 50, 0.2, 0.4);
-export const playGameOver = () => playSoundInternal('sawtooth', 300, 50, 0.8, 0.3);
-export const playTrash = () => playSoundInternal('square', 200, 100, 0.15, 0.2);
-export const playCreditAdd = () => playSoundInternal('sine', 1046.50, 1567.98, 0.2, 0.3);
-export const playCreditSpend = () => playSoundInternal('square', 200, 100, 0.15, 0.2);
-export const playIntro1 = () => playSoundInternal('sine', 440, 660, 0.3, 0.3);
-export const playIntro2 = () => playSoundInternal('sine', 550, 770, 0.3, 0.3);
-export const playIntro3 = () => playSoundInternal('sine', 660, 880, 0.4, 0.3);
-export const playBrickHit = () => playSoundInternal('square', 800, 1000, 0.05, 0.2);
-export const playPaddleHit = () => playSoundInternal('square', 400, 400, 0.05, 0.2);
-export const playWallHit = () => playSoundInternal('sine', 200, 200, 0.05, 0.1);
-export const playMiss = () => playSoundInternal('sawtooth', 200, 100, 0.3, 0.3);
+// --- UI SOUNDS MAPPED TO BUFFERED AUDIO ---
+export const playHover = () => playSoundInternal('square', 800, 800, 0.05, 0.1); // Keep synthesized for low latency
+export const playClick = () => playBufferedSound('click', 0.7);
+export const playToggle = () => playBufferedSound('toggle', 0.8);
+export const playCloseModal = () => playBufferedSound('swoosh', 0.6);
+export const playGenerate = () => playBufferedSound('generate', 0.7);
+export const playSuccess = () => playBufferedSound('success', 0.8);
+export const playError = () => playBufferedSound('error', 0.7);
+export const playSwoosh = () => playBufferedSound('swoosh', 0.6);
+export const playSelection = () => playBufferedSound('click', 0.5);
+export const playCameraShutter = () => playBufferedSound('notification', 0.8);
+export const playDownload = () => playBufferedSound('swoosh', 0.7);
+export const playSliderChange = () => playSoundInternal('sine', 1000, 1000, 0.03, 0.05); // Keep synthesized for responsiveness
+export const playScore = () => playBufferedSound('success', 0.5);
+export const playPlayerHit = () => playBufferedSound('error', 0.6);
+export const playGameOver = () => playBufferedSound('error', 1.0);
+export const playTrash = () => playBufferedSound('trash', 0.7);
+export const playCreditAdd = () => playBufferedSound('credit', 0.8);
+export const playCreditSpend = () => playBufferedSound('click', 0.6);
+export const playIntro1 = () => playBufferedSound('notification', 0.5);
+export const playIntro2 = () => playBufferedSound('notification', 0.6);
+export const playIntro3 = () => playBufferedSound('success', 0.7);
+export const playBrickHit = () => playBufferedSound('toggle', 0.8);
+export const playPaddleHit = () => playBufferedSound('click', 0.6);
+export const playWallHit = () => playBufferedSound('toggle', 0.4);
+export const playMiss = () => playBufferedSound('error', 0.5);
 
+// --- MUSIC/SYNTH SOUNDS (Unchanged) ---
 export const playMusicalNote = (frequency: number, type: SoundType, duration: number) => {
     playSoundInternal(type, frequency, frequency, duration, 0.3);
 };
@@ -169,7 +191,6 @@ export const startBackgroundMusic = () => {
 
     const buffer = decodedAudioBuffers.get('backgroundMusic');
     if (!buffer) {
-        console.warn("Background music is not ready to play yet.");
         // Attempt to play later if the buffer loads after this call
         setTimeout(startBackgroundMusic, 1000);
         return;
@@ -217,7 +238,8 @@ export function playSong(song: Song, bpm: number, onEnd?: () => void) {
         track.forEach(note => {
             const freq = NOTE_FREQUENCIES[note];
             if (freq) {
-                const timeout = setTimeout(() => {
+// FIX: Use window.setTimeout to ensure it returns a number, not NodeJS.Timeout.
+                const timeout = window.setTimeout(() => {
                     playMusicalNote(freq, instrumentType, noteDuration * 0.9);
                 }, currentTime * 1000);
                 songTimeouts.push(timeout);
@@ -230,7 +252,8 @@ export function playSong(song: Song, bpm: number, onEnd?: () => void) {
     });
 
     if (onEnd) {
-        const endTimeout = setTimeout(onEnd, totalTime * 1000);
+// FIX: Use window.setTimeout to ensure it returns a number, not NodeJS.Timeout.
+        const endTimeout = window.setTimeout(onEnd, totalTime * 1000);
         songTimeouts.push(endTimeout);
     }
 }
@@ -248,7 +271,8 @@ export function playMidi(notes: MidiNote[], onEnd?: () => void) {
     let maxTime = 0;
     notes.forEach(note => {
         const freq = 440 * Math.pow(2, (note.pitch - 69) / 12);
-        const timeout = setTimeout(() => {
+// FIX: Use window.setTimeout to ensure it returns a number, not NodeJS.Timeout.
+        const timeout = window.setTimeout(() => {
             playMusicalNote(freq, 'sine', note.duration * 0.9);
         }, note.startTime * 1000);
         midiTimeouts.push(timeout);
@@ -257,7 +281,8 @@ export function playMidi(notes: MidiNote[], onEnd?: () => void) {
         }
     });
     if (onEnd) {
-        const endTimeout = setTimeout(onEnd, maxTime * 1000);
+// FIX: Use window.setTimeout to ensure it returns a number, not NodeJS.Timeout.
+        const endTimeout = window.setTimeout(onEnd, maxTime * 1000);
         midiTimeouts.push(endTimeout);
     }
 }

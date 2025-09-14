@@ -11,9 +11,8 @@ export const InfoIcon = ({ className }: { className?: string }): React.ReactNode
             aria-hidden="true"
         >
             <path d="M4 4H20V20H4V4Z" />
-            <path fill="black" d="M6 6H18V18H6V6Z" />
-            <path d="M11 8H13V10H11V8Z" />
-            <path d="M11 12H13V16H11V12Z" />
+            <path fill="var(--color-bg, black)" d="M6 6H18V18H6V6Z" />
+            <path d="M11 8H13V10H11V8Z M11 12H13V16H11V12Z" />
         </svg>
     );
 };

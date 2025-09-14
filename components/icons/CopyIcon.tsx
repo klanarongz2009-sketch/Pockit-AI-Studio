@@ -10,8 +10,8 @@ export const CopyIcon = ({ className }: { className?: string }): React.ReactNode
             style={{ imageRendering: 'pixelated' }}
             aria-hidden="true"
         >
-            <path d="M6 4H16V6H18V18H16V20H6V18H4V6H6V4Z" />
-            <path fill="black" d="M8 8H14V16H8V8Z" />
+            <path d="M8 4H18V6H20V16H18V18H8V16H6V6H8V4Z"/>
+            <path fill="var(--color-bg, black)" d="M10 8H16V14H10V8Z"/>
         </svg>
     );
 };

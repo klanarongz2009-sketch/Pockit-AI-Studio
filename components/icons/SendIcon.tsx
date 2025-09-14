@@ -1,4 +1,3 @@
-
 import React from 'react';
 
 export const SendIcon = ({ className }: { className?: string }): React.ReactNode => {
@@ -11,7 +10,7 @@ export const SendIcon = ({ className }: { className?: string }): React.ReactNode
             style={{ imageRendering: 'pixelated' }}
             aria-hidden="true"
         >
-            <path d="M2 21L23 12L2 3V10L17 12L2 14V21Z" />
+            <path d="M3 4L21 12L3 20V13L15 12L3 11V4Z" />
         </svg>
     );
 };

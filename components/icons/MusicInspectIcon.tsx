@@ -9,15 +9,9 @@ export const MusicInspectIcon = ({ className }: { className?: string }): React.R
         style={{ imageRendering: 'pixelated' }} 
         aria-hidden="true"
     >
-        {/* Magnifying Glass Circle */}
-        <path d="M4 8H10V9H11V13H10V14H4V13H3V9H4V8Z" />
-        <path fill="black" d="M5 10H10V12H5V10Z" />
-        {/* Magnifying Glass Handle */}
-        <path d="M10 14L14 18V19L15 18L11 14Z" />
-        
-        {/* Music Note */}
-        <path d="M15 4H17V11H15V4Z" />
-        <path d="M17 11H20V13H17V11Z" />
-        <path d="M15 8H20V10H15V8Z" />
+        <path d="M4 8H10V9H11V13H10V14H4V13H3V9H4V8Z"/>
+        <path fill="var(--color-bg, black)" d="M5 10H10V12H5V10Z"/>
+        <path d="M10 14L14 18V19L15 18L11 14Z"/>
+        <path d="M15 4H17V11H19V13H15V10H19V8H15V4Z"/>
     </svg>
 );

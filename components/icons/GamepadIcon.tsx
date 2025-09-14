@@ -10,13 +10,10 @@ export const GamepadIcon = ({ className }: { className?: string }): React.ReactN
             style={{ imageRendering: 'pixelated' }}
             aria-hidden="true"
         >
-            <path d="M4 8H8V10H6V14H8V16H4V8Z" />
-            <path d="M10 10H14V14H10V10Z" />
-            <path d="M17 7H19V9H17V7Z" />
-            <path d="M19 9H21V11H19V9Z" />
-            <path d="M17 11H19V13H17V11Z" />
-            <path d="M15 9H17V11H15V9Z" />
-            <path d="M3 6H21V18H3V6Z" />
+            <path d="M3 8H21V16H18V18H6V16H3V8Z"/>
+            <path fill="var(--color-bg, black)" d="M5 10H19V14H5V10Z"/>
+            <path d="M6 10H8V14H6V10Z M10 10H12V14H10V10Z M7 9H11V15H7V9Z"/>
+            <path d="M17 9H19V11H17V9Z M15 11H17V13H15V11Z"/>
         </svg>
     );
 };

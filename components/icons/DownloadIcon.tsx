@@ -1,4 +1,3 @@
-
 import React from 'react';
 
 export const DownloadIcon = ({ className }: { className?: string }): React.ReactNode => {
@@ -11,8 +10,7 @@ export const DownloadIcon = ({ className }: { className?: string }): React.React
             style={{ imageRendering: 'pixelated' }}
             aria-hidden="true"
         >
-            <path d="M8 11H11V2H13V11H16L12 15L8 11Z" />
-            <path d="M4 17H20V19H4V17Z" />
+            <path d="M11 4H13V14H11V4Z M8 12L12 16L16 12H13V10H11V12H8Z M4 18H20V20H4V18Z"/>
         </svg>
     );
 };

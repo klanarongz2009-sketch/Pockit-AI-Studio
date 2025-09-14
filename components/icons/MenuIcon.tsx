@@ -10,9 +10,7 @@ export const MenuIcon = ({ className }: { className?: string }): React.ReactNode
             style={{ imageRendering: 'pixelated' }}
             aria-hidden="true"
         >
-            <path d="M4 6H20V8H4V6Z" />
-            <path d="M4 11H20V13H4V11Z" />
-            <path d="M4 16H20V18H4V16Z" />
+            <path d="M4 6H20V8H4V6Z M4 11H20V13H4V11Z M4 16H20V18H4V16Z" />
         </svg>
     );
 };

@@ -238,6 +238,47 @@ export function resetChatSession() {
 function getRobotResponse(message: string): string {
     const lowerMessage = message.toLowerCase().trim();
 
+    // --- NEW COMMAND HANDLING ---
+    if (lowerMessage.startsWith('serch/')) {
+        const query = message.substring('serch/'.length).trim();
+        if (!query) {
+            return 'โปรดระบุสิ่งที่ต้องการค้นหาหลัง "serch/" ครับ';
+        }
+        return `กำลังค้นหาเกี่ยวกับ "${query}"... ไม่พบข้อมูลที่ตรงกัน แต่พบข้อมูลที่เกี่ยวข้อง: สิ่งมีชีวิตสองชนิดนี้มีความแตกต่างกันทางชีววิทยาและพฤติกรรมครับ`;
+    }
+
+    if (lowerMessage.startsWith('try//')) {
+        const task = message.substring('try//'.length).trim();
+        if (!task) {
+            return 'โปรดระบุคำสั่งที่ต้องการให้ลองหลัง "try//" ครับ';
+        }
+        return `กำลังพยายามดำเนินการ: "${task}"... การดำเนินการสำเร็จ แต่ไม่สามารถแสดงผลลัพธ์ในรูปแบบข้อความได้ครับ`;
+    }
+
+    if (lowerMessage.startsWith('calc/')) {
+        const expression = message.substring('calc/'.length).trim();
+        try {
+            // Basic safety check
+            if (!/^[0-9+\-*/.() ]+$/.test(expression)) {
+                 throw new Error("Invalid characters");
+            }
+            const result = new Function('return ' + expression)();
+            if (isNaN(result) || !isFinite(result)) throw new Error("Invalid calculation");
+            return `ผลการคำนวณ ${expression} คือ ${result} ครับ`;
+        } catch (e) {
+            return 'ไม่สามารถคำนวณนิพจน์ที่ให้มาได้ครับ โปรดใช้เฉพาะตัวเลขและเครื่องหมาย +, -, *, /';
+        }
+    }
+    
+    if (lowerMessage.startsWith('tellme/')) {
+        const topic = message.substring('tellme/'.length).trim();
+        if (topic.includes('joke') || topic.includes('ตลก')) {
+            return 'ทำไมคอมพิวเตอร์ถึงไปหาหมอ? เพราะมันมีไวรัสครับ!';
+        }
+        return `กำลังค้นหาข้อมูลเกี่ยวกับ "${topic}"... BEEP... ข้อมูลไม่เพียงพอครับ`;
+    }
+
+    // --- EXISTING LOGIC ---
     const responses: { [key: string]: string[] } = {
         'สวัสดี': ['สวัสดีครับ', 'ยินดีที่ได้รู้จัก มีอะไรให้รับใช้ครับ'],
         'สบายดี': ['ระบบทำงานปกติ 100% ครับ', 'เยี่ยมครับ'],

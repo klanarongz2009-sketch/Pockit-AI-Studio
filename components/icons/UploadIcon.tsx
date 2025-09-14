@@ -1,4 +1,3 @@
-
 import React from 'react';
 
 export const UploadIcon = ({ className }: { className?: string }): React.ReactNode => {
@@ -11,8 +10,7 @@ export const UploadIcon = ({ className }: { className?: string }): React.ReactNo
             style={{ imageRendering: 'pixelated' }}
             aria-hidden="true"
         >
-            <path d="M8 9L12 5L16 9H13V16H11V9H8Z" />
-            <path d="M4 18H20V20H4V18Z" />
+            <path d="M11 18H13V8H11V18Z M8 10L12 6L16 10H13V12H11V10H8Z M4 20H20V22H4V20Z"/>
         </svg>
     );
 };

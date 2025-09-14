@@ -9,7 +9,7 @@ export const ThumbsDownIcon = ({ className }: { className?: string }): React.Rea
         style={{ imageRendering: 'pixelated' }} 
         aria-hidden="true"
     >
-        <path d="M7 14H4V4H7V14Z" />
-        <path d="M9 14H10V16H12V17H16V16H18V14H19V10H18V8H17V7H16V6H10V4H9V14Z" />
+        <path d="M7 14H4V4H7V14Z"/>
+        <path d="M9 14H10V16H12V17H16V16H18V14H19V10H18V8H17V7H16V6H10V4H9V14Z"/>
     </svg>
 );
