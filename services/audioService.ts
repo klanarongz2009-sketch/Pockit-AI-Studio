@@ -12,9 +12,11 @@ const preloadedAudioData = new Map<string, ArrayBuffer>();
 const decodedAudioBuffers = new Map<string, AudioBuffer>();
 
 // Module-level state for background music
-let musicSource: AudioBufferSourceNode | null = null;
 let musicGain: GainNode | null = null;
 let desiredMusicVolume = 0.1; // Store the desired volume
+let musicTimeouts: number[] = [];
+let isMusicPlaying = false;
+
 
 // FIX: Added missing type definition for voice changer effects.
 export interface EffectParameters {
@@ -104,24 +106,27 @@ function playSoundInternal(type: SoundType, startFreq: number, endFreq: number, 
     oscillator.stop(audioContext.currentTime + duration);
 }
 
-// NEW: Function to play pre-loaded buffered sounds
-function playBufferedSound(name: string, volume: number = 1) {
+// NEW: Helper for playing sequences of notes for more complex sounds.
+function playNoteSequence(notes: { freq: number; duration: number; type: SoundType; volume: number; delay: number }[]) {
     if (!audioContext || audioContext.state !== 'running') return;
-    const buffer = decodedAudioBuffers.get(name);
-    if (!buffer) {
-        console.warn(`Sound "${name}" not found or not decoded yet.`);
-        return;
-    }
-    
-    const source = audioContext.createBufferSource();
-    source.buffer = buffer;
+    const startTime = audioContext.currentTime;
+    notes.forEach(note => {
+        const oscillator = audioContext.createOscillator();
+        const gainNode = audioContext.createGain();
 
-    const gainNode = audioContext.createGain();
-    gainNode.gain.value = volume;
+        oscillator.type = note.type;
+        oscillator.frequency.setValueAtTime(note.freq, startTime + note.delay);
 
-    source.connect(gainNode);
-    gainNode.connect(audioContext.destination);
-    source.start(0);
+        gainNode.gain.setValueAtTime(0, startTime + note.delay);
+        gainNode.gain.linearRampToValueAtTime(note.volume, startTime + note.delay + 0.01);
+        gainNode.gain.exponentialRampToValueAtTime(0.0001, startTime + note.delay + note.duration);
+
+        oscillator.connect(gainNode);
+        gainNode.connect(audioContext.destination);
+
+        oscillator.start(startTime + note.delay);
+        oscillator.stop(startTime + note.delay + note.duration);
+    });
 }
 
 
@@ -154,62 +159,177 @@ export const exportSoundEffectToWav = async (params: SoundEffectParameters): Pro
 };
 
 
-// --- UI SOUNDS MAPPED TO BUFFERED AUDIO ---
-export const playHover = () => playSoundInternal('square', 800, 800, 0.05, 0.1); // Keep synthesized for low latency
-export const playClick = () => playBufferedSound('click', 0.7);
-export const playToggle = () => playBufferedSound('toggle', 0.8);
-export const playCloseModal = () => playBufferedSound('swoosh', 0.6);
-export const playGenerate = () => playBufferedSound('generate', 0.7);
-export const playSuccess = () => playBufferedSound('success', 0.8);
-export const playError = () => playBufferedSound('error', 0.7);
-export const playSwoosh = () => playBufferedSound('swoosh', 0.6);
-export const playSelection = () => playBufferedSound('click', 0.5);
-export const playCameraShutter = () => playBufferedSound('notification', 0.8);
-export const playDownload = () => playBufferedSound('swoosh', 0.7);
-export const playSliderChange = () => playSoundInternal('sine', 1000, 1000, 0.03, 0.05); // Keep synthesized for responsiveness
-export const playScore = () => playBufferedSound('success', 0.5);
-export const playPlayerHit = () => playBufferedSound('error', 0.6);
-export const playGameOver = () => playBufferedSound('error', 1.0);
-export const playTrash = () => playBufferedSound('trash', 0.7);
-export const playCreditAdd = () => playBufferedSound('credit', 0.8);
-export const playCreditSpend = () => playBufferedSound('click', 0.6);
-export const playIntro1 = () => playBufferedSound('notification', 0.5);
-export const playIntro2 = () => playBufferedSound('notification', 0.6);
-export const playIntro3 = () => playBufferedSound('success', 0.7);
-export const playBrickHit = () => playBufferedSound('toggle', 0.8);
-export const playPaddleHit = () => playBufferedSound('click', 0.6);
-export const playWallHit = () => playBufferedSound('toggle', 0.4);
-export const playMiss = () => playBufferedSound('error', 0.5);
+// --- UI SOUNDS OVERHAUL ---
+export const playHover = () => playSoundInternal('sine', 1500, 1500, 0.03, 0.05);
+export const playClick = () => playSoundInternal('square', 440, 480, 0.05, 0.15);
+export const playToggle = () => playSoundInternal('triangle', 600, 800, 0.08, 0.1);
+export const playCloseModal = () => playSoundInternal('sine', 400, 100, 0.2, 0.2);
+export const playGenerate = () => playNoteSequence([
+    { freq: NOTE_FREQUENCIES['C4'], duration: 0.08, type: 'square', volume: 0.1, delay: 0 },
+    { freq: NOTE_FREQUENCIES['E4'], duration: 0.08, type: 'square', volume: 0.1, delay: 0.08 },
+    { freq: NOTE_FREQUENCIES['G4'], duration: 0.1, type: 'square', volume: 0.1, delay: 0.16 },
+]);
+export const playSuccess = () => playNoteSequence([
+    { freq: NOTE_FREQUENCIES['C5'], duration: 0.08, type: 'triangle', volume: 0.2, delay: 0 },
+    { freq: NOTE_FREQUENCIES['E5'], duration: 0.08, type: 'triangle', volume: 0.2, delay: 0.1 },
+    { freq: NOTE_FREQUENCIES['G5'], duration: 0.08, type: 'triangle', volume: 0.2, delay: 0.2 },
+    { freq: NOTE_FREQUENCIES['C6'], duration: 0.15, type: 'triangle', volume: 0.2, delay: 0.3 },
+]);
+export const playError = () => playSoundInternal('sawtooth', 200, 50, 0.4, 0.3);
+export const playSwoosh = () => playSoundInternal('sine', 1200, 100, 0.2, 0.15);
+export const playSelection = () => playSoundInternal('square', 1000, 1000, 0.05, 0.1);
+export const playCameraShutter = () => playSoundInternal('square', 3000, 500, 0.1, 0.25);
+export const playDownload = () => playNoteSequence([
+    { freq: NOTE_FREQUENCIES['G5'], duration: 0.08, type: 'sine', volume: 0.2, delay: 0 },
+    { freq: NOTE_FREQUENCIES['E5'], duration: 0.08, type: 'sine', volume: 0.2, delay: 0.1 },
+    { freq: NOTE_FREQUENCIES['C5'], duration: 0.15, type: 'sine', volume: 0.2, delay: 0.2 },
+]);
+export const playSliderChange = () => playSoundInternal('sine', 1200, 1200, 0.02, 0.04);
+export const playScore = () => playSoundInternal('triangle', 1200, 1800, 0.08, 0.25);
+export const playPlayerHit = () => playSoundInternal('square', 200, 50, 0.2, 0.3);
+export const playGameOver = () => playNoteSequence([
+    { freq: NOTE_FREQUENCIES['G3'], duration: 0.1, type: 'sawtooth', volume: 0.3, delay: 0 },
+    { freq: NOTE_FREQUENCIES['F#3'], duration: 0.1, type: 'sawtooth', volume: 0.3, delay: 0.15 },
+    { freq: NOTE_FREQUENCIES['F3'], duration: 0.1, type: 'sawtooth', volume: 0.3, delay: 0.3 },
+    { freq: NOTE_FREQUENCIES['E3'], duration: 0.4, type: 'sawtooth', volume: 0.3, delay: 0.45 },
+]);
+export const playTrash = () => playSoundInternal('square', 200, 100, 0.15, 0.2);
+export const playCreditAdd = () => playSoundInternal('sine', 1000, 1500, 0.1, 0.3);
+export const playCreditSpend = () => playSoundInternal('sine', 800, 500, 0.1, 0.2);
+export const playIntro1 = () => playSoundInternal('sine', 600, 800, 0.1, 0.3);
+export const playIntro2 = () => playSoundInternal('sine', 800, 1000, 0.1, 0.3);
+export const playIntro3 = () => playSoundInternal('sine', 1000, 1400, 0.15, 0.3);
+export const playBrickHit = () => playSoundInternal('square', 1500, 1500, 0.05, 0.2);
+export const playPaddleHit = () => playSoundInternal('square', 500, 500, 0.05, 0.3);
+export const playWallHit = () => playSoundInternal('sine', 300, 300, 0.05, 0.2);
+export const playMiss = () => playSoundInternal('triangle', 800, 400, 0.3, 0.3);
 
-// --- MUSIC/SYNTH SOUNDS (Unchanged) ---
+// --- MUSIC/SYNTH SOUNDS ---
 export const playMusicalNote = (frequency: number, type: SoundType, duration: number) => {
     playSoundInternal(type, frequency, frequency, duration, 0.3);
 };
 
-export const startBackgroundMusic = () => { 
-    if (!audioContext || musicSource || audioContext.state !== 'running') return;
+// --- NEW SYNTHESIZED BACKGROUND MUSIC ---
+const musicSequence = {
+    bpm: 130,
+    tracks: [
+        { // Bassline
+            instrument: 'sawtooth' as SoundType,
+            volume: 0.2,
+            notes: [
+                'C2', null, 'C2', 'C2', 'G2', null, 'G2', 'G2', 'A#2', null, 'A#2', 'A#2', 'F2', null, 'F2', 'F2',
+                'C2', null, 'C2', 'C2', 'G2', null, 'G2', 'G2', 'A#2', null, 'A#2', 'A#2', 'F2', null, 'F2', 'F2',
+                'F2', null, 'F2', 'F2', 'C2', null, 'C2', 'C2', 'D#2', null, 'D#2', 'D#2', 'A#2', null, 'A#2', 'A#2',
+                'F2', null, 'F2', 'F2', 'C2', null, 'C2', 'C2', 'D#2', null, 'D#2', 'A#2', 'G2', 'G2', null, null,
+            ]
+        },
+        { // Melody
+            instrument: 'square' as SoundType,
+            volume: 0.15,
+            notes: [
+                'C4', 'E4', 'G4', null, 'E4', null, 'C4', null, 'G3', 'B3', 'D4', null, 'B3', null, 'G3', null,
+                'A#3', 'D4', 'F4', null, 'D4', null, 'A#3', null, 'F3', 'A3', 'C4', null, 'A3', null, 'F3', null,
+                'C4', 'E4', 'G4', null, 'E4', null, 'C4', null, 'G3', 'B3', 'D4', null, 'B3', null, 'G3', null,
+                'A#3', 'D4', 'F4', 'D4', 'C4', 'A#3', 'A3', 'G3', 'F4', null, null, null, 'G4', 'A4', 'A#4', null,
+            ]
+        },
+        { // Arpeggio / Harmony
+            instrument: 'sine' as SoundType,
+            volume: 0.1,
+            notes: [
+                'G4', null, null, null, 'G4', null, null, null, 'D4', null, null, null, 'D4', null, null, null,
+                'F4', null, null, null, 'F4', null, null, null, 'C4', null, null, null, 'C4', null, null, null,
+                'G4', null, null, null, 'G4', null, null, null, 'D4', null, null, null, 'D4', null, null, null,
+                'F4', null, 'C4', null, 'D#4', null, 'A#3', null, 'G4', null, null, 'G4', 'F4', null, 'D#4', null,
+            ]
+        },
+        { // Percussion
+            instrument: 'square' as SoundType,
+            volume: 0.12,
+            notes: [
+                'C2', null, 'C3', null, 'C2', null, 'C3', null, 'C2', null, 'C3', null, 'C2', null, 'C3', null,
+                'C2', null, 'C3', null, 'C2', null, 'C3', 'C3', 'C2', null, 'C3', null, 'C2', null, 'C3', 'C3',
+                'C2', null, 'C3', null, 'C2', null, 'C3', null, 'C2', null, 'C3', null, 'C2', null, 'C3', null,
+                'C2', null, 'C3', 'C3', 'C2', 'C2', 'C3', 'C3', 'D#3', 'D#3', 'D#3', null, 'D#3', 'D#3', 'D#3', null,
+            ]
+        }
+    ]
+};
 
-    const buffer = decodedAudioBuffers.get('backgroundMusic');
-    if (!buffer) {
-        // Attempt to play later if the buffer loads after this call
-        setTimeout(startBackgroundMusic, 1000);
-        return;
+function stopSynthesizedMusic() {
+    musicTimeouts.forEach(clearTimeout);
+    musicTimeouts = [];
+    isMusicPlaying = false;
+}
+
+function playSynthesizedMusicLoop() {
+    if (!audioContext || audioContext.state !== 'running' || !isMusicPlaying) return;
+
+    const noteDurationMs = (60 / musicSequence.bpm) * 500; // 16th notes
+    let totalDuration = 0;
+
+    musicSequence.tracks.forEach(track => {
+        let currentTime = 0;
+        track.notes.forEach(note => {
+            if (note) {
+                const freq = NOTE_FREQUENCIES[note];
+                if (freq) {
+                    const timeout = window.setTimeout(() => {
+                        if (!isMusicPlaying || !musicGain) return; // Check again before playing
+                        const oscillator = audioContext!.createOscillator();
+                        const noteGain = audioContext!.createGain();
+
+                        oscillator.type = track.instrument;
+                        oscillator.frequency.setValueAtTime(freq, audioContext!.currentTime);
+                        
+                        // Percussion track has very short notes
+                        const isPercussion = track.instrument === 'square' && note.startsWith('C2') || note.startsWith('C3') || note.startsWith('D#3');
+                        const duration = isPercussion ? 0.05 : (noteDurationMs * 0.9 / 1000);
+                        const volume = isPercussion && note.startsWith('C3') ? track.volume * 0.7 : track.volume;
+
+                        noteGain.gain.setValueAtTime(0, audioContext!.currentTime);
+                        noteGain.gain.linearRampToValueAtTime(volume, audioContext!.currentTime + 0.01);
+                        noteGain.gain.exponentialRampToValueAtTime(0.0001, audioContext!.currentTime + duration);
+                        
+                        oscillator.connect(noteGain);
+                        noteGain.connect(musicGain); // Connect to the master music gain
+                        
+                        oscillator.start();
+                        oscillator.stop(audioContext!.currentTime + duration + 0.05);
+                    }, currentTime);
+                    musicTimeouts.push(timeout);
+                }
+            }
+            currentTime += noteDurationMs;
+        });
+        if (currentTime > totalDuration) {
+            totalDuration = currentTime;
+        }
+    });
+
+    // Loop it
+    const loopTimeout = window.setTimeout(playSynthesizedMusicLoop, totalDuration);
+    musicTimeouts.push(loopTimeout);
+}
+
+
+export const startBackgroundMusic = () => { 
+    if (!audioContext || isMusicPlaying || audioContext.state !== 'running') return;
+
+    // Create the master gain node for music if it doesn't exist
+    if (!musicGain) {
+        musicGain = audioContext.createGain();
+        musicGain.gain.value = 0; // Start silent
+        musicGain.connect(audioContext.destination);
     }
 
-    musicSource = audioContext.createBufferSource();
-    musicSource.buffer = buffer;
-    musicSource.loop = true;
-
-    musicGain = audioContext.createGain();
-    musicGain.gain.value = 0; // Start silent for fade-in
-    
-    musicSource.connect(musicGain);
-    musicGain.connect(audioContext.destination);
-    musicSource.start(0);
+    isMusicPlaying = true;
+    playSynthesizedMusicLoop();
 
     // Fade in
     musicGain.gain.linearRampToValueAtTime(desiredMusicVolume, audioContext.currentTime + 2.0);
 };
+
 export const setMusicVolume = (volume: number) => { 
     desiredMusicVolume = volume;
     if (musicGain && audioContext && audioContext.state === 'running') {

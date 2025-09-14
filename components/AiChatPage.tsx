@@ -15,6 +15,8 @@ import { ThumbsUpIcon } from './icons/ThumbsUpIcon';
 import { ThumbsDownIcon } from './icons/ThumbsDownIcon';
 import { RegenerateIcon } from './icons/RegenerateIcon';
 import { ModelInfoPage } from './ModelInfoPage';
+import { UploadIcon } from './icons/UploadIcon';
+import { XIcon } from './icons/XIcon';
 
 
 interface AiChatPageProps {
@@ -27,6 +29,11 @@ interface Message {
   role: 'user' | 'model';
   text: string;
   sources?: { uri: string; title:string }[];
+}
+
+interface FileData {
+    file: File;
+    base64: string;
 }
 
 const ModelSelectionModal: React.FC<{
@@ -129,13 +136,16 @@ export const AiChatPage: React.FC<AiChatPageProps> = ({ isOnline, playSound }) =
         return ALL_AI_MODELS.find(m => m.name === savedName) || ALL_AI_MODELS[0];
     });
     
-    const canUseWebSearch = useMemo(() => selectedModel.id !== 'local-robot', [selectedModel]);
+    const [fileData, setFileData] = useState<FileData | null>(null);
+
+    const canUseWebSearch = useMemo(() => selectedModel.id !== 'local-robot' && !fileData, [selectedModel, fileData]);
     const [webSearchEnabled, setWebSearchEnabled] = useState(() => preferenceService.getPreference('defaultWebSearch', false) && canUseWebSearch);
     
     const [messages, setMessages] = useState<Message[]>([]);
     
     const messagesEndRef = useRef<HTMLDivElement>(null);
-    
+    const fileInputRef = useRef<HTMLInputElement>(null);
+
     const SAVE_HISTORY = preferenceService.getPreference('saveChatHistory', true);
     const getHistoryKey = (modelName: string) => `chat-history-${modelName.replace(/\s/g, '_')}`;
 
@@ -178,6 +188,8 @@ export const AiChatPage: React.FC<AiChatPageProps> = ({ isOnline, playSound }) =
         setMessages([]);
         setError(null);
         setUserInput('');
+        setFileData(null);
+        if (fileInputRef.current) fileInputRef.current.value = "";
         if (SAVE_HISTORY) {
             try {
                 localStorage.removeItem(getHistoryKey(selectedModel.name));
@@ -229,9 +241,29 @@ export const AiChatPage: React.FC<AiChatPageProps> = ({ isOnline, playSound }) =
         setMessages(prev => [...prev, userMessage]);
         setUserInput('');
         
-        await runGemini(trimmedInput);
+        if (fileData) {
+            setIsLoading(true);
+            setError(null);
+            try {
+                const chatHistory = [...messages, userMessage].map(m => ({ role: m.role, text: m.text }));
+                const responseText = await geminiService.chatWithFile(
+                    { base64: fileData.base64, mimeType: fileData.file.type },
+                    chatHistory,
+                    trimmedInput
+                );
+                const modelMessage: Message = { id: `msg-${Date.now()}-model`, role: 'model', text: responseText };
+                setMessages(prev => [...prev, modelMessage]);
+            } catch(err) {
+                 const errorMessage = err instanceof Error ? err.message : 'An unknown error occurred.';
+                 setError(errorMessage);
+            } finally {
+                setIsLoading(false);
+            }
+        } else {
+            await runGemini(trimmedInput);
+        }
 
-    }, [userInput, isLoading, playSound, runGemini]);
+    }, [userInput, isLoading, playSound, runGemini, fileData, messages]);
 
     const handleRegenerate = useCallback(() => {
         const lastUserMessage = messages.slice().reverse().find(m => m.role === 'user');
@@ -248,6 +280,32 @@ export const AiChatPage: React.FC<AiChatPageProps> = ({ isOnline, playSound }) =
         navigator.clipboard.writeText(text);
         playSound(audioService.playSelection);
     };
+    
+    const handleFileChange = useCallback(async (event: React.ChangeEvent<HTMLInputElement>) => {
+        const file = event.target.files?.[0];
+        if (!file) return;
+
+        playSound(audioService.playSelection);
+        setIsLoading(true);
+        setError(null);
+        
+        try {
+            const toBase64 = (file: File): Promise<string> => new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.readAsDataURL(file);
+                reader.onload = () => resolve((reader.result as string).split(',')[1]);
+                reader.onerror = error => reject(error);
+            });
+            const base64 = await toBase64(file);
+            setFileData({ file, base64 });
+            setMessages([]); // Start a new chat session for the file
+        } catch(e) {
+            setError("Could not read file.");
+            playSound(audioService.playError);
+        } finally {
+            setIsLoading(false);
+        }
+    }, [playSound]);
 
     const renderMessageContent = (text: string) => {
         const parts = text.split(/(```[\s\S]*?```)/g).filter(Boolean);
@@ -287,6 +345,7 @@ export const AiChatPage: React.FC<AiChatPageProps> = ({ isOnline, playSound }) =
 
     return (
         <div className="w-full h-full flex flex-col items-center px-4 font-sans">
+            <input type="file" ref={fileInputRef} onChange={handleFileChange} className="hidden" aria-hidden="true" />
              <ModelSelectionModal 
                 isOpen={isModelModalOpen}
                 onClose={() => setIsModelModalOpen(false)}
@@ -313,10 +372,12 @@ export const AiChatPage: React.FC<AiChatPageProps> = ({ isOnline, playSound }) =
                         <button 
                             onClick={() => setIsModelModalOpen(true)}
                             onMouseEnter={() => playSound(audioService.playHover)}
-                            className="flex items-center gap-2 p-2 bg-surface-primary border-2 border-border-primary text-text-primary hover:bg-brand-cyan/20 transition-colors"
+                            disabled={!!fileData}
+                            className="flex items-center gap-2 p-2 bg-surface-primary border-2 border-border-primary text-text-primary hover:bg-brand-cyan/20 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                            title={fileData ? "Model selection is disabled when a file is attached" : ""}
                         >
                             <SparklesIcon className="w-4 h-4 text-brand-cyan" />
-                            <span className="text-xs font-press-start truncate max-w-32 sm:max-w-xs">{selectedModel.name}</span>
+                            <span className="text-xs font-press-start truncate max-w-32 sm:max-w-xs">{fileData ? 'File Q&A' : selectedModel.name}</span>
                         </button>
                     </div>
                      <div className="flex items-center gap-4">
@@ -332,7 +393,7 @@ export const AiChatPage: React.FC<AiChatPageProps> = ({ isOnline, playSound }) =
                                 }}
                                 className="w-4 h-4 accent-brand-magenta"
                                 disabled={isLoading || !canUseWebSearch}
-                                title={!canUseWebSearch ? "Web Search is not available for this model" : ""}
+                                title={!canUseWebSearch ? "Web Search is not available for this model or when a file is attached" : ""}
                             />
                             <span className="text-xs font-press-start text-brand-cyan">{t('aiChat.webSearch')}</span>
                         </label>
@@ -343,7 +404,7 @@ export const AiChatPage: React.FC<AiChatPageProps> = ({ isOnline, playSound }) =
                 </header>
                 
                 <main className="flex-grow p-4 overflow-y-auto">
-                    {messages.length === 0 && !isLoading && (
+                    {messages.length === 0 && !isLoading && !fileData && (
                         <div className="text-center text-brand-light/70 h-full flex flex-col justify-center items-center">
                             <SparklesIcon className="w-16 h-16 text-brand-cyan mb-4" />
                             <p className="font-press-start">{t('aiChat.startConversation')}</p>
@@ -378,7 +439,7 @@ export const AiChatPage: React.FC<AiChatPageProps> = ({ isOnline, playSound }) =
                                             <button onClick={() => playSound(audioService.playClick)} className="p-1 text-text-secondary hover:text-brand-lime"><ThumbsUpIcon className="w-4 h-4"/></button>
                                             <button onClick={() => playSound(audioService.playClick)} className="p-1 text-text-secondary hover:text-brand-magenta"><ThumbsDownIcon className="w-4 h-4"/></button>
                                             <button onClick={() => handleCopyToClipboard(msg.text)} className="p-1 text-text-secondary hover:text-brand-yellow"><CopyIcon className="w-4 h-4"/></button>
-                                            <button onClick={handleRegenerate} disabled={isLoading} className="p-1 text-text-secondary hover:text-brand-cyan disabled:opacity-50"><RegenerateIcon className="w-4 h-4"/></button>
+                                            <button onClick={handleRegenerate} disabled={isLoading || !!fileData} className="p-1 text-text-secondary hover:text-brand-cyan disabled:opacity-50"><RegenerateIcon className="w-4 h-4"/></button>
                                         </div>
                                     )}
                                 </div>
@@ -404,21 +465,20 @@ export const AiChatPage: React.FC<AiChatPageProps> = ({ isOnline, playSound }) =
                 </main>
 
                 <footer className="flex-shrink-0 p-2 border-t-4 border-brand-light">
-                    <div className="flex items-end gap-2">
-                        <div className="relative group">
-                            <button className="w-10 h-10 flex-shrink-0 flex items-center justify-center bg-surface-primary border-2 border-black hover:bg-brand-cyan/20" aria-label="Attach file">
-                                <span className="text-2xl">+</span>
-                            </button>
-                            <div className="absolute bottom-full mb-2 w-48 bg-surface-secondary border-2 border-border-primary shadow-lg p-2 rounded-md opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all pointer-events-none">
-                                <ul className="text-sm text-text-primary">
-                                    <li className="p-1 hover:bg-brand-cyan/20 cursor-pointer">Upload Audio</li>
-                                    <li className="p-1 hover:bg-brand-cyan/20 cursor-pointer">Upload Video</li>
-                                    <li className="p-1 hover:bg-brand-cyan/20 cursor-pointer">Upload Text</li>
-                                    <li className="p-1 hover:bg-brand-cyan/20 cursor-pointer">Upload ZIP</li>
-                                </ul>
-                                <div className="absolute bottom-[-5px] left-4 w-0 h-0 border-x-8 border-x-transparent border-t-8 border-t-border-primary"></div>
-                            </div>
+                    {fileData && (
+                        <div className="flex items-center justify-between p-2 mb-2 bg-surface-primary border-2 border-border-secondary">
+                            <span className="text-xs text-text-secondary truncate">Attached: {fileData.file.name}</span>
+                            <button onClick={() => setFileData(null)} className="p-1 text-text-secondary hover:text-brand-magenta"><XIcon className="w-4 h-4" /></button>
                         </div>
+                    )}
+                    <div className="flex items-end gap-2">
+                        <button 
+                            className="w-10 h-10 flex-shrink-0 flex items-center justify-center bg-surface-primary border-2 border-black hover:bg-brand-cyan/20" 
+                            aria-label="Attach file"
+                            onClick={() => fileInputRef.current?.click()}
+                        >
+                            <UploadIcon className="w-5 h-5" />
+                        </button>
                         <textarea
                             value={userInput}
                             onChange={(e) => setUserInput(e.target.value)}
@@ -428,7 +488,7 @@ export const AiChatPage: React.FC<AiChatPageProps> = ({ isOnline, playSound }) =
                                     handleSendMessage();
                                 }
                             }}
-                            placeholder={isOnline || selectedModel.id === 'local-robot' ? t('aiChat.inputPlaceholder') : t('aiChat.inputOffline')}
+                            placeholder={isOnline || selectedModel.id === 'local-robot' ? (fileData ? 'Ask about the file...' : t('aiChat.inputPlaceholder')) : t('aiChat.inputOffline')}
                             className="flex-grow p-2 bg-brand-light text-black rounded-none border-2 border-black focus:outline-none focus:ring-2 focus:ring-brand-yellow resize-none leading-tight"
                             rows={1}
                             style={{ minHeight: '40px', maxHeight: '120px' }}

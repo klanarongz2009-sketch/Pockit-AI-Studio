@@ -21,7 +21,7 @@ export type CurrentPage = 'imageGenerator' | 'minigameHub' | 'artGallery' | 'aiC
 
 export const App: React.FC = () => {
     const [isSoundOn, setIsSoundOn] = useState(() => preferenceService.getPreference('isSoundOn', true));
-    const [musicVolume, setMusicVolume] = useState(() => preferenceService.getPreference('musicVolume', 0.1));
+    const [musicVolume, setMusicVolume] = useState(() => preferenceService.getPreference('musicVolume', 0.3));
     const [currentPage, setCurrentPage] = useState<CurrentPage>('imageGenerator');
     const [isOnline, setIsOnline] = useState(navigator.onLine);
     const [showIntro, setShowIntro] = useState(!sessionStorage.getItem('introShown'));

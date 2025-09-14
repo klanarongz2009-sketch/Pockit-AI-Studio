@@ -1,25 +1,13 @@
 import * as audioService from './audioService';
 
-export const IMAGE_ASSETS = {
-  defaultPlayer: '/assets/images/default_player.png',
-  defaultObstacle: '/assets/images/default_obstacle.png',
-};
+// The asset files listed here were missing, causing 404 errors.
+// They have been removed to fix the application.
+// The audio service has been updated to use synthesized sounds as fallbacks.
+export const IMAGE_ASSETS: { [key: string]: string } = {};
 
-export const AUDIO_ASSETS = {
-  backgroundMusic: '/assets/music/bgm_new.mp3',
-};
+export const AUDIO_ASSETS: { [key: string]: string } = {};
 
-export const UI_SOUNDS = {
-  click: '/assets/audio/click.mp3',
-  toggle: '/assets/audio/toggle.mp3',
-  generate: '/assets/audio/generate.mp3',
-  success: '/assets/audio/success.mp3',
-  error: '/assets/audio/error.mp3',
-  swoosh: '/assets/audio/swoosh.mp3',
-  notification: '/assets/audio/notification.mp3',
-  trash: '/assets/audio/trash.mp3',
-  credit: '/assets/audio/credit.mp3',
-};
+export const UI_SOUNDS: { [key: string]: string } = {};
 
 
 async function preloadImages(): Promise<void> {

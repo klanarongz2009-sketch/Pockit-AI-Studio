@@ -38,6 +38,8 @@ import { CodeIcon } from './icons/CodeIcon';
 import { RecordIcon } from './icons/RecordIcon';
 import { ImageToCodePage } from './ImageToCodePage';
 import { MediaRecorderPage } from './MediaRecorderPage';
+import { TextToSpeechPage } from './TextToSpeechPage';
+import { TextToSpeechIcon } from './icons/TextToSpeechIcon';
 
 interface MinigameHubPageProps {
     playSound: (player: () => void) => void;
@@ -49,7 +51,7 @@ type ActiveGame =
     | 'brickBreaker' | 'calculator' | 'aiOracle' | 'wordMatch' | 'aiBugSquasher'
     | 'songSearch' | 'magicButton' | 'videoEditor'
     | 'guessThePrompt' | 'musicMemory' | 'fileChat' | 'analyzeMedia'
-    | 'imageToCode' | 'mediaRecorder';
+    | 'imageToCode' | 'mediaRecorder' | 'textToSpeech';
 
 const GameButton: React.FC<{ icon: React.ReactNode; title: string; description: string; onClick?: () => void; disabled?: boolean; comingSoon?: boolean; beta?: boolean; highScore?: number; }> = ({ icon, title, description, onClick, disabled, comingSoon, beta, highScore }) => (
     <div className="relative group h-full">
@@ -158,6 +160,12 @@ export const MinigameHubPage: React.FC<MinigameHubPageProps> = ({ playSound, isO
             title: "Media Recorder",
             description: "Record audio from your microphone or video from your camera directly in the app.",
             onClick: () => handleLaunchGame('mediaRecorder'),
+        },
+        {
+            icon: <TextToSpeechIcon className="w-16 h-16" />,
+            title: "AI Text-to-Speech",
+            description: "Convert text to speech with various voices. Earn 1 credit for every character the AI reads!",
+            onClick: () => handleLaunchGame('textToSpeech'),
         },
         {
             icon: <GuessThePromptIcon className="w-16 h-16" />,
@@ -312,6 +320,9 @@ export const MinigameHubPage: React.FC<MinigameHubPageProps> = ({ playSound, isO
     }
     if (activeGame === 'mediaRecorder') {
         return <MediaRecorderPage onClose={() => setActiveGame('hub')} playSound={playSound} />;
+    }
+    if (activeGame === 'textToSpeech') {
+        return <TextToSpeechPage onClose={() => setActiveGame('hub')} playSound={playSound} />;
     }
 
     return (

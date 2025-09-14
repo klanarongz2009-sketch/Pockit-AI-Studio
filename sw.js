@@ -1,4 +1,4 @@
-const CACHE_NAME = 'pixel-art-generator-cache-v5'; // Incremented cache version
+const CACHE_NAME = 'pixel-art-generator-cache-v6'; // Incremented cache version
 const urlsToCache = [
   // Core App Shell
   '/',
@@ -6,23 +6,7 @@ const urlsToCache = [
   '/index.tsx',
   '/manifest.json',
   // Icons & Manifest
-  '/assets/icon-192.png',
-  '/assets/icon-512.png',
   '/assets/icon.svg',
-  // Preloaded game and UI assets
-  '/assets/images/default_player.png',
-  '/assets/images/default_obstacle.png',
-  '/assets/music/bgm_new.mp3',
-  // NEW: UI Audio Assets
-  '/assets/audio/click.mp3',
-  '/assets/audio/toggle.mp3',
-  '/assets/audio/generate.mp3',
-  '/assets/audio/success.mp3',
-  '/assets/audio/error.mp3',
-  '/assets/audio/swoosh.mp3',
-  '/assets/audio/notification.mp3',
-  '/assets/audio/trash.mp3',
-  '/assets/audio/credit.mp3',
   // External Dependencies
   'https://cdn.tailwindcss.com',
   'https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap',
