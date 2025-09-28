@@ -1,30 +1,52 @@
 // Define the shape of our preferences object
 export interface Preferences {
+    // Sound
     isSoundOn: boolean;
+    uiSoundVolume: number;
+    notificationSound: boolean;
+    autoPlaySounds: boolean;
+
+    // Display & Accessibility
+    theme: 'light' | 'dark' | 'system';
+    language: 'th' | 'en' | 'ja';
+    uiAnimations: boolean;
+    highContrastMode: boolean;
+    showTooltips: boolean;
+    chatFontSize: 'small' | 'medium' | 'large';
+
+    // Creation
     imageGeneratorMode: 'image' | 'gif' | 'video' | 'spritesheet';
     imageGeneratorFps: number;
     imageGeneratorFrameCount: number;
+    imageGenerationQuality: 'fast' | 'quality';
+    defaultImageAspectRatio: '1:1' | '16:9' | '9:16' | '4:3' | '3:4';
+    autoSaveToGallery: boolean;
     textToSongModel: 'v1' | 'v1.5' | 'v2.0-beta';
+    
+    // AI Chat
+    defaultChatModelName: string;
+    saveChatHistory: boolean;
+    defaultWebSearch: boolean;
+    streamChatResponse: boolean; // Mock for now
+
+    // Minigames
+    defaultMinigameDifficulty: 'easy' | 'normal' | 'hard';
+    
+    // Credits & Data
+    confirmCreditSpend: boolean;
+    lowCreditWarningThreshold: number;
+
+    // --- Deprecated or Unused in Settings UI, but kept for compatibility ---
+    musicVolume: number;
     ticTacToeGameMode: 'ai' | 'player';
     ticTacToeDifficulty: 'easy' | 'hard';
-    voiceChangerEffect: string; // Store the effect string, e.g., 'robot'
+    voiceChangerEffect: string;
     videoEditorSubtitleLang: string;
     videoEditorAutoDetectLang: boolean;
     textToSpeechVoiceURI: string;
     textToSpeechPitch: number;
     textToSpeechRate: number;
     textToSpeechAutoDetectLang: boolean;
-    theme: 'light' | 'dark' | 'system';
-    musicVolume: number;
-    defaultChatModelName: string;
-    imageGenerationQuality: 'fast' | 'quality';
-    saveChatHistory: boolean;
-    defaultMinigameDifficulty: 'easy' | 'normal' | 'hard';
-    confirmCreditSpend: boolean;
-    defaultWebSearch: boolean;
-    autoPlaySounds: boolean;
-    uiAnimations: boolean;
-    language: 'th' | 'en';
 }
 
 const PREFERENCES_STORAGE_KEY = 'ai-studio-user-preferences';

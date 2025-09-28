@@ -347,10 +347,15 @@ export async function sendMessageToChat(
 
         const response = await activeChat.sendMessage({ message });
         
-        const sources = response.candidates?.[0]?.groundingMetadata?.groundingChunks
-            ?.map((c: any) => ({ uri: c.web.uri, title: c.web.title }))
-            .filter((s: any) => s.uri && s.title) || [];
-            
+        // FIX: The original code's direct mapping could fail if groundingChunks is not an array.
+        // This is a more robust way to handle the grounding chunks by ensuring it is an array before mapping.
+        const chunks = response.candidates?.[0]?.groundingMetadata?.groundingChunks;
+        const sources = Array.isArray(chunks)
+            ? chunks
+                .map((c: any) => c.web && { uri: c.web.uri, title: c.web.title })
+                .filter((s: any) => s && s.uri && s.title)
+            : [];
+
         return {
             text: response.text,
             sources: sources.length > 0 ? sources : undefined
@@ -617,9 +622,12 @@ export const identifyAndSearchMusic = async (base64: string, mimeType: string): 
         
         const parsedResult = safeJsonParse<Partial<SearchResult>>(structuredResponse.text);
 
-        const sources = response.candidates?.[0]?.groundingMetadata?.groundingChunks
-            ?.map((c: any) => ({ uri: c.web.uri, title: c.web.title }))
-            .filter((s: any) => s.uri && s.title) || [];
+        const chunks = response.candidates?.[0]?.groundingMetadata?.groundingChunks;
+        const sources = Array.isArray(chunks)
+            ? chunks
+                .map((c: any) => c.web && { uri: c.web.uri, title: c.web.title })
+                .filter((s: any) => s && s.uri && s.title)
+            : [];
         
         return { ...parsedResult, sources } as SearchResult;
     } catch (error) {
@@ -899,6 +907,24 @@ export const generateSoundFromImage = async (base64: string, mimeType: string): 
             }
         });
         return safeJsonParse<SoundEffectParameters>(response.text);
+    } catch (error) {
+        throw new Error(parseApiError(error));
+    }
+};
+
+export const translateText = async (text: string, targetLanguage: string): Promise<string> => {
+    const ai = checkApi();
+    try {
+        const response = await ai.models.generateContent({
+            model: "gemini-2.5-flash",
+            contents: `Translate the following text to ${targetLanguage}. Respond ONLY with the translated text, without any preamble, explanation, or quotation marks.\n\nText to translate:\n"""\n${text}\n"""`,
+        });
+        // The model might still add quotes, so let's try to strip them.
+        let translated = response.text.trim();
+        if ((translated.startsWith('"') && translated.endsWith('"')) || (translated.startsWith("'") && translated.endsWith("'"))) {
+            translated = translated.substring(1, translated.length - 1);
+        }
+        return translated;
     } catch (error) {
         throw new Error(parseApiError(error));
     }

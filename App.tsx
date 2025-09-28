@@ -21,7 +21,6 @@ export type CurrentPage = 'imageGenerator' | 'minigameHub' | 'artGallery' | 'aiC
 
 export const App: React.FC = () => {
     const [isSoundOn, setIsSoundOn] = useState(() => preferenceService.getPreference('isSoundOn', true));
-    const [musicVolume, setMusicVolume] = useState(() => preferenceService.getPreference('musicVolume', 0.3));
     const [currentPage, setCurrentPage] = useState<CurrentPage>('imageGenerator');
     const [isOnline, setIsOnline] = useState(navigator.onLine);
     const [showIntro, setShowIntro] = useState(!sessionStorage.getItem('introShown'));
@@ -53,9 +52,9 @@ export const App: React.FC = () => {
             if (!audioInitialized.current) {
                 audioInitialized.current = true;
                 audioService.initAudio();
-                audioService.startBackgroundMusic();
-                // Set initial music volume based on saved preference
-                audioService.setMusicVolume(isSoundOn ? musicVolume : 0);
+                audioService.startBackgroundMusic(currentPage);
+                // Set initial music volume based on saved preference, using a fixed volume level
+                audioService.setMusicVolume(isSoundOn ? 0.2 : 0);
                 // Clean up listeners after first interaction
                 window.removeEventListener('click', initAudioOnce);
                 window.removeEventListener('keydown', initAudioOnce);
@@ -69,7 +68,7 @@ export const App: React.FC = () => {
             window.removeEventListener('click', initAudioOnce);
             window.removeEventListener('keydown', initAudioOnce);
         };
-    }, [isSoundOn, musicVolume]);
+    }, [isSoundOn, currentPage]);
     
     // Effect to toggle body class for modal pages
     useEffect(() => {
@@ -84,6 +83,13 @@ export const App: React.FC = () => {
     useEffect(() => {
         document.body.classList.toggle('animations-disabled', !uiAnimations);
     }, [uiAnimations]);
+
+    // Effect for changing background music on page change
+    useEffect(() => {
+        if (audioInitialized.current && isSoundOn) {
+            audioService.changeBackgroundMusic(currentPage);
+        }
+    }, [currentPage, isSoundOn]);
 
 
     const playSound = useCallback((player: () => void): void => {
@@ -103,16 +109,8 @@ export const App: React.FC = () => {
         playSound(audioService.playToggle);
         setIsSoundOn(newIsSoundOn);
         preferenceService.setPreference('isSoundOn', newIsSoundOn);
-        audioService.setMusicVolume(newIsSoundOn ? musicVolume : 0);
-    }, [isSoundOn, playSound, musicVolume]);
-
-    const handleMusicVolumeChange = useCallback((volume: number) => {
-        setMusicVolume(volume);
-        preferenceService.setPreference('musicVolume', volume);
-        if (isSoundOn) {
-            audioService.setMusicVolume(volume);
-        }
-    }, [isSoundOn]);
+        audioService.setMusicVolume(newIsSoundOn ? 0.2 : 0);
+    }, [isSoundOn, playSound]);
     
     const handleUiAnimationsChange = useCallback((enabled: boolean) => {
         setUiAnimations(enabled);
@@ -149,8 +147,6 @@ export const App: React.FC = () => {
                   playSound={playSound}
                   isSoundOn={isSoundOn}
                   onToggleSound={handleToggleSound}
-                  musicVolume={musicVolume}
-                  onMusicVolumeChange={handleMusicVolumeChange}
                   uiAnimations={uiAnimations}
                   onUiAnimationsChange={handleUiAnimationsChange}
                   aiModels={ALL_AI_MODELS}

@@ -90,6 +90,30 @@
         "clearAllDataWarning": "การล้างข้อมูลทั้งหมดจะลบเครดิต, ประวัติ, รูปภาพในแกลเลอรี และการตั้งค่าทั้งหมด",
         "language": "Language / ภาษา",
         "langTh": "ไทย",
-        "langEn": "English"
+        "langEn": "English",
+        "langJa": "日本語"
+    },
+    "translator": {
+        "title": "AI แปลภาษา",
+        "description": "แปลข้อความระหว่างภาษาต่างๆ ขับเคลื่อนโดย AI",
+        "from": "จาก",
+        "to": "ถึง",
+        "swap": "สลับ",
+        "inputText": "ป้อนข้อความที่นี่...",
+        "outputText": "คำแปลจะปรากฏที่นี่...",
+        "translate": "แปลภาษา",
+        "translating": "กำลังแปล...",
+        "credits": "เครดิต",
+        "notEnoughCredits": "เครดิตไม่เพียงพอ! คุณต้องการ"
+    },
+    "sequencer": {
+        "title": "Pixel Sequencer",
+        "description": "สร้างสรรค์เพลง 8-bit chiptune ของคุณเองบนตารางสเต็ปซีเควนเซอร์ เครื่องมืออันทรงพลังสำหรับการสร้างสรรค์ดนตรี!",
+        "play": "เล่น",
+        "stop": "หยุด",
+        "bpm": "BPM",
+        "instrument": "เครื่องดนตรี",
+        "clear": "ล้าง",
+        "download": "ดาวน์โหลด"
     }
 }

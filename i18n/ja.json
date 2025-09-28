@@ -1,0 +1,119 @@
+{
+    "header": {
+        "title": "クリエイティブAIユニバース",
+        "credits": "クレジット",
+        "settings": "設定",
+        "menu": "メニュー"
+    },
+    "sidebar": {
+        "imageGenerator": "画像生成",
+        "gallery": "ギャラリー",
+        "aiZone": "AIゾーン",
+        "aiChat": "AIチャット"
+    },
+    "offline": {
+        "message": "オフラインです。AI機能は無効です。"
+    },
+    "imageGenerator": {
+        "title": "AI画像ジェネレーター",
+        "promptLabel": "プロンプト",
+        "promptPlaceholder": "例：宇宙で恐竜に乗る騎士、または画像をアップロードして「コード」と入力するとAIがコードを書きます",
+        "suggestions": "アイデア:",
+        "generate": "生成",
+        "getIdeas": "アイデアを得る",
+        "fromImage": "画像から",
+        "fromUrl": "URLから",
+        "download": "ダウンロード",
+        "share": "共有",
+        "saveToGallery": "保存",
+        "clear": "クリア"
+    },
+    "outputDisplay": {
+        "emptyArea": "結果エリアは空です",
+        "errorTitle": "エラーが発生しました",
+        "welcomeTitle": "ようこそ！",
+        "welcomeMessage": "プロンプトを入力するか、画像をアップロードして始めましょう！",
+        "altBase": {
+            "image": "ピクセルアート画像",
+            "gif": "ループするピクセルアートGIFアニメーション",
+            "video": "ピクセルアート動画",
+            "spritesheet": "ピクセルアートアニメーションスプライトシート"
+        },
+        "altGeneratedFrom": "次のプロンプトから生成:",
+        "codePreview": "次のプロンプトから生成されたコードプレビュー:",
+        "videoNotSupported": "お使いのブラウザはvideoタグをサポートしていません。"
+    },
+    "aiChat": {
+        "title": "AIチャット",
+        "selectAssistant": "AIアシスタントを選択",
+        "searchAssistant": "アシスタントを検索...",
+        "webSearch": "ウェブ検索",
+        "newChat": "新規チャット",
+        "startConversation": "会話を開始",
+        "startMessage": "質問したり、アイデアを求めたり、コードの助けを求めたりできます！",
+        "sendMessage": "送信",
+        "inputPlaceholder": "メッセージを入力...",
+        "inputOffline": "オフラインです",
+        "translate": "翻訳",
+        "copyCode": "コードをコピー"
+    },
+    "settings": {
+        "title": "設定",
+        "general": "一般",
+        "aboutApp": "アプリについて",
+        "theme": "テーマ",
+        "themeLight": "ライト",
+        "themeDark": "ダーク",
+        "themeSystem": "システム",
+        "sound": "サウンド",
+        "soundEffects": "効果音",
+        "backgroundMusic": "BGM",
+        "on": "オン",
+        "off": "オフ",
+        "display": "表示",
+        "uiAnimations": "UIアニメーション",
+        "creation": "作成",
+        "defaultImageMode": "デフォルト画像モード",
+        "imageQuality": "画像生成品質",
+        "qualityFast": "高速",
+        "qualityHigh": "高品質",
+        "defaultAiChat": "デフォルトAIチャット",
+        "saveChatHistory": "チャット履歴を保存",
+        "minigames": "ミニゲーム",
+        "defaultDifficulty": "デフォルト難易度",
+        "difficultyEasy": "簡単",
+        "difficultyNormal": "普通",
+        "difficultyHard": "難しい",
+        "dataManagement": "データ管理",
+        "clearArtData": "ギャラリーと曲の履歴を消去",
+        "clearAllData": "全データを消去",
+        "clearAllDataWarning": "全データを消去すると、クレジット、履歴、ギャラリーの画像、すべての設定が削除されます。",
+        "language": "Language / 言語",
+        "langTh": "ไทย",
+        "langEn": "English",
+        "langJa": "日本語"
+    },
+    "translator": {
+        "title": "AI翻訳",
+        "description": "AIを使用して言語間でテキストを翻訳します。",
+        "from": "翻訳元",
+        "to": "翻訳先",
+        "swap": "入れ替え",
+        "inputText": "ここにテキストを入力...",
+        "outputText": "ここに翻訳が表示されます...",
+        "translate": "翻訳",
+        "translating": "翻訳中...",
+        "credits": "クレジット",
+        "notEnoughCredits": "クレジットが不足しています！必要なクレジット:"
+    },
+    "sequencer": {
+        "title": "ピクセルシーケンサー",
+        "description": "ステップシーケンサーグリッドで独自の8ビットチップチューンメロディーを作成します。音楽制作のための強力なツール！",
+        "play": "再生",
+        "stop": "停止",
+        "bpm": "BPM",
+        "instrument": "楽器",
+        "clear": "クリア",
+        "download": "ダウンロード"
+    }
+}

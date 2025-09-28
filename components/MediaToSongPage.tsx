@@ -1,5 +1,4 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
-// FIX: Changed from `import type` to a regular import.
 import { Song } from '../services/geminiService';
 import { generateSongFromMedia } from '../services/geminiService';
 import * as audioService from '../services/audioService';
@@ -11,6 +10,7 @@ import { PlayIcon } from './icons/PlayIcon';
 import { StopIcon } from './icons/StopIcon';
 import { MusicNoteIcon } from './icons/MusicNoteIcon';
 import { DownloadIcon } from './icons/DownloadIcon';
+import { AudioVisualizer } from './AudioVisualizer';
 
 interface MediaToSongPageProps {
     onClose: () => void;
@@ -150,7 +150,6 @@ export const MediaToSongPage: React.FC<MediaToSongPageProps> = ({
         onClose();
     }
     
-    // Keyboard shortcuts
     useEffect(() => {
         const handleKeyDown = (event: KeyboardEvent) => {
             if (isLoading || isDownloading) return;
@@ -256,30 +255,33 @@ export const MediaToSongPage: React.FC<MediaToSongPageProps> = ({
                         )}
 
                         {generatedSong && (
-                             <div className="space-y-4 text-center w-full py-4 bg-black/40 border-2 border-brand-cyan">
-                                <h3 className="text-lg font-press-start text-brand-cyan">สร้างเพลงสำเร็จ!</h3>
-                                <div className="flex flex-col sm:flex-row gap-4 justify-center items-center px-4">
-                                     <button 
-                                        onClick={handlePlaybackToggle} 
-                                        onMouseEnter={() => playSound(audioService.playHover)}
-                                        aria-label={isPlayingSong ? "หยุดเพลง" : "เล่นเพลง"}
-                                        title="ปุ่มลัด: Alt+P"
-                                        className="w-full sm:w-48 flex items-center justify-center gap-3 p-3 bg-brand-cyan text-black border-4 border-brand-light shadow-pixel text-base transition-all hover:bg-brand-yellow active:shadow-pixel-active active:translate-y-[2px] active:translate-x-[2px]">
-                                        {isPlayingSong ? <StopIcon className="w-6 h-6" /> : <PlayIcon className="w-6 h-6" />}
-                                        <span>{isPlayingSong ? 'หยุด' : 'เล่นเพลง'}</span>
-                                    </button>
-                                     <button 
-                                        onClick={handleDownloadSong} 
-                                        onMouseEnter={() => playSound(audioService.playHover)}
-                                        disabled={isDownloading} 
-                                        aria-label="ดาวน์โหลดเพลงเป็นไฟล์ WAV" 
-                                        title="ปุ่มลัด: Alt+D"
-                                        className="w-full sm:w-48 flex items-center justify-center gap-3 p-3 bg-brand-yellow text-black border-4 border-brand-light shadow-pixel text-base transition-all hover:bg-brand-magenta hover:text-white active:shadow-pixel-active active:translate-y-[2px] active:translate-x-[2px] disabled:bg-gray-500 disabled:cursor-not-allowed">
-                                        <DownloadIcon className="w-6 h-6" />
-                                        <span>{isDownloading ? 'กำลังสร้าง...' : 'ดาวน์โหลด'}</span>
-                                    </button>
+                            <div className="w-full space-y-4">
+                                <AudioVisualizer />
+                                <div className="space-y-4 text-center w-full py-4 bg-black/40 border-2 border-brand-cyan">
+                                    <h3 className="text-lg font-press-start text-brand-cyan">สร้างเพลงสำเร็จ!</h3>
+                                    <div className="flex flex-col sm:flex-row gap-4 justify-center items-center px-4">
+                                        <button 
+                                            onClick={handlePlaybackToggle} 
+                                            onMouseEnter={() => playSound(audioService.playHover)}
+                                            aria-label={isPlayingSong ? "หยุดเพลง" : "เล่นเพลง"}
+                                            title="ปุ่มลัด: Alt+P"
+                                            className="w-full sm:w-48 flex items-center justify-center gap-3 p-3 bg-brand-cyan text-black border-4 border-brand-light shadow-pixel text-base transition-all hover:bg-brand-yellow active:shadow-pixel-active active:translate-y-[2px] active:translate-x-[2px]">
+                                            {isPlayingSong ? <StopIcon className="w-6 h-6" /> : <PlayIcon className="w-6 h-6" />}
+                                            <span>{isPlayingSong ? 'หยุด' : 'เล่นเพลง'}</span>
+                                        </button>
+                                        <button 
+                                            onClick={handleDownloadSong} 
+                                            onMouseEnter={() => playSound(audioService.playHover)}
+                                            disabled={isDownloading} 
+                                            aria-label="ดาวน์โหลดเพลงเป็นไฟล์ WAV" 
+                                            title="ปุ่มลัด: Alt+D"
+                                            className="w-full sm:w-48 flex items-center justify-center gap-3 p-3 bg-brand-yellow text-black border-4 border-brand-light shadow-pixel text-base transition-all hover:bg-brand-magenta hover:text-white active:shadow-pixel-active active:translate-y-[2px] active:translate-x-[2px] disabled:bg-gray-500 disabled:cursor-not-allowed">
+                                            <DownloadIcon className="w-6 h-6" />
+                                            <span>{isDownloading ? 'กำลังสร้าง...' : 'ดาวน์โหลด'}</span>
+                                        </button>
+                                    </div>
                                 </div>
-                            </div>
+                             </div>
                         )}
                     </div>
                 )}

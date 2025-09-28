@@ -9,14 +9,13 @@ import { SettingsIcon } from './icons/SettingsIcon';
 import { InfoIcon } from './icons/InfoIcon';
 import { AboutPage } from './AboutPage';
 import { ModelInfoPage } from './ModelInfoPage';
+import { useLanguage } from '../contexts/LanguageContext';
 
 interface SettingsPageProps {
     onClose: () => void;
     playSound: (player: () => void) => void;
     isSoundOn: boolean;
     onToggleSound: () => void;
-    musicVolume: number;
-    onMusicVolumeChange: (volume: number) => void;
     aiModels: { name: string; }[];
     uiAnimations: boolean;
     onUiAnimationsChange: (enabled: boolean) => void;
@@ -29,61 +28,66 @@ const Section: React.FC<{ title: string; children: React.ReactNode; }> = ({ titl
     </section>
 );
 
+const SettingToggle: React.FC<{ label: string; description?: string; isChecked: boolean; onToggle: () => void; }> = ({ label, description, isChecked, onToggle }) => (
+    <div className="flex items-center justify-between">
+        <div>
+            <label className="font-press-start" htmlFor={`toggle-${label}`}>{label}</label>
+            {description && <p className="text-xs text-brand-light/70">{description}</p>}
+        </div>
+        <button id={`toggle-${label}`} onClick={onToggle} className="p-2 border-2 border-border-primary w-20 text-center">
+            {isChecked ? 'เปิด' : 'ปิด'}
+        </button>
+    </div>
+);
+
 export const SettingsPage: React.FC<SettingsPageProps> = ({ 
     onClose, 
     playSound, 
     isSoundOn, 
     onToggleSound, 
-    musicVolume, 
-    onMusicVolumeChange,
     aiModels,
     uiAnimations,
     onUiAnimationsChange,
 }) => {
     const { themePreference, setThemePreference } = useTheme();
+    const { language, setLanguage, t } = useLanguage();
     const [isAboutPageOpen, setIsAboutPageOpen] = useState(false);
     const [isModelInfoOpen, setIsModelInfoOpen] = useState(false);
-    const [defaultChatModelName, setDefaultChatModelName] = useState(() => 
-        preferenceService.getPreference('defaultChatModelName', aiModels[0]?.name || '')
-    );
-    const [defaultImageMode, setDefaultImageMode] = useState(() =>
-        preferenceService.getPreference('imageGeneratorMode', 'image')
-    );
-    const [imageQuality, setImageQuality] = useState(() =>
-        preferenceService.getPreference('imageGenerationQuality', 'quality')
-    );
-     const [saveChatHistory, setSaveChatHistory] = useState(() =>
-        preferenceService.getPreference('saveChatHistory', true)
-    );
-    const [defaultMinigameDifficulty, setDefaultMinigameDifficulty] = useState(() =>
-        preferenceService.getPreference('defaultMinigameDifficulty', 'normal')
-    );
 
+    // --- State for all new preferences ---
+    const [highContrast, setHighContrast] = useState(() => preferenceService.getPreference('highContrastMode', false));
+    const [chatFontSize, setChatFontSize] = useState(() => preferenceService.getPreference('chatFontSize', 'medium'));
+    const [autoPlaySounds, setAutoPlaySounds] = useState(() => preferenceService.getPreference('autoPlaySounds', true));
+    const [defaultImageMode, setDefaultImageMode] = useState(() => preferenceService.getPreference('imageGeneratorMode', 'image'));
+    const [imageQuality, setImageQuality] = useState(() => preferenceService.getPreference('imageGenerationQuality', 'quality'));
+    const [autoSaveToGallery, setAutoSaveToGallery] = useState(() => preferenceService.getPreference('autoSaveToGallery', false));
+    const [defaultChatModelName, setDefaultChatModelName] = useState(() => preferenceService.getPreference('defaultChatModelName', aiModels[0]?.name || ''));
+    const [saveChatHistory, setSaveChatHistory] = useState(() => preferenceService.getPreference('saveChatHistory', true));
+    const [defaultWebSearch, setDefaultWebSearch] = useState(() => preferenceService.getPreference('defaultWebSearch', false));
+    const [defaultMinigameDifficulty, setDefaultMinigameDifficulty] = useState(() => preferenceService.getPreference('defaultMinigameDifficulty', 'normal'));
+    const [confirmCreditSpend, setConfirmCreditSpend] = useState(() => preferenceService.getPreference('confirmCreditSpend', false));
 
+    // --- Effects to save preferences and apply side-effects ---
     useEffect(() => {
-        preferenceService.setPreference('defaultChatModelName', defaultChatModelName);
-    }, [defaultChatModelName]);
+        preferenceService.setPreference('highContrastMode', highContrast);
+        document.body.classList.toggle('theme-high-contrast', highContrast);
+    }, [highContrast]);
 
-    useEffect(() => {
-        preferenceService.setPreference('imageGeneratorMode', defaultImageMode);
-    }, [defaultImageMode]);
-    
-    useEffect(() => {
-        preferenceService.setPreference('imageGenerationQuality', imageQuality);
-    }, [imageQuality]);
-    
-     useEffect(() => {
-        preferenceService.setPreference('saveChatHistory', saveChatHistory);
-    }, [saveChatHistory]);
-
-    useEffect(() => {
-        preferenceService.setPreference('defaultMinigameDifficulty', defaultMinigameDifficulty);
-    }, [defaultMinigameDifficulty]);
-
+    useEffect(() => { preferenceService.setPreference('chatFontSize', chatFontSize); }, [chatFontSize]);
+    useEffect(() => { preferenceService.setPreference('autoPlaySounds', autoPlaySounds); }, [autoPlaySounds]);
+    // FIX: Changed preference key from 'defaultImageMode' to the correct 'imageGeneratorMode'.
+    useEffect(() => { preferenceService.setPreference('imageGeneratorMode', defaultImageMode); }, [defaultImageMode]);
+    useEffect(() => { preferenceService.setPreference('imageGenerationQuality', imageQuality); }, [imageQuality]);
+    useEffect(() => { preferenceService.setPreference('autoSaveToGallery', autoSaveToGallery); }, [autoSaveToGallery]);
+    useEffect(() => { preferenceService.setPreference('defaultChatModelName', defaultChatModelName); }, [defaultChatModelName]);
+    useEffect(() => { preferenceService.setPreference('saveChatHistory', saveChatHistory); }, [saveChatHistory]);
+    useEffect(() => { preferenceService.setPreference('defaultWebSearch', defaultWebSearch); }, [defaultWebSearch]);
+    useEffect(() => { preferenceService.setPreference('defaultMinigameDifficulty', defaultMinigameDifficulty); }, [defaultMinigameDifficulty]);
+    useEffect(() => { preferenceService.setPreference('confirmCreditSpend', confirmCreditSpend); }, [confirmCreditSpend]);
 
     const handleClearArtData = () => {
         playSound(audioService.playTrash);
-        if (window.confirm('Are you sure you want to delete your entire gallery and song history?')) {
+        if (window.confirm('Are you sure you want to delete your entire gallery and song history? This cannot be undone.')) {
             try {
                 const keysToRemove = ['ai-art-gallery-artworks', 'ai-studio-song-history'];
                 for (let i = 0; i < localStorage.length; i++) {
@@ -93,7 +97,7 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({
                     }
                 }
                 keysToRemove.forEach(key => localStorage.removeItem(key));
-                alert('Data cleared successfully.');
+                alert('Gallery and song history have been cleared.');
                 window.location.reload();
             } catch (e) {
                 alert('Could not clear data.');
@@ -102,7 +106,16 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({
         }
     };
 
-
+    const handleResetHighScores = () => {
+        playSound(audioService.playTrash);
+        if (window.confirm('Are you sure you want to reset all minigame high scores?')) {
+            localStorage.removeItem('minigame_snake_highscore');
+            localStorage.removeItem('minigame_brickBreaker_highscore');
+            localStorage.removeItem('musicMemoryHighScore');
+            alert('High scores have been reset.');
+        }
+    };
+    
     const handleClearData = () => {
         playSound(audioService.playTrash);
         if (window.confirm('Are you sure you want to clear all application data? This cannot be undone and will delete your credits, gallery, history, and all settings.')) {
@@ -126,80 +139,61 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({
 
     return (
         <PageWrapper>
-            <PageHeader title={"Settings"} onBack={onClose} />
+            <PageHeader title={t('settings.title')} onBack={onClose} />
             <main id="main-content" className="w-full max-w-2xl flex-grow overflow-y-auto font-sans pr-2 space-y-6">
                 
-                <Section title={"General"}>
+                <Section title={t('settings.general')}>
                     <button
                         onClick={() => { playSound(audioService.playClick); setIsAboutPageOpen(true); }}
                         className="w-full p-3 bg-surface-primary border-4 border-border-primary text-text-primary shadow-pixel font-press-start text-sm transition-all hover:bg-brand-cyan/20 flex items-center justify-center gap-2"
                     >
                         <InfoIcon className="w-5 h-5" />
-                        <span>{"About App"}</span>
+                        <span>{t('settings.aboutApp')}</span>
                     </button>
                 </Section>
-                
-                <Section title={"Theme"}>
-                    <div className="grid grid-cols-3 gap-2">
-                        {(['light', 'dark', 'system'] as const).map(pref => (
-                            <button
-                                key={pref}
-                                onClick={() => { playSound(audioService.playClick); setThemePreference(pref); }}
-                                className={`flex flex-col items-center justify-center gap-2 p-3 border-4 font-press-start text-xs ${themePreference === pref ? 'bg-brand-yellow text-black border-black' : 'bg-surface-primary border-border-primary text-text-primary hover:bg-brand-cyan/20'}`}
-                            >
-                                {pref === 'light' && <SunIcon className="w-6 h-6" />}
-                                {pref === 'dark' && <MoonIcon className="w-6 h-6" />}
-                                {pref === 'system' && <SettingsIcon className="w-6 h-6" />}
-                                <span>{pref.charAt(0).toUpperCase() + pref.slice(1)}</span>
-                            </button>
-                        ))}
-                    </div>
-                </Section>
 
-                <Section title={"Sound"}>
-                    <div className="flex items-center justify-between">
-                        <label className="font-press-start" htmlFor="sound-toggle-btn">{"Sound Effects"}</label>
-                        <button id="sound-toggle-btn" onClick={onToggleSound} className="p-2 border-2 border-border-primary">
-                            {isSoundOn ? "On" : "Off"}
-                        </button>
-                    </div>
-                    <div>
-                        <label htmlFor="music-volume" className="font-press-start flex justify-between">
-                            <span>{"Background Music"}</span>
-                            <span>{Math.round(musicVolume * 100)}%</span>
-                        </label>
-                        <input
-                            id="music-volume"
-                            type="range"
-                            min="0"
-                            max="1"
-                            step="0.01"
-                            value={musicVolume}
-                            onChange={(e) => onMusicVolumeChange(parseFloat(e.target.value))}
-                            className="w-full mt-2"
-                        />
-                    </div>
-                </Section>
-
-                <Section title={"Display"}>
-                    <div className="flex items-center justify-between">
-                        <label className="font-press-start" htmlFor="animations-toggle-btn">{"UI Animations"}</label>
-                        <button
-                            id="animations-toggle-btn"
-                            onClick={() => {
-                                playSound(audioService.playToggle);
-                                onUiAnimationsChange(!uiAnimations);
-                            }}
-                            className="p-2 border-2 border-border-primary"
-                        >
-                            {uiAnimations ? "On" : "Off"}
-                        </button>
-                    </div>
-                </Section>
-                
-                <Section title={"Creation"}>
+                <Section title={t('settings.display')}>
                      <div>
-                        <label htmlFor="default-image-mode" className="font-press-start">{"Default Image Mode"}</label>
+                        <label className="font-press-start">{t('settings.theme')}</label>
+                        <div className="grid grid-cols-3 gap-2 mt-2">
+                            {(['light', 'dark', 'system'] as const).map(pref => (
+                                <button
+                                    key={pref}
+                                    onClick={() => { playSound(audioService.playClick); setThemePreference(pref); }}
+                                    className={`flex flex-col items-center justify-center gap-2 p-3 border-4 font-press-start text-xs ${themePreference === pref ? 'bg-brand-yellow text-black border-black' : 'bg-surface-primary border-border-primary text-text-primary hover:bg-brand-cyan/20'}`}
+                                >
+                                    {pref === 'light' && <SunIcon className="w-6 h-6" />}
+                                    {pref === 'dark' && <MoonIcon className="w-6 h-6" />}
+                                    {pref === 'system' && <SettingsIcon className="w-6 h-6" />}
+                                    <span>{t(`settings.theme${pref.charAt(0).toUpperCase() + pref.slice(1)}`)}</span>
+                                </button>
+                            ))}
+                        </div>
+                    </div>
+                     <div>
+                        <label className="font-press-start">{t('settings.language')}</label>
+                        <select
+                            value={language}
+                            onChange={(e) => { playSound(audioService.playClick); setLanguage(e.target.value as any); }}
+                            className="w-full mt-2 p-2 bg-brand-light text-black border-2 border-black font-sans"
+                        >
+                            <option value="th">{t('settings.langTh')}</option>
+                            <option value="en">{t('settings.langEn')}</option>
+                            <option value="ja">{t('settings.langJa')}</option>
+                        </select>
+                    </div>
+                    <SettingToggle label={t('settings.uiAnimations')} isChecked={uiAnimations} onToggle={() => { playSound(audioService.playToggle); onUiAnimationsChange(!uiAnimations); }} />
+                    <SettingToggle label="High Contrast" isChecked={highContrast} onToggle={() => { playSound(audioService.playToggle); setHighContrast(p => !p); }} />
+                </Section>
+                
+                <Section title={t('settings.sound')}>
+                    <SettingToggle label={t('settings.soundEffects')} isChecked={isSoundOn} onToggle={onToggleSound} />
+                    <SettingToggle label="Autoplay Sounds" description="Automatically play generated sounds and music." isChecked={autoPlaySounds} onToggle={() => { playSound(audioService.playToggle); setAutoPlaySounds(p => !p); }} />
+                </Section>
+
+                <Section title={t('settings.creation')}>
+                     <div>
+                        <label htmlFor="default-image-mode" className="font-press-start">{t('settings.defaultImageMode')}</label>
                         <select
                             id="default-image-mode"
                             value={defaultImageMode}
@@ -213,23 +207,24 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({
                         </select>
                     </div>
                      <div>
-                        <label className="font-press-start">{"Image Generation Quality"}</label>
+                        <label className="font-press-start">{t('settings.imageQuality')}</label>
                         <div className="flex gap-4 mt-2">
                             <label className="flex items-center gap-2">
                                 <input type="radio" name="image-quality" value="fast" checked={imageQuality === 'fast'} onChange={() => setImageQuality('fast')} className="w-5 h-5 accent-brand-magenta" />
-                                <span>{"Fast"}</span>
+                                <span>{t('settings.qualityFast')}</span>
                             </label>
                              <label className="flex items-center gap-2">
                                 <input type="radio" name="image-quality" value="quality" checked={imageQuality === 'quality'} onChange={() => setImageQuality('quality')} className="w-5 h-5 accent-brand-magenta" />
-                                <span>{"High Quality"}</span>
+                                <span>{t('settings.qualityHigh')}</span>
                             </label>
                         </div>
                     </div>
+                    <SettingToggle label="Auto-save to Gallery" description="Automatically save generated images to your gallery." isChecked={autoSaveToGallery} onToggle={() => { playSound(audioService.playToggle); setAutoSaveToGallery(p => !p); }} />
                 </Section>
 
-                <Section title={"AI Chat"}>
+                <Section title={t('aiChat.title')}>
                      <div>
-                        <label htmlFor="default-model-select" className="font-press-start">{"Default AI Chat"}</label>
+                        <label htmlFor="default-model-select" className="font-press-start">{t('settings.defaultAiChat')}</label>
                         <select
                             id="default-model-select"
                             value={defaultChatModelName}
@@ -244,50 +239,34 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({
                         </select>
                         <button onClick={() => setIsModelInfoOpen(true)} className="text-xs text-brand-cyan underline mt-2">Learn more about models</button>
                     </div>
-                    <div className="flex items-center justify-between">
-                        <label className="font-press-start" htmlFor="save-history-btn">{"Save Chat History"}</label>
-                         <button id="save-history-btn" onClick={() => setSaveChatHistory(prev => !prev)} className="p-2 border-2 border-border-primary">
-                            {saveChatHistory ? "On" : "Off"}
-                        </button>
-                    </div>
-                     <p className="text-xs text-brand-light/70">Note: Chat history is cleared when the browser tab is closed.</p>
+                    <SettingToggle label={t('settings.saveChatHistory')} description="Save chat history in your browser." isChecked={saveChatHistory} onToggle={() => { playSound(audioService.playToggle); setSaveChatHistory(p => !p); }} />
+                    <SettingToggle label="Enable Web Search" description="Enable web search by default for compatible models." isChecked={defaultWebSearch} onToggle={() => { playSound(audioService.playToggle); setDefaultWebSearch(p => !p); }} />
                 </Section>
                 
-                 <Section title={"Minigames"}>
+                 <Section title={t('settings.minigames')}>
                      <div>
-                        <label htmlFor="default-minigame-difficulty" className="font-press-start">{"Default Difficulty"}</label>
+                        <label htmlFor="default-minigame-difficulty" className="font-press-start">{t('settings.defaultDifficulty')}</label>
                         <select
                             id="default-minigame-difficulty"
                             value={defaultMinigameDifficulty}
                             onChange={(e) => setDefaultMinigameDifficulty(e.target.value as any)}
                             className="w-full mt-2 p-2 bg-brand-light text-black border-2 border-black"
                         >
-                            <option value="easy">{"Easy"}</option>
-                            <option value="normal">{"Normal"}</option>
-                            <option value="hard">{"Hard"}</option>
+                            <option value="easy">{t('settings.difficultyEasy')}</option>
+                            <option value="normal">{t('settings.difficultyNormal')}</option>
+                            <option value="hard">{t('settings.difficultyHard')}</option>
                         </select>
                          <p className="text-xs text-brand-light/70 mt-1">Applies to games that support difficulty levels.</p>
                     </div>
                 </Section>
-
-                <Section title={"Data Management"}>
-                    <button
-                        onClick={handleClearArtData}
-                        className="w-full p-3 bg-brand-yellow text-black border-4 border-brand-light shadow-pixel font-press-start text-sm transition-all hover:bg-yellow-500 active:shadow-pixel-active active:translate-y-[2px] active:translate-x-[2px]"
-                    >
-                        {"Clear Gallery & Song History"}
-                    </button>
-                     <button
-                        onClick={handleClearData}
-                        className="w-full p-3 bg-brand-magenta text-white border-4 border-brand-light shadow-pixel font-press-start text-sm transition-all hover:bg-red-500 active:shadow-pixel-active active:translate-y-[2px] active:translate-x-[2px]"
-                    >
-                        {"Clear All Data"}
-                    </button>
-                    <p className="text-xs text-brand-light/70 text-center">
-                        {"Clearing all data will remove your credits, history, gallery images, and all settings."}
-                    </p>
+                
+                <Section title="Credits & Data">
+                    <SettingToggle label="Confirm Credit Spend" description="Show a confirmation dialog before spending credits." isChecked={confirmCreditSpend} onToggle={() => { playSound(audioService.playToggle); setConfirmCreditSpend(p => !p); }} />
+                    <button onClick={handleResetHighScores} className="w-full p-3 bg-brand-yellow text-black border-4 border-brand-light shadow-pixel font-press-start text-sm hover:bg-yellow-500">Reset All High Scores</button>
+                    <button onClick={handleClearArtData} className="w-full p-3 bg-brand-yellow text-black border-4 border-brand-light shadow-pixel font-press-start text-sm hover:bg-yellow-500">{t('settings.clearArtData')}</button>
+                    <button onClick={handleClearData} className="w-full p-3 bg-brand-magenta text-white border-4 border-brand-light shadow-pixel font-press-start text-sm hover:bg-red-500">{t('settings.clearAllData')}</button>
+                    <p className="text-xs text-brand-light/70 text-center">{t('settings.clearAllDataWarning')}</p>
                 </Section>
-
             </main>
         </PageWrapper>
     );

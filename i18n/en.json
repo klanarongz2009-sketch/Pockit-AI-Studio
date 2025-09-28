@@ -90,6 +90,30 @@
         "clearAllDataWarning": "Clearing all data will remove your credits, history, gallery images, and all settings.",
         "language": "Language / ภาษา",
         "langTh": "ไทย",
-        "langEn": "English"
+        "langEn": "English",
+        "langJa": "日本語"
+    },
+    "translator": {
+        "title": "AI Translator",
+        "description": "Translate text between different languages. Powered by AI.",
+        "from": "From",
+        "to": "To",
+        "swap": "Swap",
+        "inputText": "Enter text here...",
+        "outputText": "Translation will appear here...",
+        "translate": "Translate",
+        "translating": "Translating...",
+        "credits": "credits",
+        "notEnoughCredits": "Not enough credits! You need"
+    },
+    "sequencer": {
+        "title": "Pixel Sequencer",
+        "description": "Compose your own 8-bit chiptune melodies on a step sequencer grid. A powerful tool for music creation!",
+        "play": "Play",
+        "stop": "Stop",
+        "bpm": "BPM",
+        "instrument": "Instrument",
+        "clear": "Clear",
+        "download": "Download"
     }
 }

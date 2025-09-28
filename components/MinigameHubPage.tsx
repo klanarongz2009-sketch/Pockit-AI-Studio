@@ -40,6 +40,10 @@ import { ImageToCodePage } from './ImageToCodePage';
 import { MediaRecorderPage } from './MediaRecorderPage';
 import { TextToSpeechPage } from './TextToSpeechPage';
 import { TextToSpeechIcon } from './icons/TextToSpeechIcon';
+import { TranslateIcon } from './icons/TranslateIcon';
+import { TranslatorPage } from './TranslatorPage';
+import { SequencerIcon } from './icons/SequencerIcon';
+import { PixelSequencerPage } from './PixelSequencerPage';
 
 interface MinigameHubPageProps {
     playSound: (player: () => void) => void;
@@ -51,7 +55,7 @@ type ActiveGame =
     | 'brickBreaker' | 'calculator' | 'aiOracle' | 'wordMatch' | 'aiBugSquasher'
     | 'songSearch' | 'magicButton' | 'videoEditor'
     | 'guessThePrompt' | 'musicMemory' | 'fileChat' | 'analyzeMedia'
-    | 'imageToCode' | 'mediaRecorder' | 'textToSpeech';
+    | 'imageToCode' | 'mediaRecorder' | 'textToSpeech' | 'translator' | 'pixelSequencer';
 
 const GameButton: React.FC<{ icon: React.ReactNode; title: string; description: string; onClick?: () => void; disabled?: boolean; comingSoon?: boolean; beta?: boolean; highScore?: number; }> = ({ icon, title, description, onClick, disabled, comingSoon, beta, highScore }) => (
     <div className="relative group h-full">
@@ -152,9 +156,23 @@ export const MinigameHubPage: React.FC<MinigameHubPageProps> = ({ playSound, isO
             disabled: !isOnline,
             beta: true
         },
+        {
+            icon: <TranslateIcon className="w-16 h-16" />,
+            title: "AI Translator",
+            description: "Translate text between languages like Thai, English, and Japanese using AI.",
+            onClick: () => handleLaunchGame('translator'),
+            disabled: !isOnline,
+            beta: true
+        },
     ], [isOnline]);
 
     const gamesAndFunData = useMemo(() => [
+        {
+            icon: <SequencerIcon className="w-16 h-16" />,
+            title: "Pixel Sequencer",
+            description: "Compose your own 8-bit chiptune melodies on a step sequencer grid. A powerful tool for music creation!",
+            onClick: () => handleLaunchGame('pixelSequencer'),
+        },
         {
             icon: <RecordIcon className="w-16 h-16" />,
             title: "Media Recorder",
@@ -323,6 +341,12 @@ export const MinigameHubPage: React.FC<MinigameHubPageProps> = ({ playSound, isO
     }
     if (activeGame === 'textToSpeech') {
         return <TextToSpeechPage onClose={() => setActiveGame('hub')} playSound={playSound} />;
+    }
+    if (activeGame === 'translator') {
+        return <TranslatorPage onClose={() => setActiveGame('hub')} playSound={playSound} isOnline={isOnline} />;
+    }
+    if (activeGame === 'pixelSequencer') {
+        return <PixelSequencerPage onClose={() => setActiveGame('hub')} playSound={playSound} />;
     }
 
     return (

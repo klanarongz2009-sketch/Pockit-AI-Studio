@@ -42,9 +42,21 @@
         --color-surface-secondary: rgba(226, 232, 240, 0.9); /* Modal BG */
         --color-shadow: #1E293B;
       }
+      /* High Contrast theme */
+      body.theme-high-contrast {
+        --color-bg: #000000;
+        --color-text-primary: #ffffff;
+        --color-text-secondary: #dddddd;
+        --color-text-inverted: #000000;
+        --color-border-primary: var(--color-brand-yellow);
+        --color-border-secondary: #aaaaaa;
+        --color-surface-primary: transparent;
+        --color-surface-secondary: rgba(10, 10, 10, 0.9);
+        --color-shadow: var(--color-brand-yellow);
+      }
       /* System Preference */
       @media (prefers-color-scheme: light) {
-        :root:not(.theme-dark) {
+        :root:not(.theme-dark):not(.theme-high-contrast) {
           --color-bg: #E2E8F0;
           --color-text-primary: #1E293B;
           --color-text-secondary: rgba(30, 41, 59, 0.7);
@@ -199,7 +211,7 @@
       }
 
       /* Accessibility improvement: focus-visible styles */
-      :is(button, a, input, textarea):focus-visible {
+      :is(button, a, input, textarea, select):focus-visible {
         outline: 3px solid var(--color-brand-yellow);
         outline-offset: 2px;
         box-shadow: 0 0 0 5px var(--color-bg);

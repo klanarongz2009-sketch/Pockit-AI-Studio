@@ -1,24 +1,26 @@
-// FIX: Add missing imports for types used in new functions.
+import type { CurrentPage } from '../App';
 import type { Song, MidiNote } from './geminiService';
 import type { SoundEffectParameters } from './geminiService';
 
-export type SoundType = 'sine' | 'square' | 'sawtooth' | 'triangle';
+export type SoundType = 'sine' | 'square' | 'sawtooth' | 'triangle' | 'noise';
 
 let audioContext: AudioContext | null = null;
 let isInitialized = false;
 
-// NEW: Store preloaded raw data and decoded buffers
+// NEW: Centralized audio nodes for effects and analysis
+let masterGain: GainNode | null = null;
+let analyser: AnalyserNode | null = null;
+
 const preloadedAudioData = new Map<string, ArrayBuffer>();
 const decodedAudioBuffers = new Map<string, AudioBuffer>();
 
-// Module-level state for background music
 let musicGain: GainNode | null = null;
-let desiredMusicVolume = 0.1; // Store the desired volume
+let desiredMusicVolume = 0.1; 
 let musicTimeouts: number[] = [];
 let isMusicPlaying = false;
+let whiteNoiseBuffer: AudioBuffer | null = null;
 
 
-// FIX: Added missing type definition for voice changer effects.
 export interface EffectParameters {
   pitchShift?: number;
   delayTime?: number;
@@ -47,7 +49,6 @@ export const NOTE_FREQUENCIES: { [key: string]: number } = {
   'C7': 2093.00, 'C#7': 2217.46, 'D7': 2349.32, 'D#7': 2489.02, 'E7': 2637.02, 'F7': 2793.83, 'F#7': 2959.96, 'G7': 3135.96, 'G#7': 3322.44, 'A7': 3520.00, 'A#7': 3729.31, 'B7': 3951.07,
 };
 
-// NEW: Function for asset loader to call
 export function addPreloadedAudio(name: string, data: ArrayBuffer) {
     preloadedAudioData.set(name, data);
 }
@@ -59,11 +60,25 @@ export function initAudio() {
         audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
         isInitialized = true;
 
-        // Decode all preloaded audio data
+        // NEW: Create and connect main audio graph
+        masterGain = audioContext.createGain();
+        analyser = audioContext.createAnalyser();
+        analyser.fftSize = 256; // Good for visuals
+
+        masterGain.connect(analyser);
+        analyser.connect(audioContext.destination);
+
+        // NEW: Create white noise buffer for percussion sounds
+        const bufferSize = audioContext.sampleRate * 2; // 2 seconds of noise is plenty
+        whiteNoiseBuffer = audioContext.createBuffer(1, bufferSize, audioContext.sampleRate);
+        const output = whiteNoiseBuffer.getChannelData(0);
+        for (let i = 0; i < bufferSize; i++) {
+            output[i] = Math.random() * 2 - 1;
+        }
+
         preloadedAudioData.forEach(async (data, name) => {
             if (audioContext) {
                 try {
-                    // Use slice to create a copy, preventing the buffer from being detached
                     const decodedBuffer = await audioContext.decodeAudioData(data.slice(0));
                     decodedAudioBuffers.set(name, decodedBuffer);
                 } catch (e) {
@@ -86,8 +101,15 @@ export function initAudio() {
     }
 }
 
-function playSoundInternal(type: SoundType, startFreq: number, endFreq: number, duration: number, volume: number = 0.3) {
-    if (!audioContext || audioContext.state !== 'running') return;
+// NEW: Export analyser for visualizer component
+export function getAnalyser(): AnalyserNode | null {
+    return analyser;
+}
+
+
+// FIX: Changed SoundType to OscillatorType as this function does not handle 'noise'.
+function playSoundInternal(type: OscillatorType, startFreq: number, endFreq: number, duration: number, volume: number = 0.3) {
+    if (!audioContext || !masterGain || audioContext.state !== 'running') return;
     const oscillator = audioContext.createOscillator();
     const gainNode = audioContext.createGain();
     
@@ -101,14 +123,15 @@ function playSoundInternal(type: SoundType, startFreq: number, endFreq: number, 
     gainNode.gain.exponentialRampToValueAtTime(0.0001, audioContext.currentTime + duration);
 
     oscillator.connect(gainNode);
-    gainNode.connect(audioContext.destination);
+    // MODIFIED: Connect to master gain instead of destination
+    gainNode.connect(masterGain);
     oscillator.start(audioContext.currentTime);
     oscillator.stop(audioContext.currentTime + duration);
 }
 
-// NEW: Helper for playing sequences of notes for more complex sounds.
-function playNoteSequence(notes: { freq: number; duration: number; type: SoundType; volume: number; delay: number }[]) {
-    if (!audioContext || audioContext.state !== 'running') return;
+// FIX: Changed SoundType to OscillatorType in note definition as this function does not handle 'noise'.
+function playNoteSequence(notes: { freq: number; duration: number; type: OscillatorType; volume: number; delay: number }[]) {
+    if (!audioContext || !masterGain || audioContext.state !== 'running') return;
     const startTime = audioContext.currentTime;
     notes.forEach(note => {
         const oscillator = audioContext.createOscillator();
@@ -122,7 +145,8 @@ function playNoteSequence(notes: { freq: number; duration: number; type: SoundTy
         gainNode.gain.exponentialRampToValueAtTime(0.0001, startTime + note.delay + note.duration);
 
         oscillator.connect(gainNode);
-        gainNode.connect(audioContext.destination);
+        // MODIFIED: Connect to master gain
+        gainNode.connect(masterGain);
 
         oscillator.start(startTime + note.delay);
         oscillator.stop(startTime + note.delay + note.duration);
@@ -130,7 +154,6 @@ function playNoteSequence(notes: { freq: number; duration: number; type: SoundTy
 }
 
 
-// FIX: Added missing sound effect playback and export functions.
 export const playSoundFromParams = (params: SoundEffectParameters) => {
     if (!audioContext) return;
     playSoundInternal(params.type, params.startFreq, params.endFreq, params.duration, params.volume);
@@ -159,7 +182,6 @@ export const exportSoundEffectToWav = async (params: SoundEffectParameters): Pro
 };
 
 
-// --- UI SOUNDS OVERHAUL ---
 export const playHover = () => playSoundInternal('sine', 1500, 1500, 0.03, 0.05);
 export const playClick = () => playSoundInternal('square', 440, 480, 0.05, 0.15);
 export const playToggle = () => playSoundInternal('triangle', 600, 800, 0.08, 0.1);
@@ -204,17 +226,43 @@ export const playPaddleHit = () => playSoundInternal('square', 500, 500, 0.05, 0
 export const playWallHit = () => playSoundInternal('sine', 300, 300, 0.05, 0.2);
 export const playMiss = () => playSoundInternal('triangle', 800, 400, 0.3, 0.3);
 
-// --- MUSIC/SYNTH SOUNDS ---
 export const playMusicalNote = (frequency: number, type: SoundType, duration: number) => {
-    playSoundInternal(type, frequency, frequency, duration, 0.3);
+    if (!audioContext || !masterGain || audioContext.state !== 'running') return;
+
+    if (type === 'noise') {
+        if (!whiteNoiseBuffer) return;
+        const source = audioContext.createBufferSource();
+        source.buffer = whiteNoiseBuffer;
+        
+        const gainNode = audioContext.createGain();
+        // Noise needs a much lower volume and a percussive envelope
+        gainNode.gain.setValueAtTime(0, audioContext.currentTime);
+        gainNode.gain.linearRampToValueAtTime(0.2, audioContext.currentTime + 0.01);
+        gainNode.gain.exponentialRampToValueAtTime(0.0001, audioContext.currentTime + duration);
+
+        source.connect(gainNode);
+        gainNode.connect(masterGain);
+        source.start(audioContext.currentTime);
+        source.stop(audioContext.currentTime + duration);
+    } else {
+        playSoundInternal(type, frequency, frequency, duration, 0.3);
+    }
 };
 
-// --- NEW SYNTHESIZED BACKGROUND MUSIC ---
-const musicSequence = {
+interface MusicSequence {
+    bpm: number;
+    tracks: {
+        instrument: SoundType;
+        volume: number;
+        notes: (string | null)[];
+    }[];
+}
+
+const creativeSequence: MusicSequence = {
     bpm: 130,
     tracks: [
-        { // Bassline
-            instrument: 'sawtooth' as SoundType,
+        { 
+            instrument: 'sawtooth',
             volume: 0.2,
             notes: [
                 'C2', null, 'C2', 'C2', 'G2', null, 'G2', 'G2', 'A#2', null, 'A#2', 'A#2', 'F2', null, 'F2', 'F2',
@@ -223,8 +271,8 @@ const musicSequence = {
                 'F2', null, 'F2', 'F2', 'C2', null, 'C2', 'C2', 'D#2', null, 'D#2', 'A#2', 'G2', 'G2', null, null,
             ]
         },
-        { // Melody
-            instrument: 'square' as SoundType,
+        { 
+            instrument: 'square',
             volume: 0.15,
             notes: [
                 'C4', 'E4', 'G4', null, 'E4', null, 'C4', null, 'G3', 'B3', 'D4', null, 'B3', null, 'G3', null,
@@ -233,8 +281,8 @@ const musicSequence = {
                 'A#3', 'D4', 'F4', 'D4', 'C4', 'A#3', 'A3', 'G3', 'F4', null, null, null, 'G4', 'A4', 'A#4', null,
             ]
         },
-        { // Arpeggio / Harmony
-            instrument: 'sine' as SoundType,
+        { 
+            instrument: 'sine',
             volume: 0.1,
             notes: [
                 'G4', null, null, null, 'G4', null, null, null, 'D4', null, null, null, 'D4', null, null, null,
@@ -243,8 +291,8 @@ const musicSequence = {
                 'F4', null, 'C4', null, 'D#4', null, 'A#3', null, 'G4', null, null, 'G4', 'F4', null, 'D#4', null,
             ]
         },
-        { // Percussion
-            instrument: 'square' as SoundType,
+        { 
+            instrument: 'square',
             volume: 0.12,
             notes: [
                 'C2', null, 'C3', null, 'C2', null, 'C3', null, 'C2', null, 'C3', null, 'C2', null, 'C3', null,
@@ -256,46 +304,132 @@ const musicSequence = {
     ]
 };
 
+const minigameHubSequence: MusicSequence = {
+    bpm: 150,
+    tracks: [
+        {
+            instrument: 'square',
+            volume: 0.15,
+            notes: ['C5', null, 'E5', null, 'G5', null, 'E5', null, 'C5', null, 'E5', null, 'G5', null, 'E5', null]
+        },
+        {
+            instrument: 'square',
+            volume: 0.2,
+            notes: ['C3', 'C3', null, 'C3', 'G2', 'G2', null, 'G2', 'A#2', 'A#2', null, 'A#2', 'F2', 'F2', null, 'F2']
+        },
+        {
+            instrument: 'noise',
+            volume: 0.3,
+            notes: ['C2', null, null, null, 'C2', null, 'C2', null, 'C2', null, null, null, 'C2', null, 'C2', null]
+        }
+    ]
+};
+
+const artGallerySequence: MusicSequence = {
+    bpm: 80,
+    tracks: [
+        {
+            instrument: 'sine',
+            volume: 0.2,
+            notes: ['C4', null, null, null, null, null, null, null, 'G4', null, null, null, null, null, null, null]
+        },
+        {
+            instrument: 'sine',
+            volume: 0.2,
+            notes: ['E4', null, null, null, null, null, null, null, 'B4', null, null, null, null, null, null, null]
+        },
+        {
+            instrument: 'sine',
+            volume: 0.15,
+            notes: ['G4', null, null, null, null, null, null, null, 'D5', null, null, null, null, null, null, null]
+        }
+    ]
+};
+
+const aiChatSequence: MusicSequence = {
+    bpm: 110,
+    tracks: [
+        {
+            instrument: 'triangle',
+            volume: 0.15,
+            notes: ['C4', null, 'E4', null, 'G4', null, 'C5', null, 'G4', null, 'E4', null, 'C4', null, null, null]
+        },
+        {
+            instrument: 'sawtooth',
+            volume: 0.2,
+            notes: ['C2', null, null, null, 'C2', null, null, null, 'F2', null, null, null, 'F2', null, null, null]
+        },
+         {
+            instrument: 'sine',
+            volume: 0.1,
+            notes: ['G3', null, null, null, null, null, null, null, 'C4', null, null, null, null, null, null, null]
+        }
+    ]
+};
+
+const PAGE_MUSIC: Record<CurrentPage, MusicSequence> = {
+    imageGenerator: creativeSequence,
+    minigameHub: minigameHubSequence,
+    artGallery: artGallerySequence,
+    aiChat: aiChatSequence,
+};
+
+let currentMusicPage: CurrentPage | null = null;
+
 function stopSynthesizedMusic() {
     musicTimeouts.forEach(clearTimeout);
     musicTimeouts = [];
     isMusicPlaying = false;
+    currentMusicPage = null;
 }
 
-function playSynthesizedMusicLoop() {
+function playSynthesizedMusicLoop(sequence: MusicSequence) {
     if (!audioContext || audioContext.state !== 'running' || !isMusicPlaying) return;
 
-    const noteDurationMs = (60 / musicSequence.bpm) * 500; // 16th notes
+    const noteDurationMs = (60 / sequence.bpm) * 500;
     let totalDuration = 0;
 
-    musicSequence.tracks.forEach(track => {
+    sequence.tracks.forEach(track => {
         let currentTime = 0;
         track.notes.forEach(note => {
             if (note) {
                 const freq = NOTE_FREQUENCIES[note];
-                if (freq) {
+                if (freq || track.instrument === 'noise') {
                     const timeout = window.setTimeout(() => {
-                        if (!isMusicPlaying || !musicGain) return; // Check again before playing
-                        const oscillator = audioContext!.createOscillator();
-                        const noteGain = audioContext!.createGain();
+                        if (!isMusicPlaying || !musicGain || !masterGain) return;
+                        
+                        if (track.instrument === 'noise') {
+                            if (!whiteNoiseBuffer) return;
+                            const noiseSource = audioContext!.createBufferSource();
+                            noiseSource.buffer = whiteNoiseBuffer;
+                            const noiseGain = audioContext!.createGain();
+                            const duration = noteDurationMs / 1000 * 0.5;
+                            noiseGain.gain.setValueAtTime(0, audioContext!.currentTime);
+                            noiseGain.gain.linearRampToValueAtTime(track.volume, audioContext!.currentTime + 0.01);
+                            noiseGain.gain.exponentialRampToValueAtTime(0.0001, audioContext!.currentTime + duration);
+                            noiseSource.connect(noiseGain);
+                            noiseGain.connect(musicGain);
+                            noiseSource.start();
+                            noiseSource.stop(audioContext!.currentTime + duration);
+                        } else {
+                            const oscillator = audioContext!.createOscillator();
+                            const noteGain = audioContext!.createGain();
 
-                        oscillator.type = track.instrument;
-                        oscillator.frequency.setValueAtTime(freq, audioContext!.currentTime);
-                        
-                        // Percussion track has very short notes
-                        const isPercussion = track.instrument === 'square' && note.startsWith('C2') || note.startsWith('C3') || note.startsWith('D#3');
-                        const duration = isPercussion ? 0.05 : (noteDurationMs * 0.9 / 1000);
-                        const volume = isPercussion && note.startsWith('C3') ? track.volume * 0.7 : track.volume;
+                            oscillator.type = track.instrument as OscillatorType;
+                            oscillator.frequency.setValueAtTime(freq, audioContext!.currentTime);
+                            
+                            const duration = (noteDurationMs * 0.9 / 1000);
 
-                        noteGain.gain.setValueAtTime(0, audioContext!.currentTime);
-                        noteGain.gain.linearRampToValueAtTime(volume, audioContext!.currentTime + 0.01);
-                        noteGain.gain.exponentialRampToValueAtTime(0.0001, audioContext!.currentTime + duration);
-                        
-                        oscillator.connect(noteGain);
-                        noteGain.connect(musicGain); // Connect to the master music gain
-                        
-                        oscillator.start();
-                        oscillator.stop(audioContext!.currentTime + duration + 0.05);
+                            noteGain.gain.setValueAtTime(0, audioContext!.currentTime);
+                            noteGain.gain.linearRampToValueAtTime(track.volume, audioContext!.currentTime + 0.01);
+                            noteGain.gain.exponentialRampToValueAtTime(0.0001, audioContext!.currentTime + duration);
+                            
+                            oscillator.connect(noteGain);
+                            noteGain.connect(musicGain); 
+                            
+                            oscillator.start();
+                            oscillator.stop(audioContext!.currentTime + duration + 0.05);
+                        }
                     }, currentTime);
                     musicTimeouts.push(timeout);
                 }
@@ -307,79 +441,135 @@ function playSynthesizedMusicLoop() {
         }
     });
 
-    // Loop it
-    const loopTimeout = window.setTimeout(playSynthesizedMusicLoop, totalDuration);
+    const loopTimeout = window.setTimeout(() => playSynthesizedMusicLoop(sequence), totalDuration);
     musicTimeouts.push(loopTimeout);
 }
 
 
-export const startBackgroundMusic = () => { 
-    if (!audioContext || isMusicPlaying || audioContext.state !== 'running') return;
+export const startBackgroundMusic = (page: CurrentPage) => { 
+    if (!audioContext || !masterGain || isMusicPlaying || audioContext.state !== 'running') return;
 
-    // Create the master gain node for music if it doesn't exist
     if (!musicGain) {
         musicGain = audioContext.createGain();
-        musicGain.gain.value = 0; // Start silent
-        musicGain.connect(audioContext.destination);
+        musicGain.gain.value = 0; 
+        // MODIFIED: connect to master gain
+        musicGain.connect(masterGain);
     }
 
     isMusicPlaying = true;
-    playSynthesizedMusicLoop();
+    currentMusicPage = page;
+    const sequence = PAGE_MUSIC[page] || PAGE_MUSIC.imageGenerator;
+    playSynthesizedMusicLoop(sequence);
 
-    // Fade in
     musicGain.gain.linearRampToValueAtTime(desiredMusicVolume, audioContext.currentTime + 2.0);
 };
+
+export const changeBackgroundMusic = (page: CurrentPage) => {
+    if (!audioContext || !masterGain || !isMusicPlaying || !musicGain || page === currentMusicPage) return;
+
+    musicGain.gain.cancelScheduledValues(audioContext.currentTime);
+    musicGain.gain.linearRampToValueAtTime(0, audioContext.currentTime + 1.0);
+
+    const fadeOutDuration = 1000;
+
+    setTimeout(() => {
+        if (!isMusicPlaying) return;
+
+        musicTimeouts.forEach(clearTimeout);
+        musicTimeouts = [];
+        
+        currentMusicPage = page;
+        const newSequence = PAGE_MUSIC[page] || PAGE_MUSIC.imageGenerator;
+        playSynthesizedMusicLoop(newSequence);
+
+        if (musicGain) {
+            musicGain.gain.linearRampToValueAtTime(desiredMusicVolume, audioContext.currentTime + 1.0);
+        }
+    }, fadeOutDuration);
+};
+
 
 export const setMusicVolume = (volume: number) => { 
     desiredMusicVolume = volume;
     if (musicGain && audioContext && audioContext.state === 'running') {
-        // Use a ramp for smooth volume changes
         musicGain.gain.linearRampToValueAtTime(volume, audioContext.currentTime + 0.5);
     }
 };
 
-// --- FIX: Added all missing audio playback and processing functions ---
-
-// --- Song Playback ---
-// FIX: The return type of setTimeout in browsers is number, not NodeJS.Timeout.
 let songTimeouts: number[] = [];
+let activeSongSources: (OscillatorNode | AudioBufferSourceNode)[] = [];
 export function stopSong() {
     songTimeouts.forEach(clearTimeout);
     songTimeouts = [];
+    activeSongSources.forEach(source => {
+        try {
+            source.stop();
+        } catch (e) {
+            // Source may have already been stopped or finished playing.
+        }
+    });
+    activeSongSources = [];
 }
 export function playSong(song: Song, bpm: number, onEnd?: () => void) {
-    if (!audioContext) return;
-    stopSong();
-    const noteDuration = 60 / bpm; // duration of a quarter note
+    if (!audioContext || !masterGain || audioContext.state !== 'running') return;
+    stopSong(); // Stop any currently playing song
+
+    const noteDuration = 60 / bpm; // Assuming each step is a quarter note
     let totalTime = 0;
+    
+    // Use the reliable Web Audio API for scheduling
+    const startTime = audioContext.currentTime;
+    
     song.forEach((track, trackIndex) => {
         let currentTime = 0;
-        const instrumentType: SoundType = trackIndex % 2 === 0 ? 'square' : 'triangle';
+        const instrumentType: OscillatorType = trackIndex % 2 === 0 ? 'square' : 'triangle';
+        
         track.forEach(note => {
-            const freq = NOTE_FREQUENCIES[note];
-            if (freq) {
-// FIX: Use window.setTimeout to ensure it returns a number, not NodeJS.Timeout.
-                const timeout = window.setTimeout(() => {
-                    playMusicalNote(freq, instrumentType, noteDuration * 0.9);
-                }, currentTime * 1000);
-                songTimeouts.push(timeout);
+            if (note) { // Don't process null/empty notes (rests)
+                const freq = NOTE_FREQUENCIES[note];
+                if (freq) {
+                    const oscillator = audioContext.createOscillator();
+                    const gainNode = audioContext.createGain();
+                    const notePlayTime = startTime + currentTime;
+
+                    oscillator.type = instrumentType;
+                    oscillator.frequency.setValueAtTime(freq, notePlayTime);
+
+                    gainNode.gain.setValueAtTime(0, notePlayTime);
+                    gainNode.gain.linearRampToValueAtTime(0.3, notePlayTime + 0.01); // Quick fade in
+                    gainNode.gain.exponentialRampToValueAtTime(0.0001, notePlayTime + (noteDuration * 0.9)); // Fade out
+
+                    oscillator.connect(gainNode);
+                    gainNode.connect(masterGain);
+
+                    oscillator.start(notePlayTime);
+                    oscillator.stop(notePlayTime + noteDuration);
+                    
+                    activeSongSources.push(oscillator);
+                }
             }
             currentTime += noteDuration;
         });
+
         if (currentTime > totalTime) {
             totalTime = currentTime;
         }
     });
 
     if (onEnd) {
-// FIX: Use window.setTimeout to ensure it returns a number, not NodeJS.Timeout.
-        const endTimeout = window.setTimeout(onEnd, totalTime * 1000);
+        const endTimeout = window.setTimeout(() => {
+            activeSongSources = []; // Clear the sources array
+            onEnd();
+        }, totalTime * 1000);
         songTimeouts.push(endTimeout);
+    } else {
+        const cleanupTimeout = window.setTimeout(() => {
+            activeSongSources = [];
+        }, totalTime * 1000);
+        songTimeouts.push(cleanupTimeout);
     }
 }
 
-// --- MIDI Playback ---
-// FIX: The return type of setTimeout in browsers is number, not NodeJS.Timeout.
 let midiTimeouts: number[] = [];
 export function stopMidi() {
     midiTimeouts.forEach(clearTimeout);
@@ -391,7 +581,6 @@ export function playMidi(notes: MidiNote[], onEnd?: () => void) {
     let maxTime = 0;
     notes.forEach(note => {
         const freq = 440 * Math.pow(2, (note.pitch - 69) / 12);
-// FIX: Use window.setTimeout to ensure it returns a number, not NodeJS.Timeout.
         const timeout = window.setTimeout(() => {
             playMusicalNote(freq, 'sine', note.duration * 0.9);
         }, note.startTime * 1000);
@@ -401,13 +590,11 @@ export function playMidi(notes: MidiNote[], onEnd?: () => void) {
         }
     });
     if (onEnd) {
-// FIX: Use window.setTimeout to ensure it returns a number, not NodeJS.Timeout.
         const endTimeout = window.setTimeout(onEnd, maxTime * 1000);
         midiTimeouts.push(endTimeout);
     }
 }
 
-// --- AudioBuffer to WAV conversion ---
 export function bufferToWav(buffer: AudioBuffer): Blob {
     const numOfChan = buffer.numberOfChannels,
       length = buffer.length * numOfChan * 2 + 44,
@@ -416,20 +603,19 @@ export function bufferToWav(buffer: AudioBuffer): Blob {
       channels = [];
     let i, sample, offset = 0, pos = 0;
   
-    // write WAVE header
-    setUint32(0x46464952); // "RIFF"
-    setUint32(length - 8); // file length - 8
-    setUint32(0x45564157); // "WAVE"
-    setUint32(0x20746d66); // "fmt " chunk
-    setUint32(16); // length = 16
-    setUint16(1); // PCM (uncompressed)
+    setUint32(0x46464952); 
+    setUint32(length - 8); 
+    setUint32(0x45564157); 
+    setUint32(0x20746d66); 
+    setUint32(16); 
+    setUint16(1); 
     setUint16(numOfChan);
     setUint32(buffer.sampleRate);
-    setUint32(buffer.sampleRate * 2 * numOfChan); // avg. bytes/sec
-    setUint16(numOfChan * 2); // block-align
-    setUint16(16); // 16-bit
-    setUint32(0x61746164); // "data" - chunk
-    setUint32(length - pos - 4); // chunk length
+    setUint32(buffer.sampleRate * 2 * numOfChan); 
+    setUint16(numOfChan * 2); 
+    setUint16(16); 
+    setUint32(0x61746164); 
+    setUint32(length - pos - 4); 
   
     for (i = 0; i < buffer.numberOfChannels; i++)
       channels.push(buffer.getChannelData(i));
@@ -450,10 +636,9 @@ export function bufferToWav(buffer: AudioBuffer): Blob {
     return new Blob([view], { type: 'audio/wav' });
 }
 
-// --- Exporters ---
 async function renderToBuffer(renderFn: (ctx: OfflineAudioContext) => void, duration: number): Promise<AudioBuffer | null> {
     if (!audioContext) return null;
-    const offlineCtx = new OfflineAudioContext(1, audioContext.sampleRate * duration, audioContext.sampleRate);
+    const offlineCtx = new OfflineAudioContext(1, Math.ceil(audioContext.sampleRate * duration), audioContext.sampleRate);
     renderFn(offlineCtx);
     return await offlineCtx.startRendering();
 }
@@ -469,7 +654,8 @@ export const exportSongToWav = async (song: Song, bpm: number): Promise<Blob | n
     const buffer = await renderToBuffer((ctx) => {
         song.forEach((track, trackIndex) => {
             let currentTime = 0;
-            const instrumentType: SoundType = trackIndex % 2 === 0 ? 'square' : 'triangle';
+            // FIX: Changed SoundType to OscillatorType as it only uses valid oscillator types.
+            const instrumentType: OscillatorType = trackIndex % 2 === 0 ? 'square' : 'triangle';
             track.forEach(note => {
                 const freq = NOTE_FREQUENCIES[note];
                 if (freq) {
@@ -512,12 +698,68 @@ export const exportMidiToWav = async (notes: MidiNote[]): Promise<Blob | null> =
     return buffer ? bufferToWav(buffer) : null;
 };
 
-// --- Voice Changer ---
+export const exportSequencerToWav = async (notes: Set<string>, bpm: number, instrument: SoundType, pitches: string[]): Promise<Blob | null> => {
+    const numSteps = 16;
+    const noteDuration = (60 / bpm) / 4; // 16th notes
+    const totalDuration = numSteps * noteDuration;
+
+    if (!audioContext) return null; // Need sampleRate from the main context
+
+    const buffer = await renderToBuffer((ctx) => {
+        let offlineNoiseBuffer: AudioBuffer | null = null;
+        if (instrument === 'noise') {
+            const bufferSize = ctx.sampleRate * 2;
+            offlineNoiseBuffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
+            const output = offlineNoiseBuffer.getChannelData(0);
+            for (let i = 0; i < bufferSize; i++) {
+                output[i] = Math.random() * 2 - 1;
+            }
+        }
+    
+        for (let step = 0; step < numSteps; step++) {
+            const stepTime = step * noteDuration;
+            pitches.forEach(pitch => {
+                if (notes.has(`${pitch}:${step}`)) {
+                    if (instrument === 'noise') {
+                        if (!offlineNoiseBuffer) return;
+                        const source = ctx.createBufferSource();
+                        source.buffer = offlineNoiseBuffer;
+                        const gain = ctx.createGain();
+                        gain.gain.setValueAtTime(0.2, stepTime);
+                        gain.gain.exponentialRampToValueAtTime(0.0001, stepTime + noteDuration * 0.9);
+                        source.connect(gain);
+                        gain.connect(ctx.destination);
+                        source.start(stepTime);
+                        source.stop(stepTime + noteDuration);
+                    } else {
+                        const freq = NOTE_FREQUENCIES[pitch];
+                        if (freq) {
+                            const osc = ctx.createOscillator();
+                            const gain = ctx.createGain();
+                            osc.type = instrument;
+                            osc.frequency.setValueAtTime(freq, stepTime);
+                            gain.gain.setValueAtTime(0.3, stepTime);
+                            gain.gain.exponentialRampToValueAtTime(0.0001, stepTime + noteDuration * 0.9);
+                            osc.connect(gain);
+                            gain.connect(ctx.destination);
+                            osc.start(stepTime);
+                            osc.stop(stepTime + noteDuration);
+                        }
+                    }
+                }
+            });
+        }
+    }, totalDuration);
+    
+    return buffer ? bufferToWav(buffer) : null;
+};
+
+
 export const playAudioBuffer = (buffer: AudioBuffer): AudioBufferSourceNode => {
-    if (!audioContext) throw new Error("Audio context not initialized");
+    if (!audioContext || !masterGain) throw new Error("Audio context not initialized");
     const source = audioContext.createBufferSource();
     source.buffer = buffer;
-    source.connect(audioContext.destination);
+    source.connect(masterGain);
     source.start();
     return source;
 };
@@ -533,7 +775,6 @@ export const applyVoiceEffect = async (file: File, effect: string, params: Effec
     let lastNode: AudioNode = source;
 
     if (effect === 'pitch-shift' && params.pitchShift) {
-        // Not a native node, requires complex implementation. For demo, we'll skip the actual effect.
         console.warn("Pitch shift effect is complex and not implemented in this demo.");
     }
     if (effect === 'echo' && params.delayTime) {
@@ -546,7 +787,6 @@ export const applyVoiceEffect = async (file: File, effect: string, params: Effec
         feedback.connect(delay);
         lastNode = delay;
     }
-    // Add other effects here...
     
     lastNode.connect(offlineCtx.destination);
     source.start();

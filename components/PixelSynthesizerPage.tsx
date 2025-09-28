@@ -1,9 +1,8 @@
-
 import React, { useState, useCallback } from 'react';
 import { PageWrapper, PageHeader } from './PageComponents';
 import * as audioService from '../services/audioService';
+import { AudioVisualizer } from './AudioVisualizer';
 
-// Define the keyboard layout
 const keys = [
     { note: 'C4', type: 'white' }, { note: 'C#4', type: 'black' },
     { note: 'D4', type: 'white' }, { note: 'D#4', type: 'black' },
@@ -50,6 +49,10 @@ export const PixelSynthesizerPage: React.FC<{
                             </button>
                         ))}
                     </div>
+                </div>
+
+                <div className="w-full max-w-2xl">
+                    <AudioVisualizer />
                 </div>
 
                 <div className="relative w-full max-w-2xl h-48 bg-black border-4 border-brand-light shadow-pixel select-none" aria-label="คีย์บอร์ดซินธิไซเซอร์">

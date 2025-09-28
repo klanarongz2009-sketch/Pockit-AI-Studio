@@ -1,5 +1,4 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
-// FIX: Changed from `import type` to a regular import.
 import { Song } from '../services/geminiService';
 import { generateSongFromText } from '../services/geminiService';
 import * as audioService from '../services/audioService';
@@ -13,6 +12,7 @@ import { DownloadIcon } from './icons/DownloadIcon';
 import { TrashIcon } from './icons/TrashIcon';
 import { useCredits } from '../contexts/CreditContext';
 import { showNotification } from '../services/notificationService';
+import { AudioVisualizer } from './AudioVisualizer';
 
 interface TextToSongPageProps {
     onClose: () => void;
@@ -65,7 +65,6 @@ export const TextToSongPage: React.FC<TextToSongPageProps> = ({
     const { credits, spendCredits } = useCredits();
     const cancellationRequested = useRef(false);
 
-    // Load history from localStorage on mount
     useEffect(() => {
         try {
             const savedHistory = localStorage.getItem(HISTORY_STORAGE_KEY);
@@ -77,7 +76,6 @@ export const TextToSongPage: React.FC<TextToSongPageProps> = ({
         }
     }, []);
 
-    // Save history to localStorage whenever it changes
     useEffect(() => {
         try {
             localStorage.setItem(HISTORY_STORAGE_KEY, JSON.stringify(history));
@@ -107,7 +105,7 @@ export const TextToSongPage: React.FC<TextToSongPageProps> = ({
     const handleCancel = useCallback(() => {
         playSound(audioService.playCloseModal);
         cancellationRequested.current = true;
-        setIsLoading(false); // This will hide the loading UI
+        setIsLoading(false); 
         setError("การสร้างเพลงถูกยกเลิกโดยผู้ใช้");
     }, [playSound]);
 
@@ -345,6 +343,10 @@ export const TextToSongPage: React.FC<TextToSongPageProps> = ({
                     )}
                  </div>
                 
+                <div className="w-full my-2">
+                    <AudioVisualizer />
+                </div>
+
                 {error && (
                      <div role="alert" className="w-full p-4 space-y-3 text-center bg-black/40 border-4 border-brand-magenta">
                         <h3 className="text-lg font-press-start text-brand-magenta">เกิดข้อผิดพลาด</h3>
