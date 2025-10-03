@@ -20,12 +20,11 @@ export const CREDIT_COSTS = {
   PLATFORMER_CONTINUE: 5,
   AUDIO_TO_MIDI: 20,
   AI_ORACLE: 5,
+  SPIN_WHEEL: 5,
+  APP_PUBLISHER: 20,
 };
 
-export const DAILY_CREDIT_AMOUNT = 250;
 const INITIAL_CREDITS = 500;
-const CREDITS_STORAGE_KEY = 'ai-studio-credits';
-const LAST_REFRESH_STORAGE_KEY = 'ai-studio-last-refresh';
 
 interface CreditContextType {
     credits: number;
@@ -38,53 +37,14 @@ interface CreditContextType {
 const CreditContext = createContext<CreditContextType | undefined>(undefined);
 
 export const CreditProvider: FC<{ children: ReactNode }> = ({ children }) => {
-    const [credits, setCredits] = useState(0);
-    const [loading, setLoading] = useState(true);
-    const [lastRefresh, setLastRefresh] = useState<string | null>(null);
+    const [credits, setCredits] = useState(INITIAL_CREDITS);
+    const [loading, setLoading] = useState(false);
+    const [lastRefresh, setLastRefresh] = useState<string | null>(new Date().toDateString());
 
     const updateCredits = useCallback((newCreditValue: number) => {
         const intValue = Math.floor(newCreditValue);
         setCredits(intValue);
-        try {
-            localStorage.setItem(CREDITS_STORAGE_KEY, String(intValue));
-        } catch (error) {
-            console.error("Failed to save credits to localStorage:", error);
-        }
     }, []);
-
-    useEffect(() => {
-        try {
-            const storedCredits = localStorage.getItem(CREDITS_STORAGE_KEY);
-            const storedLastRefresh = localStorage.getItem(LAST_REFRESH_STORAGE_KEY);
-            const today = new Date().toDateString();
-
-            setLastRefresh(storedLastRefresh);
-
-            let currentCreditsValue: number;
-
-            if (storedCredits === null) {
-                currentCreditsValue = INITIAL_CREDITS;
-                localStorage.setItem(LAST_REFRESH_STORAGE_KEY, today);
-                setLastRefresh(today);
-            } else {
-                currentCreditsValue = parseFloat(storedCredits);
-                if (isNaN(currentCreditsValue)) {
-                    currentCreditsValue = INITIAL_CREDITS;
-                }
-                if (storedLastRefresh !== today) {
-                    currentCreditsValue += DAILY_CREDIT_AMOUNT;
-                    setLastRefresh(today);
-                    localStorage.setItem(LAST_REFRESH_STORAGE_KEY, today);
-                }
-            }
-            updateCredits(Math.floor(currentCreditsValue));
-        } catch (error) {
-            console.error("Failed to initialize credits from localStorage:", error);
-            updateCredits(INITIAL_CREDITS);
-        } finally {
-            setLoading(false);
-        }
-    }, [updateCredits]);
 
     const spendCredits = useCallback((amount: number): boolean => {
         if (amount > 0 && preferenceService.getPreference('confirmCreditSpend', false)) {

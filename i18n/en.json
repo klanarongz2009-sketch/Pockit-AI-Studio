@@ -9,24 +9,31 @@
         "imageGenerator": "Image Gen",
         "gallery": "Gallery",
         "aiZone": "AI Zone",
-        "aiChat": "AI Chat"
+        "aiChat": "AI Chat",
+        "updateInfo": "About Updates"
     },
     "offline": {
         "message": "You are offline. AI features are disabled."
     },
     "imageGenerator": {
-        "title": "AI Image Generator",
-        "promptLabel": "Prompt",
-        "promptPlaceholder": "e.g., A knight riding a dinosaur in space, or upload an image and type 'Code' to have AI write code for it",
-        "suggestions": "Ideas:",
-        "generate": "Generate",
-        "getIdeas": "Get Ideas",
-        "fromImage": "From Image",
-        "fromUrl": "From URL",
         "download": "Download",
         "share": "Share",
-        "saveToGallery": "Save",
-        "clear": "Clear"
+        "save": "Save",
+        "saved": "Saved",
+        "clear": "Clear",
+        "upload": "Upload",
+        "fromUrl": "From URL",
+        "suggestions": "Suggestions",
+        "createAssets": "Create Assets",
+        "generate": "Generate",
+        "modes": {
+            "image": "Image",
+            "gif": "GIF",
+            "video": "Video",
+            "spritesheet": "Spritesheet"
+        },
+        "fps": "FPS",
+        "frameCount": "Frames"
     },
     "outputDisplay": {
         "emptyArea": "Empty result area",
@@ -50,12 +57,10 @@
         "webSearch": "Web Search",
         "newChat": "New Chat",
         "startConversation": "Start a conversation",
-        "startMessage": "Ask a question, request ideas, or get help with code!",
-        "sendMessage": "Send Message",
         "inputPlaceholder": "Type your message...",
         "inputOffline": "You are offline",
-        "translate": "Translate",
-        "copyCode": "Copy Code"
+        "copyCode": "Copy Code",
+        "voice": "Voice"
     },
     "settings": {
         "title": "Settings",
@@ -67,9 +72,6 @@
         "themeSystem": "System",
         "sound": "Sound",
         "soundEffects": "Sound Effects",
-        "backgroundMusic": "Background Music",
-        "on": "On",
-        "off": "Off",
         "display": "Display",
         "uiAnimations": "UI Animations",
         "creation": "Creation",
@@ -84,14 +86,14 @@
         "difficultyEasy": "Easy",
         "difficultyNormal": "Normal",
         "difficultyHard": "Hard",
-        "dataManagement": "Data Management",
         "clearArtData": "Clear Gallery & Song History",
         "clearAllData": "Clear All Data",
         "clearAllDataWarning": "Clearing all data will remove your credits, history, gallery images, and all settings.",
         "language": "Language / ภาษา",
         "langTh": "ไทย",
         "langEn": "English",
-        "langJa": "日本語"
+        "langJa": "日本語",
+        "langFr": "Français"
     },
     "translator": {
         "title": "AI Translator",
@@ -114,6 +116,23 @@
         "bpm": "BPM",
         "instrument": "Instrument",
         "clear": "Clear",
-        "download": "Download"
+        "download": "Download",
+        "steps": "Steps"
+    },
+    "appPublisher": {
+        "title": "AI App Publisher",
+        "description": "Enter your app idea and let AI generate names, descriptions, and a manifest.json file for your web app!",
+        "inputLabel": "Describe your app idea:",
+        "inputPlaceholder": "e.g., An app for tracking houseplants and watering reminders...",
+        "generateButton": "Generate App Profile",
+        "credits": "Credits",
+        "loadingText": "AI is building your app profile...",
+        "resultsTitle": "AI-Generated App Profile:",
+        "suggestedNames": "Suggested Names:",
+        "appDescription": "App Description:",
+        "keywords": "Keywords:",
+        "manifestJson": "Manifest.json File:",
+        "copy": "Copy",
+        "copied": "Copied!"
     }
 }

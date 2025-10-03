@@ -75,7 +75,6 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({
 
     useEffect(() => { preferenceService.setPreference('chatFontSize', chatFontSize); }, [chatFontSize]);
     useEffect(() => { preferenceService.setPreference('autoPlaySounds', autoPlaySounds); }, [autoPlaySounds]);
-    // FIX: Changed preference key from 'defaultImageMode' to the correct 'imageGeneratorMode'.
     useEffect(() => { preferenceService.setPreference('imageGeneratorMode', defaultImageMode); }, [defaultImageMode]);
     useEffect(() => { preferenceService.setPreference('imageGenerationQuality', imageQuality); }, [imageQuality]);
     useEffect(() => { preferenceService.setPreference('autoSaveToGallery', autoSaveToGallery); }, [autoSaveToGallery]);
@@ -84,43 +83,14 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({
     useEffect(() => { preferenceService.setPreference('defaultWebSearch', defaultWebSearch); }, [defaultWebSearch]);
     useEffect(() => { preferenceService.setPreference('defaultMinigameDifficulty', defaultMinigameDifficulty); }, [defaultMinigameDifficulty]);
     useEffect(() => { preferenceService.setPreference('confirmCreditSpend', confirmCreditSpend); }, [confirmCreditSpend]);
-
-    const handleClearArtData = () => {
-        playSound(audioService.playTrash);
-        if (window.confirm('Are you sure you want to delete your entire gallery and song history? This cannot be undone.')) {
-            try {
-                const keysToRemove = ['ai-art-gallery-artworks', 'ai-studio-song-history'];
-                for (let i = 0; i < localStorage.length; i++) {
-                    const key = localStorage.key(i);
-                    if (key && key.startsWith('ai-art-gallery-comments-')) {
-                        keysToRemove.push(key);
-                    }
-                }
-                keysToRemove.forEach(key => localStorage.removeItem(key));
-                alert('Gallery and song history have been cleared.');
-                window.location.reload();
-            } catch (e) {
-                alert('Could not clear data.');
-                console.error(e);
-            }
-        }
-    };
-
-    const handleResetHighScores = () => {
-        playSound(audioService.playTrash);
-        if (window.confirm('Are you sure you want to reset all minigame high scores?')) {
-            localStorage.removeItem('minigame_snake_highscore');
-            localStorage.removeItem('minigame_brickBreaker_highscore');
-            localStorage.removeItem('musicMemoryHighScore');
-            alert('High scores have been reset.');
-        }
-    };
     
     const handleClearData = () => {
         playSound(audioService.playTrash);
-        if (window.confirm('Are you sure you want to clear all application data? This cannot be undone and will delete your credits, gallery, history, and all settings.')) {
+        if (window.confirm('Are you sure you want to clear all application data stored in your browser and reset the app? This cannot be undone.')) {
             try {
                 localStorage.clear();
+                sessionStorage.clear();
+                alert('All stored data has been cleared. The app will now reload to its default state.');
                 window.location.reload();
             } catch (e) {
                 alert('Could not clear data.');
@@ -180,6 +150,7 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({
                             <option value="th">{t('settings.langTh')}</option>
                             <option value="en">{t('settings.langEn')}</option>
                             <option value="ja">{t('settings.langJa')}</option>
+                            <option value="fr">{t('settings.langFr')}</option>
                         </select>
                     </div>
                     <SettingToggle label={t('settings.uiAnimations')} isChecked={uiAnimations} onToggle={() => { playSound(audioService.playToggle); onUiAnimationsChange(!uiAnimations); }} />
@@ -260,13 +231,19 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({
                     </div>
                 </Section>
                 
-                <Section title="Credits & Data">
+                <Section title="Data Management">
                     <SettingToggle label="Confirm Credit Spend" description="Show a confirmation dialog before spending credits." isChecked={confirmCreditSpend} onToggle={() => { playSound(audioService.playToggle); setConfirmCreditSpend(p => !p); }} />
-                    <button onClick={handleResetHighScores} className="w-full p-3 bg-brand-yellow text-black border-4 border-brand-light shadow-pixel font-press-start text-sm hover:bg-yellow-500">Reset All High Scores</button>
-                    <button onClick={handleClearArtData} className="w-full p-3 bg-brand-yellow text-black border-4 border-brand-light shadow-pixel font-press-start text-sm hover:bg-yellow-500">{t('settings.clearArtData')}</button>
-                    <button onClick={handleClearData} className="w-full p-3 bg-brand-magenta text-white border-4 border-brand-light shadow-pixel font-press-start text-sm hover:bg-red-500">{t('settings.clearAllData')}</button>
-                    <p className="text-xs text-brand-light/70 text-center">{t('settings.clearAllDataWarning')}</p>
+                    <button onClick={handleClearData} className="w-full p-3 bg-brand-magenta text-white border-4 border-brand-light shadow-pixel font-press-start text-sm hover:bg-red-500">
+                        Reset App & Clear Stored Data
+                    </button>
+                    <p className="text-xs text-brand-light/70 text-center">
+                        This clears any data saved by the app in your browser (from previous versions) and reloads the page to its original state.
+                    </p>
                 </Section>
+
+                <footer className="text-center text-xs text-brand-light/50 py-4 font-sans">
+                    Version: 2.54.179810000
+                </footer>
             </main>
         </PageWrapper>
     );

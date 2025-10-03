@@ -95,7 +95,8 @@ export const FileChatPage: React.FC<FileChatPageProps> = ({ onClose, playSound, 
         try {
             const responseText = await geminiService.chatWithFile(
                 { base64: fileData.base64, mimeType: fileData.file.type },
-                [...messages, userMessage],
+                // FIX: Pass only the previous messages. `messages` from the closure is correct as it doesn't include the new `userMessage` yet.
+                messages,
                 trimmedInput
             );
             const modelMessage: geminiService.FileChatMessage = { role: 'model', text: responseText };

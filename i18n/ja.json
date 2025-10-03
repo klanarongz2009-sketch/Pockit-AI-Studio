@@ -91,7 +91,8 @@
         "language": "Language / 言語",
         "langTh": "ไทย",
         "langEn": "English",
-        "langJa": "日本語"
+        "langJa": "日本語",
+        "langFr": "Français"
     },
     "translator": {
         "title": "AI翻訳",
@@ -114,6 +115,23 @@
         "bpm": "BPM",
         "instrument": "楽器",
         "clear": "クリア",
-        "download": "ダウンロード"
+        "download": "ダウンロード",
+        "steps": "ステップ"
+    },
+    "appPublisher": {
+        "title": "AIアプリパブリッシャー",
+        "description": "アプリのアイデアを入力すると、AIがあなたのウェブアプリの名前、説明、manifest.jsonファイルを生成します！",
+        "inputLabel": "アプリのアイデアを説明してください：",
+        "inputPlaceholder": "例：観葉植物を追跡し、水やりをリマインドするアプリ...",
+        "generateButton": "アプリプロファイルを生成",
+        "credits": "クレジット",
+        "loadingText": "AIがアプリプロファイルを作成中...",
+        "resultsTitle": "AIが生成したアプリプロファイル：",
+        "suggestedNames": "提案された名前：",
+        "appDescription": "アプリの説明：",
+        "keywords": "キーワード：",
+        "manifestJson": "Manifest.jsonファイル：",
+        "copy": "コピー",
+        "copied": "コピーしました！"
     }
 }

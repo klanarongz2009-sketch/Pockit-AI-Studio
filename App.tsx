@@ -23,7 +23,7 @@ export const App: React.FC = () => {
     const [isSoundOn, setIsSoundOn] = useState(() => preferenceService.getPreference('isSoundOn', true));
     const [currentPage, setCurrentPage] = useState<CurrentPage>('imageGenerator');
     const [isOnline, setIsOnline] = useState(navigator.onLine);
-    const [showIntro, setShowIntro] = useState(!sessionStorage.getItem('introShown'));
+    const [showIntro, setShowIntro] = useState(true);
     const [isSettingsOpen, setIsSettingsOpen] = useState(false);
     const [isSidebarOpen, setIsSidebarOpen] = useState(false);
     const [uiAnimations, setUiAnimations] = useState(() => preferenceService.getPreference('uiAnimations', true));
@@ -54,7 +54,7 @@ export const App: React.FC = () => {
                 audioService.initAudio();
                 audioService.startBackgroundMusic(currentPage);
                 // Set initial music volume based on saved preference, using a fixed volume level
-                audioService.setMusicVolume(isSoundOn ? 0.2 : 0);
+                audioService.setMusicVolume(isSoundOn ? 0.5 : 0);
                 // Clean up listeners after first interaction
                 window.removeEventListener('click', initAudioOnce);
                 window.removeEventListener('keydown', initAudioOnce);
@@ -109,7 +109,7 @@ export const App: React.FC = () => {
         playSound(audioService.playToggle);
         setIsSoundOn(newIsSoundOn);
         preferenceService.setPreference('isSoundOn', newIsSoundOn);
-        audioService.setMusicVolume(newIsSoundOn ? 0.2 : 0);
+        audioService.setMusicVolume(newIsSoundOn ? 0.5 : 0);
     }, [isSoundOn, playSound]);
     
     const handleUiAnimationsChange = useCallback((enabled: boolean) => {
@@ -118,7 +118,6 @@ export const App: React.FC = () => {
     }, []);
 
     const handleIntroComplete = useCallback((): void => {
-        sessionStorage.setItem('introShown', 'true');
         setShowIntro(false);
     }, []);
 

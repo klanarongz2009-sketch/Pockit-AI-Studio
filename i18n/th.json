@@ -9,24 +9,31 @@
         "imageGenerator": "สร้างภาพ",
         "gallery": "แกลเลอรี",
         "aiZone": "AI โซน",
-        "aiChat": "AI Chat"
+        "aiChat": "AI Chat",
+        "updateInfo": "เกี่ยวกับอัปเดต"
     },
     "offline": {
         "message": "คุณกำลังออฟไลน์ ฟีเจอร์ AI ถูกปิดใช้งาน"
     },
     "imageGenerator": {
-        "title": "เครื่องมือสร้างภาพ AI",
-        "promptLabel": "คำสั่ง (Prompt)",
-        "promptPlaceholder": "เช่น อัศวินขี่ไดโนเสาร์ในอวกาศ หรืออัปโหลดภาพแล้วพิมพ์ 'Code' เพื่อให้ AI เขียนโค้ด",
-        "suggestions": "ไอเดีย:",
-        "generate": "สร้าง",
-        "getIdeas": "รับไอเดีย",
-        "fromImage": "จากภาพ",
-        "fromUrl": "จาก URL",
         "download": "ดาวน์โหลด",
         "share": "แชร์",
-        "saveToGallery": "บันทึก",
-        "clear": "ล้าง"
+        "save": "บันทึก",
+        "saved": "บันทึกแล้ว",
+        "clear": "ล้าง",
+        "upload": "อัปโหลด",
+        "fromUrl": "จาก URL",
+        "suggestions": "ไอเดีย",
+        "createAssets": "สร้างแอสเซท",
+        "generate": "สร้าง",
+        "modes": {
+            "image": "ภาพนิ่ง",
+            "gif": "GIF",
+            "video": "วิดีโอ",
+            "spritesheet": "สไปรต์ชีต"
+        },
+        "fps": "FPS",
+        "frameCount": "เฟรม"
     },
     "outputDisplay": {
         "emptyArea": "พื้นที่แสดงผลลัพธ์ว่างเปล่า",
@@ -47,15 +54,13 @@
         "title": "AI Chat",
         "selectAssistant": "เลือกผู้ช่วย AI",
         "searchAssistant": "ค้นหาผู้ช่วย...",
-        "webSearch": "Web Search",
+        "webSearch": "ค้นเว็บ",
         "newChat": "แชทใหม่",
         "startConversation": "เริ่มการสนทนา",
-        "startMessage": "ถามคำถาม, ขอไอเดีย, หรือให้ช่วยเขียนโค้ด!",
-        "sendMessage": "ส่งข้อความ",
         "inputPlaceholder": "พิมพ์ข้อความของคุณ...",
         "inputOffline": "คุณกำลังออฟไลน์",
-        "translate": "แปลภาษา",
-        "copyCode": "คัดลอกโค้ด"
+        "copyCode": "คัดลอกโค้ด",
+        "voice": "เสียง"
     },
     "settings": {
         "title": "การตั้งค่า",
@@ -67,9 +72,6 @@
         "themeSystem": "ตามระบบ",
         "sound": "เสียง",
         "soundEffects": "เสียงประกอบ",
-        "backgroundMusic": "เพลงพื้นหลัง",
-        "on": "เปิด",
-        "off": "ปิด",
         "display": "การแสดงผล",
         "uiAnimations": "UI Animations",
         "creation": "การสร้างผลงาน",
@@ -84,14 +86,14 @@
         "difficultyEasy": "ง่าย",
         "difficultyNormal": "ปกติ",
         "difficultyHard": "ยาก",
-        "dataManagement": "การจัดการข้อมูล",
         "clearArtData": "ล้างแกลเลอรีและประวัติเพลง",
         "clearAllData": "ล้างข้อมูลทั้งหมด",
         "clearAllDataWarning": "การล้างข้อมูลทั้งหมดจะลบเครดิต, ประวัติ, รูปภาพในแกลเลอรี และการตั้งค่าทั้งหมด",
         "language": "Language / ภาษา",
         "langTh": "ไทย",
         "langEn": "English",
-        "langJa": "日本語"
+        "langJa": "日本語",
+        "langFr": "Français"
     },
     "translator": {
         "title": "AI แปลภาษา",
@@ -114,6 +116,23 @@
         "bpm": "BPM",
         "instrument": "เครื่องดนตรี",
         "clear": "ล้าง",
-        "download": "ดาวน์โหลด"
+        "download": "ดาวน์โหลด",
+        "steps": "สเต็ป"
+    },
+    "appPublisher": {
+        "title": "ผู้ช่วยเผยแพร่แอป AI",
+        "description": "ป้อนไอเดียแอปของคุณ แล้วให้ AI ช่วยสร้างชื่อ, คำอธิบาย, และไฟล์ manifest.json สำหรับเว็บแอปของคุณ!",
+        "inputLabel": "อธิบายไอเดียแอปของคุณ:",
+        "inputPlaceholder": "เช่น แอปสำหรับติดตามต้นไม้และแจ้งเตือนการรดน้ำ...",
+        "generateButton": "สร้างโปรไฟล์แอป",
+        "credits": "เครดิต",
+        "loadingText": "AI กำลังสร้างโปรไฟล์แอป...",
+        "resultsTitle": "โปรไฟล์แอปที่สร้างโดย AI:",
+        "suggestedNames": "ชื่อที่แนะนำ:",
+        "appDescription": "คำอธิบายแอป:",
+        "keywords": "คีย์เวิร์ด:",
+        "manifestJson": "ไฟล์ Manifest.json:",
+        "copy": "คัดลอก",
+        "copied": "คัดลอกแล้ว!"
     }
 }

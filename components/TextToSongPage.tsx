@@ -43,8 +43,6 @@ interface HistoryItem {
     modelVersion: ModelVersion;
 }
 
-const HISTORY_STORAGE_KEY = 'ai-studio-song-history';
-
 export const TextToSongPage: React.FC<TextToSongPageProps> = ({
     onClose,
     playSound,
@@ -64,25 +62,6 @@ export const TextToSongPage: React.FC<TextToSongPageProps> = ({
     const [currentlyPlayingId, setCurrentlyPlayingId] = useState<string | null>(null);
     const { credits, spendCredits } = useCredits();
     const cancellationRequested = useRef(false);
-
-    useEffect(() => {
-        try {
-            const savedHistory = localStorage.getItem(HISTORY_STORAGE_KEY);
-            if (savedHistory) {
-                setHistory(JSON.parse(savedHistory));
-            }
-        } catch (e) {
-            console.error("Could not load song history from localStorage", e);
-        }
-    }, []);
-
-    useEffect(() => {
-        try {
-            localStorage.setItem(HISTORY_STORAGE_KEY, JSON.stringify(history));
-        } catch (e) {
-            console.error("Could not save song history to localStorage", e);
-        }
-    }, [history]);
 
     useEffect(() => {
         preferenceService.setPreference('textToSongModel', modelVersion);

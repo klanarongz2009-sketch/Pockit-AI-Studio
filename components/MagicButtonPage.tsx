@@ -8,33 +8,12 @@ interface MagicButtonPageProps {
     addCredits: (amount: number) => void;
 }
 
-const STORAGE_KEY = 'ai-studio-magic-button-presses';
-
 export const MagicButtonPage: React.FC<MagicButtonPageProps> = ({ onClose, playSound, addCredits }) => {
     const [pressCount, setPressCount] = useState(0);
 
-    useEffect(() => {
-        try {
-            const storedCount = localStorage.getItem(STORAGE_KEY);
-            if (storedCount !== null) {
-                setPressCount(parseInt(storedCount, 10));
-            }
-        } catch (e) {
-            console.error("Failed to load press count from localStorage", e);
-        }
-    }, []);
-
     const handlePress = useCallback(() => {
         addCredits(1);
-        setPressCount(prevCount => {
-            const newCount = prevCount + 1;
-            try {
-                localStorage.setItem(STORAGE_KEY, String(newCount));
-            } catch (e) {
-                 console.error("Failed to save press count to localStorage", e);
-            }
-            return newCount;
-        });
+        setPressCount(prevCount => prevCount + 1);
     }, [addCredits]);
 
     return (

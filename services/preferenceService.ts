@@ -8,7 +8,8 @@ export interface Preferences {
 
     // Display & Accessibility
     theme: 'light' | 'dark' | 'system';
-    language: 'th' | 'en' | 'ja';
+    // FIX: Added 'fr' to support French language selection and resolve type mismatch.
+    language: 'th' | 'en' | 'ja' | 'fr';
     uiAnimations: boolean;
     highContrastMode: boolean;
     showTooltips: boolean;
@@ -49,34 +50,21 @@ export interface Preferences {
     textToSpeechAutoDetectLang: boolean;
 }
 
-const PREFERENCES_STORAGE_KEY = 'ai-studio-user-preferences';
+// In-memory store for preferences. This will be reset on every page load.
+let inMemoryPreferences: Partial<Preferences> = {};
 
-// Function to get all preferences from localStorage
+// Function to get all preferences from the in-memory store
 function getAllPreferences(): Partial<Preferences> {
-    try {
-        const storedPreferences = localStorage.getItem(PREFERENCES_STORAGE_KEY);
-        if (storedPreferences) {
-            return JSON.parse(storedPreferences);
-        }
-    } catch (error) {
-        console.error("Failed to parse user preferences from localStorage:", error);
-        // If parsing fails, it's safer to start fresh
-        localStorage.removeItem(PREFERENCES_STORAGE_KEY);
-    }
-    return {};
+    return inMemoryPreferences;
 }
 
-// Function to save all preferences to localStorage
+// Function to save all preferences to the in-memory store
 function saveAllPreferences(prefs: Partial<Preferences>): void {
-    try {
-        localStorage.setItem(PREFERENCES_STORAGE_KEY, JSON.stringify(prefs));
-    } catch (error) {
-        console.error("Failed to save user preferences to localStorage:", error);
-    }
+    inMemoryPreferences = prefs;
 }
 
 /**
- * Gets a specific preference value from localStorage.
+ * Gets a specific preference value from the in-memory store.
  * @param key The key of the preference to retrieve.
  * @param defaultValue The value to return if the key is not found.
  * @returns The stored preference value or the default value.
@@ -85,9 +73,6 @@ export function getPreference<K extends keyof Preferences>(key: K, defaultValue:
     const prefs = getAllPreferences();
     const storedValue = prefs[key];
 
-    // FIX: Add explicit check for null/undefined and a type assertion.
-    // TypeScript has limitations inferring narrowed types from indexed access on generic objects.
-    // The previous `if (storedValue)` check was buggy for falsy values like `false` or `0`.
     if (storedValue !== null && storedValue !== undefined) {
         return storedValue as Preferences[K];
     }
@@ -95,7 +80,7 @@ export function getPreference<K extends keyof Preferences>(key: K, defaultValue:
 }
 
 /**
- * Sets a specific preference value in localStorage.
+ * Sets a specific preference value in the in-memory store.
  * @param key The key of the preference to set.
  * @param value The value to store.
  */

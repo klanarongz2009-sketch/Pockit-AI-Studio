@@ -46,13 +46,6 @@ export const MusicMemoryGamePage: React.FC<{
     
     const timeoutRef = useRef<number | null>(null);
 
-    useEffect(() => {
-        const savedHighScore = localStorage.getItem('musicMemoryHighScore');
-        if (savedHighScore) {
-            setHighScore(parseInt(savedHighScore, 10));
-        }
-    }, []);
-
     const playNote = (note: string, duration = 300) => {
         const freq = audioService.NOTE_FREQUENCIES[note];
         if (freq) {
@@ -102,7 +95,6 @@ export const MusicMemoryGamePage: React.FC<{
             setGameState('gameOver');
             if (score > highScore) {
                 setHighScore(score);
-                localStorage.setItem('musicMemoryHighScore', String(score));
             }
             return;
         } else {

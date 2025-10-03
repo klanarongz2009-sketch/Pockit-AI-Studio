@@ -1,5 +1,3 @@
-
-
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { PageWrapper } from './PageComponents';
 import * as audioService from '../services/audioService';
@@ -33,13 +31,6 @@ export const SnakeGame: React.FC<SnakeGameProps> = ({ onClose, playSound, addCre
     const [isGameOver, setIsGameOver] = useState(false);
     const [gameStarted, setGameStarted] = useState(false);
     const touchStartRef = useRef<{ x: number, y: number } | null>(null);
-
-    useEffect(() => {
-        const savedHighScore = localStorage.getItem('minigame_snake_highscore');
-        if (savedHighScore) {
-            setHighScore(parseInt(savedHighScore, 10) || 0);
-        }
-    }, []);
 
     const generateFood = useCallback((snakeBody: { x: number, y: number }[]) => {
         let newFoodPos;
@@ -135,7 +126,6 @@ export const SnakeGame: React.FC<SnakeGameProps> = ({ onClose, playSound, addCre
         if (isGameOver) {
             if (score > highScore) {
                 setHighScore(score);
-                localStorage.setItem('minigame_snake_highscore', String(score));
                 setIsNewHighScore(true);
                 playSound(audioService.playSuccess);
             } else {

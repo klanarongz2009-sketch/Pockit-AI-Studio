@@ -1,0 +1,138 @@
+{
+    "header": {
+        "title": "Univers IA Créatif",
+        "credits": "Crédits",
+        "settings": "Paramètres",
+        "menu": "Menu"
+    },
+    "sidebar": {
+        "imageGenerator": "Gén. Image",
+        "gallery": "Galerie",
+        "aiZone": "Zone IA",
+        "aiChat": "Chat IA",
+        "updateInfo": "Mises à jour"
+    },
+    "offline": {
+        "message": "Vous êtes hors ligne. Les fonctionnalités IA sont désactivées."
+    },
+    "imageGenerator": {
+        "download": "Télécharger",
+        "share": "Partager",
+        "save": "Enregistrer",
+        "saved": "Enregistré",
+        "clear": "Effacer",
+        "upload": "Charger",
+        "fromUrl": "Depuis URL",
+        "suggestions": "Suggestions",
+        "createAssets": "Créer Assets",
+        "generate": "Générer",
+        "modes": {
+            "image": "Image",
+            "gif": "GIF",
+            "video": "Vidéo",
+            "spritesheet": "Spritesheet"
+        },
+        "fps": "IPS",
+        "frameCount": "Images"
+    },
+    "outputDisplay": {
+        "emptyArea": "Zone de résultats vide",
+        "errorTitle": "Une erreur est survenue",
+        "welcomeTitle": "Bienvenue !",
+        "welcomeMessage": "Entrez une invite ou chargez une image pour commencer !",
+        "altBase": {
+            "image": "Image pixel art",
+            "gif": "Animation GIF pixel art en boucle",
+            "video": "Vidéo pixel art",
+            "spritesheet": "Feuille de sprites d'animation pixel art"
+        },
+        "altGeneratedFrom": "généré à partir de l'invite :",
+        "codePreview": "Aperçu du code généré à partir de l'invite :",
+        "videoNotSupported": "Votre navigateur ne supporte pas la balise vidéo."
+    },
+    "aiChat": {
+        "title": "Chat IA",
+        "selectAssistant": "Sélectionner un Assistant IA",
+        "searchAssistant": "Rechercher des assistants...",
+        "webSearch": "Recherche Web",
+        "newChat": "Nouveau Chat",
+        "startConversation": "Commencer une conversation",
+        "inputPlaceholder": "Tapez votre message...",
+        "inputOffline": "Vous êtes hors ligne",
+        "copyCode": "Copier le code",
+        "voice": "Voix"
+    },
+    "settings": {
+        "title": "Paramètres",
+        "general": "Général",
+        "aboutApp": "À propos de l'app",
+        "theme": "Thème",
+        "themeLight": "Clair",
+        "themeDark": "Sombre",
+        "themeSystem": "Système",
+        "sound": "Son",
+        "soundEffects": "Effets sonores",
+        "display": "Affichage",
+        "uiAnimations": "Animations UI",
+        "creation": "Création",
+        "defaultImageMode": "Mode d'image par défaut",
+        "imageQuality": "Qualité de génération d'image",
+        "qualityFast": "Rapide",
+        "qualityHigh": "Qualité",
+        "defaultAiChat": "Chat IA par défaut",
+        "saveChatHistory": "Sauvegarder l'historique",
+        "minigames": "Mini-jeux",
+        "defaultDifficulty": "Difficulté par défaut",
+        "difficultyEasy": "Facile",
+        "difficultyNormal": "Normal",
+        "difficultyHard": "Difficile",
+        "clearArtData": "Effacer la galerie et l'historique",
+        "clearAllData": "Effacer toutes les données",
+        "clearAllDataWarning": "Effacer toutes les données supprimera vos crédits, votre historique, vos images de galerie et tous vos paramètres.",
+        "language": "Language / Langue",
+        "langTh": "ไทย",
+        "langEn": "English",
+        "langJa": "日本語",
+        "langFr": "Français"
+    },
+    "translator": {
+        "title": "Traducteur IA",
+        "description": "Traduisez du texte entre différentes langues. Propulsé par l'IA.",
+        "from": "De",
+        "to": "À",
+        "swap": "Inverser",
+        "inputText": "Entrez le texte ici...",
+        "outputText": "La traduction apparaîtra ici...",
+        "translate": "Traduire",
+        "translating": "Traduction...",
+        "credits": "crédits",
+        "notEnoughCredits": "Crédits insuffisants ! Vous avez besoin de"
+    },
+    "sequencer": {
+        "title": "Séquenceur Pixel",
+        "description": "Composez vos propres mélodies chiptune 8-bit sur une grille de séquenceur pas à pas. Un outil puissant pour la création musicale !",
+        "play": "Jouer",
+        "stop": "Arrêter",
+        "bpm": "BPM",
+        "instrument": "Instrument",
+        "clear": "Effacer",
+        "download": "Télécharger",
+        "steps": "Pas"
+    },
+    "appPublisher": {
+        "title": "Éditeur d'App IA",
+        "description": "Entrez votre idée d'application et laissez l'IA générer des noms, des descriptions et un fichier manifest.json pour votre application web !",
+        "inputLabel": "Décrivez votre idée d'application :",
+        "inputPlaceholder": "Ex : Une application pour suivre les plantes d'intérieur et les rappels d'arrosage...",
+        "generateButton": "Générer le profil de l'application",
+        "credits": "Crédits",
+        "loadingText": "L'IA construit le profil de votre application...",
+        "resultsTitle": "Profil d'application généré par l'IA :",
+        "suggestedNames": "Noms suggérés :",
+        "appDescription": "Description de l'application :",
+        "keywords": "Mots-clés :",
+        "manifestJson": "Fichier Manifest.json :",
+        "copy": "Copier",
+        "copied": "Copié !"
+    }
+}

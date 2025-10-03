@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useCredits } from '../contexts/CreditContext';
 import { CoinsIcon } from './icons/CoinsIcon';
 import * as audioService from '../services/audioService';
@@ -10,6 +10,9 @@ import { GalleryIcon } from './icons/GalleryIcon';
 import { SettingsIcon } from './icons/SettingsIcon';
 import { MenuIcon } from './icons/MenuIcon';
 import { useLanguage } from '../contexts/LanguageContext';
+import { UpdateIcon } from './icons/UpdateIcon';
+import { UpdateInfoPage } from './UpdateInfoPage';
+import { EarnCreditsModal } from './EarnCreditsModal';
 
 interface GlobalLayoutProps {
     children: React.ReactNode;
@@ -52,9 +55,18 @@ const LayoutComponent: React.FC<GlobalLayoutProps> = ({
 }) => {
     const { credits, loading: creditsLoading } = useCredits();
     const { t } = useLanguage();
+    const [isUpdateInfoOpen, setIsUpdateInfoOpen] = useState(false);
+    const [isEarnCreditsModalOpen, setIsEarnCreditsModalOpen] = useState(false);
 
     return (
         <>
+            {isUpdateInfoOpen && <UpdateInfoPage onClose={() => setIsUpdateInfoOpen(false)} />}
+            
+            {isEarnCreditsModalOpen && <EarnCreditsModal isOpen={isEarnCreditsModalOpen} onClose={() => {
+                playSound(audioService.playCloseModal);
+                setIsEarnCreditsModalOpen(false);
+            }} />}
+            
             {/* Sidebar Overlay */}
             <div 
                 className={`sidebar-overlay fixed inset-0 bg-black/60 z-40 ${isSidebarOpen ? 'open' : ''}`}
@@ -99,6 +111,15 @@ const LayoutComponent: React.FC<GlobalLayoutProps> = ({
                         playSound={() => playSound(audioService.playHover)}
                     />
                 </nav>
+                 <footer className="p-2 border-t-2 border-border-primary">
+                    <button
+                        onClick={() => setIsUpdateInfoOpen(true)}
+                        className="flex items-center w-full gap-2 px-2 py-2 text-xs text-left text-text-secondary hover:text-brand-yellow transition-colors"
+                    >
+                        <UpdateIcon className="w-4 h-4" />
+                        <span className="font-press-start">{t('sidebar.updateInfo')}</span>
+                    </button>
+                </footer>
             </aside>
 
             {!isOnline && (
@@ -124,13 +145,26 @@ const LayoutComponent: React.FC<GlobalLayoutProps> = ({
                 </div>
 
                 <div className="flex items-center gap-1 sm:gap-2">
-                     <button
-                        aria-label={`${t('header.credits')}: ${creditsLoading ? '...' : credits.toFixed(0)}`}
-                        className="h-10 flex items-center justify-center gap-2 px-2 sm:px-3 bg-surface-primary border-2 border-border-primary text-text-primary"
-                    >
-                        <CoinsIcon className="w-5 h-5 text-brand-yellow" />
-                        <span className="font-press-start text-xs sm:text-sm">{creditsLoading ? '...' : credits.toFixed(0)}</span>
-                    </button>
+                    <div className="flex items-stretch h-10 bg-surface-primary border-2 border-border-primary">
+                        <div
+                            aria-label={`${t('header.credits')}: ${creditsLoading ? '...' : credits.toFixed(0)}`}
+                            className="flex items-center justify-center gap-2 px-2 sm:px-3 text-text-primary"
+                        >
+                            <CoinsIcon className="w-5 h-5 text-brand-yellow" />
+                            <span className="font-press-start text-xs sm:text-sm">{creditsLoading ? '...' : credits.toFixed(0)}</span>
+                        </div>
+                        <button
+                            onClick={() => {
+                                playSound(audioService.playClick);
+                                setIsEarnCreditsModalOpen(true);
+                            }}
+                            onMouseEnter={() => playSound(audioService.playHover)}
+                            aria-label="Add Credits"
+                            className="w-10 flex-shrink-0 flex items-center justify-center border-l-2 border-border-primary text-text-primary hover:bg-brand-lime hover:text-text-inverted transition-colors"
+                        >
+                            <span className="font-press-start text-lg">+</span>
+                        </button>
+                    </div>
                     
                      <button
                         onClick={onOpenSettings}

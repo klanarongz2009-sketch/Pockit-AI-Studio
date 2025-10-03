@@ -7,8 +7,8 @@ import { useLanguage } from '../contexts/LanguageContext';
 import { TrashIcon } from './icons/TrashIcon';
 import { DownloadIcon } from './icons/DownloadIcon';
 
-const pitches = ['C5', 'B4', 'A#4', 'A4', 'G#4', 'G4', 'F#4', 'F4', 'E4', 'D#4', 'D4', 'C#4', 'C4'];
-const numSteps = 16;
+const pitches = ['B5', 'A#5', 'A5', 'G#5', 'G5', 'F#5', 'F5', 'E5', 'D#5', 'D5', 'C#5', 'C5', 'B4', 'A#4', 'A4', 'G#4', 'G4', 'F#4', 'F4', 'E4', 'D#4', 'D4', 'C#4', 'C4', 'B3', 'A#3', 'A3', 'G#3', 'G3', 'F#3', 'F3', 'E3', 'D#3', 'D3', 'C#3', 'C3'];
+const defaultSteps = 16;
 const waveforms: audioService.SoundType[] = ['square', 'sine', 'sawtooth', 'triangle', 'noise'];
 
 export const PixelSequencerPage: React.FC<{
@@ -19,6 +19,8 @@ export const PixelSequencerPage: React.FC<{
     const [notes, setNotes] = useState<Set<string>>(new Set());
     const [instrument, setInstrument] = useState<audioService.SoundType>('square');
     const [bpm, setBpm] = useState(120);
+    const [numSteps, setNumSteps] = useState(defaultSteps);
+    const [numStepsInput, setNumStepsInput] = useState(String(defaultSteps));
     const [isPlaying, setIsPlaying] = useState(false);
     const [playheadCol, setPlayheadCol] = useState<number | null>(null);
     const [isDownloading, setIsDownloading] = useState(false);
@@ -52,6 +54,7 @@ export const PixelSequencerPage: React.FC<{
     }, []);
 
     const startPlayback = useCallback(() => {
+        if (numSteps <= 0) return;
         setIsPlaying(true);
         setPlayheadCol(0);
 
@@ -73,7 +76,7 @@ export const PixelSequencerPage: React.FC<{
             currentStep = playStep(currentStep);
         }, (60 * 1000) / bpm / 4);
 
-    }, [bpm, instrument]);
+    }, [bpm, instrument, numSteps]);
 
     const handlePlayToggle = () => {
         playSound(audioService.playClick);
@@ -91,7 +94,7 @@ export const PixelSequencerPage: React.FC<{
         setIsDownloading(true);
     
         try {
-            const wavBlob = await audioService.exportSequencerToWav(notes, bpm, instrument, pitches);
+            const wavBlob = await audioService.exportSequencerToWav(notes, bpm, instrument, pitches, numSteps);
             if (wavBlob) {
                 const url = URL.createObjectURL(wavBlob);
                 const a = document.createElement('a');
@@ -106,7 +109,6 @@ export const PixelSequencerPage: React.FC<{
             }
         } catch (err) {
             console.error(err);
-            // In a real app, you might want to show an error to the user here.
         } finally {
             setIsDownloading(false);
         }
@@ -117,13 +119,23 @@ export const PixelSequencerPage: React.FC<{
         if(isPlaying) stopPlayback();
         setNotes(new Set());
     };
+    
+    const handleNumStepsChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const val = e.target.value;
+        setNumStepsInput(val);
+        const parsed = parseInt(val, 10);
+        if (!isNaN(parsed) && parsed >= 4 && parsed <= 100) {
+            setNumSteps(parsed);
+        }
+    };
+
 
     useEffect(() => {
         if (isPlaying) {
             stopPlayback();
             startPlayback();
         }
-    }, [bpm, instrument, isPlaying, startPlayback, stopPlayback]);
+    }, [bpm, instrument, isPlaying, startPlayback, stopPlayback, numSteps]);
     
     useEffect(() => {
         return () => {
@@ -140,8 +152,8 @@ export const PixelSequencerPage: React.FC<{
     return (
         <PageWrapper>
             <PageHeader title={t('sequencer.title')} onBack={handleClose} />
-            <main id="main-content" className="w-full max-w-4xl flex-grow flex flex-col items-center gap-4 p-2 font-sans">
-                <div className="w-full grid grid-cols-2 md:grid-cols-4 gap-4 p-2 bg-black/30 border-2 border-border-secondary">
+            <main id="main-content" className="w-full max-w-5xl flex-grow flex flex-col items-center gap-4 p-2 font-sans">
+                <div className="w-full grid grid-cols-2 md:grid-cols-5 gap-4 p-2 bg-black/30 border-2 border-border-secondary">
                     <button onClick={handlePlayToggle} className="p-3 bg-brand-cyan text-black border-4 border-border-primary shadow-pixel flex items-center justify-center gap-2">
                         {isPlaying ? <StopIcon className="w-5 h-5" /> : <PlayIcon className="w-5 h-5" />}
                         <span className="font-press-start text-sm">{isPlaying ? t('sequencer.stop') : t('sequencer.play')}</span>
@@ -159,6 +171,10 @@ export const PixelSequencerPage: React.FC<{
                            {waveforms.map(wf => <option key={wf} value={wf}>{wf}</option>)}
                         </select>
                     </div>
+                     <div className="flex flex-col">
+                        <label htmlFor="steps-input" className="text-xs font-press-start text-brand-cyan mb-1">{t('sequencer.steps')} (4-100)</label>
+                        <input id="steps-input" type="number" value={numStepsInput} onChange={handleNumStepsChange} className="w-full p-1 bg-surface-primary border border-border-secondary text-center"/>
+                    </div>
                     <div className="flex gap-2">
                         <button onClick={clearGrid} className="flex-1 p-2 bg-brand-magenta text-white border-4 border-border-primary shadow-pixel flex items-center justify-center gap-2">
                             <TrashIcon className="w-5 h-5" />
@@ -172,10 +188,10 @@ export const PixelSequencerPage: React.FC<{
                 </div>
                 
                 <div className="w-full overflow-x-auto flex-grow bg-black/50 border-4 border-brand-light">
-                    <div className="flex" style={{ minWidth: '800px' }}>
-                        <div className="flex flex-col text-xs font-press-start text-brand-cyan sticky left-0 bg-background z-10">
+                    <div className="flex" style={{ width: `${numSteps * 2.5}rem` }}>
+                        <div className="flex flex-col text-[10px] font-press-start text-brand-cyan sticky left-0 bg-background z-10">
                             {pitches.map(pitch => (
-                                <div key={pitch} className={`h-8 flex items-center justify-center pr-2 border-r border-b border-border-secondary/20 ${pitch.includes('#') ? 'bg-black/40' : 'bg-black/20'}`}>
+                                <div key={pitch} className={`h-8 flex-shrink-0 w-12 flex items-center justify-center pr-2 border-r border-b border-border-secondary/20 ${pitch.includes('#') ? 'bg-black/40' : 'bg-black/20'}`}>
                                     {pitch}
                                 </div>
                             ))}
@@ -183,7 +199,7 @@ export const PixelSequencerPage: React.FC<{
                         
                         <div className="flex-grow flex">
                             {Array.from({ length: numSteps }).map((_, step) => (
-                                <div key={step} className={`flex flex-col flex-1 transition-colors ${playheadCol === step ? 'bg-brand-yellow/30' : ''} ${step % 4 === 0 ? 'border-l-2 border-border-secondary/70' : 'border-l border-border-secondary/30'}`}>
+                                <div key={step} className={`flex flex-col w-10 flex-shrink-0 transition-colors ${playheadCol === step ? 'bg-brand-yellow/30' : ''} ${step % 4 === 0 ? 'border-l-2 border-border-secondary/70' : 'border-l border-border-secondary/30'}`}>
                                     {pitches.map(pitch => {
                                         const noteId = `${pitch}:${step}`;
                                         const isActive = notes.has(noteId);

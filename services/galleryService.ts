@@ -12,30 +12,18 @@ export interface Comment {
     timestamp: number;
 }
   
-const ARTWORKS_KEY = 'ai-art-gallery-artworks';
-const COMMENTS_KEY_PREFIX = 'ai-art-gallery-comments-';
+// In-memory stores that reset on page load
+let inMemoryArtworks: Artwork[] = [];
+const inMemoryComments: { [artworkId: string]: Comment[] } = {};
 
 // --- Artworks ---
 
 export function getArtworks(): Artwork[] {
-    try {
-        const stored = localStorage.getItem(ARTWORKS_KEY);
-        if (stored) {
-            return JSON.parse(stored);
-        }
-    } catch (e) {
-        console.error("Failed to retrieve artworks:", e);
-    }
-    return [];
+    return inMemoryArtworks;
 }
   
 function saveArtworks(artworks: Artwork[]): void {
-    try {
-        localStorage.setItem(ARTWORKS_KEY, JSON.stringify(artworks));
-    } catch (e) {
-        console.error("Failed to save artworks:", e);
-        throw new Error("Could not save artworks to local storage.");
-    }
+    inMemoryArtworks = artworks;
 }
   
 export function addArtwork(imageDataUrl: string, prompt: string): Artwork {
@@ -57,11 +45,7 @@ export function deleteArtwork(id: string): Artwork[] {
     artworks = artworks.filter(art => art.id !== id);
     saveArtworks(artworks);
     // Also delete associated comments
-    try {
-        localStorage.removeItem(`${COMMENTS_KEY_PREFIX}${id}`);
-    } catch (e) {
-        console.error(`Failed to delete comments for artwork ${id}:`, e);
-    }
+    delete inMemoryComments[id];
     return artworks;
 }
   
@@ -79,23 +63,11 @@ export function toggleFavorite(id: string): Artwork[] {
 // --- Comments ---
 
 export function getComments(artworkId: string): Comment[] {
-    try {
-        const stored = localStorage.getItem(`${COMMENTS_KEY_PREFIX}${artworkId}`);
-        if (stored) {
-            return JSON.parse(stored);
-        }
-    } catch (e) {
-        console.error(`Failed to retrieve comments for artwork ${artworkId}:`, e);
-    }
-    return [];
+    return inMemoryComments[artworkId] || [];
 }
   
 function saveComments(artworkId: string, comments: Comment[]): void {
-    try {
-        localStorage.setItem(`${COMMENTS_KEY_PREFIX}${artworkId}`, JSON.stringify(comments));
-    } catch (e) {
-        console.error(`Failed to save comments for artwork ${artworkId}:`, e);
-    }
+    inMemoryComments[artworkId] = comments;
 }
   
 export function addComment(artworkId: string, text: string): Comment[] {

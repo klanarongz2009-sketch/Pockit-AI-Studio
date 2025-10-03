@@ -32,13 +32,6 @@ export const BrickBreakerGame: React.FC<BrickBreakerGameProps> = ({ onClose, pla
     const [lives, setLives] = useState(3);
     const [gameState, setGameState] = useState<'playing' | 'gameOver' | 'win'>('playing');
 
-    useEffect(() => {
-        const savedHighScore = localStorage.getItem('minigame_brickBreaker_highscore');
-        if (savedHighScore) {
-            setHighScore(parseInt(savedHighScore, 10) || 0);
-        }
-    }, []);
-
     const createBricks = useCallback(() => {
         const newBricks = [];
         for (let r = 0; r < BRICK_ROWS; r++) {
@@ -63,7 +56,6 @@ export const BrickBreakerGame: React.FC<BrickBreakerGameProps> = ({ onClose, pla
         if (gameState === 'gameOver' || gameState === 'win') {
             if (score > highScore) {
                 setHighScore(score);
-                localStorage.setItem('minigame_brickBreaker_highscore', String(score));
                 setIsNewHighScore(true);
                 playSound(audioService.playSuccess);
             } else {
