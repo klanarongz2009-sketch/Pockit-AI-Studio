@@ -1,7 +1,4 @@
-
 import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
-// FIX: The 'LiveSession' type is not exported from the '@google/genai' module.
-// It has been removed from the import statement to resolve the error.
 import { GoogleGenAI, LiveServerMessage, Modality, Blob } from '@google/genai';
 import * as geminiService from '../services/geminiService';
 import * as audioService from '../services/audioService';
@@ -24,6 +21,7 @@ import { XIcon } from './icons/XIcon';
 import { MicrophoneIcon } from './icons/MicrophoneIcon';
 import { StopIcon } from './icons/StopIcon';
 import { SpeakerOnIcon } from './icons/SpeakerOnIcon';
+import type { Message } from '../services/preferenceService';
 
 // --- Gemini Live API Helper Functions ---
 function encode(bytes: Uint8Array) {
@@ -64,13 +62,6 @@ async function decodeAudioData(data: Uint8Array, ctx: AudioContext, sampleRate: 
 interface AiChatPageProps {
   isOnline: boolean;
   playSound: (player: () => void) => void;
-}
-
-interface Message {
-  id: string;
-  role: 'user' | 'model';
-  text: string;
-  sources?: { uri: string; title:string }[];
 }
 
 interface FileData {
@@ -193,6 +184,7 @@ export const AiChatPage: React.FC<AiChatPageProps> = ({ isOnline, playSound }) =
     const [webSearchEnabled, setWebSearchEnabled] = useState(() => preferenceService.getPreference('defaultWebSearch', false) && canUseWebSearch);
     
     const [messages, setMessages] = useState<Message[]>([]);
+    const [saveChatHistory, setSaveChatHistory] = useState(() => preferenceService.getPreference('saveChatHistory', true));
     
     // --- Voice Assistant State ---
     const [liveConnectionState, setLiveConnectionState] = useState<'idle' | 'connecting' | 'connected' | 'error'>('idle');
@@ -201,7 +193,6 @@ export const AiChatPage: React.FC<AiChatPageProps> = ({ isOnline, playSound }) =
 
     const currentMicInputRef = useRef('');
     const currentModelOutputRef = useRef('');
-    // FIX: Replaced the unexported 'LiveSession' type with 'any' to handle the session promise.
     const sessionPromiseRef = useRef<Promise<any> | null>(null);
     const inputAudioContextRef = useRef<AudioContext | null>(null);
     const outputAudioContextRef = useRef<AudioContext | null>(null);
@@ -216,12 +207,31 @@ export const AiChatPage: React.FC<AiChatPageProps> = ({ isOnline, playSound }) =
     const messagesEndRef = useRef<HTMLDivElement>(null);
     const fileInputRef = useRef<HTMLInputElement>(null);
 
-    // Reset chat when model changes
+    // Load messages when model or save setting changes
     useEffect(() => {
-        setMessages([]);
+        if (saveChatHistory) {
+            const allHistory = preferenceService.getPreference('chatHistory', {});
+            const modelHistory = allHistory[selectedModel.id];
+            if (Array.isArray(modelHistory)) {
+                setMessages(modelHistory);
+            } else {
+                setMessages([]);
+            }
+        } else {
+            setMessages([]); // Clear messages if history is turned off
+        }
         geminiService.resetChatSession();
         setError(null);
-    }, [selectedModel]);
+    }, [selectedModel, saveChatHistory]);
+
+    // Save messages whenever they change
+    useEffect(() => {
+        if (saveChatHistory) {
+            const allHistory = preferenceService.getPreference('chatHistory', {});
+            const newHistoryForModel = { ...allHistory, [selectedModel.id]: messages };
+            preferenceService.setPreference('chatHistory', newHistoryForModel);
+        }
+    }, [messages, selectedModel.id, saveChatHistory]);
 
     useEffect(() => {
         messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -233,12 +243,11 @@ export const AiChatPage: React.FC<AiChatPageProps> = ({ isOnline, playSound }) =
         playSound(audioService.playClick);
         setSpeakingMessageId(message.id);
         setError(null);
-
+        
+        const selectedVoice = preferenceService.getPreference('textToSpeechVoiceName', 'Zephyr');
         const ttsOutputCtx = new (window.AudioContext || (window as any).webkitAudioContext)({ sampleRate: 24000 });
-        const ttsInputCtx = new (window.AudioContext || (window as any).webkitAudioContext)({ sampleRate: 16000 });
         const ttsAudioSources = new Set<AudioBufferSourceNode>();
         let ttsNextStartTime = 0;
-        // FIX: Replaced the unexported 'LiveSession' type with 'any' for the local session promise variable.
         let ttsSessionPromise: Promise<any> | null = null;
         let cleanedUp = false;
 
@@ -248,14 +257,16 @@ export const AiChatPage: React.FC<AiChatPageProps> = ({ isOnline, playSound }) =
             
             ttsSessionPromise?.then(s => s.close());
             
-            if (ttsInputCtx.state !== 'closed') ttsInputCtx.close();
             if (ttsOutputCtx.state !== 'closed') {
-                for (const source of ttsAudioSources.values()) source.stop();
+                for (const source of ttsAudioSources.values()) {
+                    try { source.stop(); } catch(e) {}
+                }
                 ttsAudioSources.clear();
                 ttsOutputCtx.close();
             }
-
-            setSpeakingMessageId(null);
+            if(speakingMessageId === message.id) {
+                setSpeakingMessageId(null);
+            }
         };
 
         ttsSessionPromise = ai.live.connect({
@@ -263,13 +274,7 @@ export const AiChatPage: React.FC<AiChatPageProps> = ({ isOnline, playSound }) =
             callbacks: {
                 onopen: () => {
                     ttsSessionPromise?.then(session => {
-                        const silentBuffer = ttsInputCtx.createBuffer(1, 160, 16000); // 10ms
-                        const silentData = silentBuffer.getChannelData(0);
-                        const pcmBlob: Blob = {
-                            data: encode(new Uint8Array(new Int16Array(silentData.map(x => x * 32768)).buffer)),
-                            mimeType: 'audio/pcm;rate=16000',
-                        };
-                        session.sendRealtimeInput({ media: pcmBlob });
+                        session.sendRealtimeInput({ text: message.text });
                     });
                 },
                 onmessage: async (msg: LiveServerMessage) => {
@@ -300,7 +305,10 @@ export const AiChatPage: React.FC<AiChatPageProps> = ({ isOnline, playSound }) =
             },
             config: {
                 responseModalities: [Modality.AUDIO],
-                systemInstruction: `You are a text-to-speech engine. Your only task is to read the following text aloud clearly and naturally, and then stop. Text: "${message.text}"`
+                speechConfig: {
+                    voiceConfig: { prebuiltVoiceConfig: { voiceName: selectedVoice } }
+                },
+                systemInstruction: "You are a text-to-speech engine. Your only task is to read the user's text aloud clearly and naturally, and then end the conversation."
             }
         });
     }, [isOnline, speakingMessageId, playSound]);
@@ -315,7 +323,12 @@ export const AiChatPage: React.FC<AiChatPageProps> = ({ isOnline, playSound }) =
         setUserInput('');
         setFileData(null);
         if (fileInputRef.current) fileInputRef.current.value = "";
-    }, [playSound]);
+    
+        // Also explicitly clear from storage
+        const allHistory = preferenceService.getPreference('chatHistory', {});
+        delete allHistory[selectedModel.id];
+        preferenceService.setPreference('chatHistory', allHistory);
+    }, [playSound, selectedModel.id]);
 
     const runGemini = useCallback(async (prompt: string) => {
          if (selectedModel.id !== 'local-robot' && !isOnline) {
@@ -356,19 +369,21 @@ export const AiChatPage: React.FC<AiChatPageProps> = ({ isOnline, playSound }) =
         
         playSound(audioService.playClick);
         const userMessage: Message = { id: `msg-${Date.now()}`, role: 'user', text: trimmedInput };
-        setMessages(prev => [...prev, userMessage]);
+    
+        // Update UI with user message immediately
+        const currentMessages = [...messages, userMessage];
+        setMessages(currentMessages);
         setUserInput('');
         
         if (fileData) {
             setIsLoading(true);
             setError(null);
             try {
-                // FIX: The stale closure that caused a type error is resolved by including `messages`
-                // in the `useCallback` dependency array. This allows us to safely map over it.
-                const chatHistory = messages.map(m => ({ role: m.role, text: m.text }));
+                const historyForApi = messages.map(m => ({ role: m.role, text: m.text }));
+
                 const responseText = await geminiService.chatWithFile(
                     { base64: fileData.base64, mimeType: fileData.file.type },
-                    chatHistory,
+                    historyForApi, 
                     trimmedInput
                 );
                 const modelMessage: Message = { id: `msg-${Date.now()}-model`, role: 'model', text: responseText };
@@ -382,8 +397,6 @@ export const AiChatPage: React.FC<AiChatPageProps> = ({ isOnline, playSound }) =
         } else {
             await runGemini(trimmedInput);
         }
-    // FIX: Add `messages` to the dependency array to prevent a stale closure,
-    // ensuring the correct chat history is sent with each message. This also resolves the type error.
     }, [userInput, isLoading, playSound, runGemini, fileData, messages]);
 
     const handleRegenerate = useCallback(() => {
@@ -777,7 +790,6 @@ export const AiChatPage: React.FC<AiChatPageProps> = ({ isOnline, playSound }) =
                             aria-label={liveConnectionState === 'connected' ? "Stop voice session" : "Start voice session"}
                             title={fileData ? "Voice input disabled with file" : ""}
                         >
-                            {/* FIX: Replaced `connectionState` with `liveConnectionState` to fix variable not found error. */}
                             {liveConnectionState === 'connecting' ? <div className="w-5 h-5"><LoadingSpinner text=""/></div> : liveConnectionState === 'connected' ? <StopIcon className="w-5 h-5"/> : <MicrophoneIcon className="w-5 h-5"/>}
                         </button>
                     </div>

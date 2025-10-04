@@ -66,6 +66,7 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({
     const [defaultWebSearch, setDefaultWebSearch] = useState(() => preferenceService.getPreference('defaultWebSearch', false));
     const [defaultMinigameDifficulty, setDefaultMinigameDifficulty] = useState(() => preferenceService.getPreference('defaultMinigameDifficulty', 'normal'));
     const [confirmCreditSpend, setConfirmCreditSpend] = useState(() => preferenceService.getPreference('confirmCreditSpend', false));
+    const [defaultTtsVoice, setDefaultTtsVoice] = useState(() => preferenceService.getPreference('textToSpeechVoiceName', 'Zephyr'));
 
     // --- Effects to save preferences and apply side-effects ---
     useEffect(() => {
@@ -83,6 +84,7 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({
     useEffect(() => { preferenceService.setPreference('defaultWebSearch', defaultWebSearch); }, [defaultWebSearch]);
     useEffect(() => { preferenceService.setPreference('defaultMinigameDifficulty', defaultMinigameDifficulty); }, [defaultMinigameDifficulty]);
     useEffect(() => { preferenceService.setPreference('confirmCreditSpend', confirmCreditSpend); }, [confirmCreditSpend]);
+    useEffect(() => { preferenceService.setPreference('textToSpeechVoiceName', defaultTtsVoice); }, [defaultTtsVoice]);
     
     const handleClearData = () => {
         playSound(audioService.playTrash);
@@ -151,6 +153,7 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({
                             <option value="en">{t('settings.langEn')}</option>
                             <option value="ja">{t('settings.langJa')}</option>
                             <option value="fr">{t('settings.langFr')}</option>
+                            <option value="es">{t('settings.langEs')}</option>
                         </select>
                     </div>
                     <SettingToggle label={t('settings.uiAnimations')} isChecked={uiAnimations} onToggle={() => { playSound(audioService.playToggle); onUiAnimationsChange(!uiAnimations); }} />
@@ -160,6 +163,21 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({
                 <Section title={t('settings.sound')}>
                     <SettingToggle label={t('settings.soundEffects')} isChecked={isSoundOn} onToggle={onToggleSound} />
                     <SettingToggle label="Autoplay Sounds" description="Automatically play generated sounds and music." isChecked={autoPlaySounds} onToggle={() => { playSound(audioService.playToggle); setAutoPlaySounds(p => !p); }} />
+                    <div>
+                        <label htmlFor="tts-voice-select" className="font-press-start">AI Voice for Read Aloud</label>
+                        <select
+                            id="tts-voice-select"
+                            value={defaultTtsVoice}
+                            onChange={(e) => { playSound(audioService.playClick); setDefaultTtsVoice(e.target.value as any); }}
+                            className="w-full mt-2 p-2 bg-brand-light text-black border-2 border-black font-sans"
+                        >
+                            <option value="Zephyr">Zephyr (Friendly)</option>
+                            <option value="Puck">Puck (Playful)</option>
+                            <option value="Charon">Charon (Deep)</option>
+                            <option value="Kore">Kore (Calm)</option>
+                            <option value="Fenrir">Fenrir (Assertive)</option>
+                        </select>
+                    </div>
                 </Section>
 
                 <Section title={t('settings.creation')}>

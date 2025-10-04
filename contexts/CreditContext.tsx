@@ -37,13 +37,18 @@ interface CreditContextType {
 const CreditContext = createContext<CreditContextType | undefined>(undefined);
 
 export const CreditProvider: FC<{ children: ReactNode }> = ({ children }) => {
-    const [credits, setCredits] = useState(INITIAL_CREDITS);
+    const [credits, setCredits] = useState(() => {
+        const savedCredits = preferenceService.getPreference('credits', null);
+        return savedCredits === null ? INITIAL_CREDITS : savedCredits;
+    });
     const [loading, setLoading] = useState(false);
     const [lastRefresh, setLastRefresh] = useState<string | null>(new Date().toDateString());
-
-    const updateCredits = useCallback((newCreditValue: number) => {
-        const intValue = Math.floor(newCreditValue);
-        setCredits(intValue);
+    
+    // One-time setup: if 'credits' is not in storage, set it.
+    useEffect(() => {
+        if (preferenceService.getPreference('credits', null) === null) {
+            preferenceService.setPreference('credits', INITIAL_CREDITS);
+        }
     }, []);
 
     const spendCredits = useCallback((amount: number): boolean => {
@@ -52,27 +57,28 @@ export const CreditProvider: FC<{ children: ReactNode }> = ({ children }) => {
                 return false;
             }
         }
-
-        const hasEnough = credits >= amount;
-        if (hasEnough) {
-            updateCredits(credits - amount);
-            if (amount > 0) {
-                audioService.playCreditSpend();
-            }
+        
+        if (credits < amount) {
+            return false;
         }
-        return hasEnough;
-    }, [credits, updateCredits]);
+
+        const newCredits = credits - amount;
+        setCredits(newCredits);
+        preferenceService.setPreference('credits', newCredits);
+        if (amount > 0) {
+            audioService.playCreditSpend();
+        }
+        return true;
+    }, [credits]);
 
     const addCredits = useCallback((amount: number): void => {
-        setCredits(prev => {
-            const newTotal = Math.floor(prev + amount);
-            updateCredits(newTotal);
-            if (amount > 0) {
-                audioService.playCreditAdd();
-            }
-            return newTotal;
-        });
-    }, [updateCredits]);
+        const newCredits = Math.floor(credits + amount);
+        setCredits(newCredits);
+        preferenceService.setPreference('credits', newCredits);
+        if (amount > 0) {
+            audioService.playCreditAdd();
+        }
+    }, [credits]);
 
     const value = { credits, loading, lastRefresh, spendCredits, addCredits };
 

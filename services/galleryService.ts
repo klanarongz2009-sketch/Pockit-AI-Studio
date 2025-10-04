@@ -12,18 +12,27 @@ export interface Comment {
     timestamp: number;
 }
   
-// In-memory stores that reset on page load
-let inMemoryArtworks: Artwork[] = [];
-const inMemoryComments: { [artworkId: string]: Comment[] } = {};
+const ARTWORKS_KEY = 'gallery-artworks';
+const COMMENTS_KEY_PREFIX = 'gallery-comments-';
 
 // --- Artworks ---
 
 export function getArtworks(): Artwork[] {
-    return inMemoryArtworks;
+    try {
+        const stored = localStorage.getItem(ARTWORKS_KEY);
+        return stored ? JSON.parse(stored) : [];
+    } catch (e) {
+        console.error("Failed to load artworks:", e);
+        return [];
+    }
 }
   
 function saveArtworks(artworks: Artwork[]): void {
-    inMemoryArtworks = artworks;
+    try {
+        localStorage.setItem(ARTWORKS_KEY, JSON.stringify(artworks));
+    } catch (e) {
+        console.error("Failed to save artworks:", e);
+    }
 }
   
 export function addArtwork(imageDataUrl: string, prompt: string): Artwork {
@@ -45,7 +54,11 @@ export function deleteArtwork(id: string): Artwork[] {
     artworks = artworks.filter(art => art.id !== id);
     saveArtworks(artworks);
     // Also delete associated comments
-    delete inMemoryComments[id];
+    try {
+        localStorage.removeItem(`${COMMENTS_KEY_PREFIX}${id}`);
+    } catch (e) {
+        console.error("Failed to delete comments for artwork " + id, e);
+    }
     return artworks;
 }
   
@@ -63,11 +76,21 @@ export function toggleFavorite(id: string): Artwork[] {
 // --- Comments ---
 
 export function getComments(artworkId: string): Comment[] {
-    return inMemoryComments[artworkId] || [];
+    try {
+        const stored = localStorage.getItem(`${COMMENTS_KEY_PREFIX}${artworkId}`);
+        return stored ? JSON.parse(stored) : [];
+    } catch (e) {
+        console.error("Failed to load comments for artwork " + artworkId, e);
+        return [];
+    }
 }
   
 function saveComments(artworkId: string, comments: Comment[]): void {
-    inMemoryComments[artworkId] = comments;
+    try {
+        localStorage.setItem(`${COMMENTS_KEY_PREFIX}${artworkId}`, JSON.stringify(comments));
+    } catch (e) {
+        console.error("Failed to save comments for artwork " + artworkId, e);
+    }
 }
   
 export function addComment(artworkId: string, text: string): Comment[] {

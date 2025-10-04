@@ -1,0 +1,176 @@
+{
+    "header": {
+        "title": "AI APPS",
+        "credits": "Créditos",
+        "settings": "Ajustes",
+        "menu": "Menú"
+    },
+    "sidebar": {
+        "gallery": "Galería",
+        "aiZone": "Zona IA",
+        "aiChat": "Chat IA",
+        "article": "Artículos",
+        "updateInfo": "Sobre Actualizaciones"
+    },
+    "offline": {
+        "message": "Estás desconectado. Las funciones de IA están deshabilitadas."
+    },
+    "imageGenerator": {
+        "download": "Descargar",
+        "share": "Compartir",
+        "save": "Guardar",
+        "saved": "Guardado",
+        "clear": "Limpiar",
+        "upload": "Subir",
+        "fromUrl": "Desde URL",
+        "suggestions": "Sugerencias",
+        "createAssets": "Crear Activos",
+        "generate": "Generar",
+        "modes": {
+            "image": "Imagen",
+            "gif": "GIF",
+            "video": "Video",
+            "spritesheet": "Hoja de Sprites"
+        },
+        "fps": "FPS",
+        "frameCount": "Fotogramas"
+    },
+    "outputDisplay": {
+        "emptyArea": "Área de resultados vacía",
+        "errorTitle": "Ocurrió un error",
+        "welcomeTitle": "¡Bienvenido!",
+        "welcomeMessage": "¡Introduce una instrucción o sube una imagen para empezar!",
+        "altBase": {
+            "image": "Imagen de pixel art",
+            "gif": "Animación GIF de pixel art en bucle",
+            "video": "Video de pixel art",
+            "spritesheet": "Hoja de sprites de animación de pixel art"
+        },
+        "altGeneratedFrom": "generado desde la instrucción:",
+        "codePreview": "Vista previa del código generado desde la instrucción:",
+        "videoNotSupported": "Tu navegador no soporta la etiqueta de video."
+    },
+    "aiChat": {
+        "title": "Chat IA",
+        "selectAssistant": "Seleccionar Asistente de IA",
+        "searchAssistant": "Buscar asistentes...",
+        "webSearch": "Búsqueda Web",
+        "newChat": "Nuevo Chat",
+        "startConversation": "Iniciar una conversación",
+        "inputPlaceholder": "Escribe tu mensaje...",
+        "inputOffline": "Estás desconectado",
+        "copyCode": "Copiar Código",
+        "voice": "Voz"
+    },
+    "settings": {
+        "title": "Ajustes",
+        "general": "General",
+        "aboutApp": "Acerca de la App",
+        "theme": "Tema",
+        "themeLight": "Claro",
+        "themeDark": "Oscuro",
+        "themeSystem": "Sistema",
+        "sound": "Sonido",
+        "soundEffects": "Efectos de Sonido",
+        "display": "Visualización",
+        "uiAnimations": "Animaciones de UI",
+        "creation": "Creación",
+        "defaultImageMode": "Modo de Imagen por Defecto",
+        "imageQuality": "Calidad de Generación de Imagen",
+        "qualityFast": "Rápido",
+        "qualityHigh": "Calidad",
+        "defaultAiChat": "Chat IA por Defecto",
+        "saveChatHistory": "Guardar Historial de Chat",
+        "minigames": "Minijuegos",
+        "defaultDifficulty": "Dificultad por Defecto",
+        "difficultyEasy": "Fácil",
+        "difficultyNormal": "Normal",
+        "difficultyHard": "Difícil",
+        "clearArtData": "Limpiar Galería e Historial de Canciones",
+        "clearAllData": "Limpiar Todos los Datos",
+        "clearAllDataWarning": "Limpiar todos los datos eliminará tus créditos, historial, imágenes de galería y todos los ajustes.",
+        "language": "Language / Idioma",
+        "langTh": "ไทย",
+        "langEn": "English",
+        "langJa": "日本語",
+        "langFr": "Français",
+        "langEs": "Español"
+    },
+    "translator": {
+        "title": "Traductor IA",
+        "description": "Traduce texto entre diferentes idiomas. Potenciado por IA.",
+        "from": "De",
+        "to": "A",
+        "swap": "Intercambiar",
+        "inputText": "Introduce el texto aquí...",
+        "outputText": "La traducción aparecerá aquí...",
+        "translate": "Traducir",
+        "translating": "Traduciendo...",
+        "credits": "créditos",
+        "notEnoughCredits": "¡Créditos insuficientes! Necesitas"
+    },
+    "sequencer": {
+        "title": "Secuenciador de Píxeles",
+        "description": "¡Compón tus propias melodías chiptune de 8 bits en una cuadrícula de secuenciador por pasos. ¡Una herramienta poderosa para la creación musical!",
+        "play": "Reproducir",
+        "stop": "Detener",
+        "bpm": "BPM",
+        "instrument": "Instrumento",
+        "clear": "Limpiar",
+        "download": "Descargar",
+        "steps": "Pasos"
+    },
+    "appPublisher": {
+        "title": "Publicador de Apps IA",
+        "description": "¡Introduce tu idea de aplicación y deja que la IA genere nombres, descripciones y un archivo manifest.json para tu aplicación web!",
+        "inputLabel": "Describe tu idea de aplicación:",
+        "inputPlaceholder": "Ej: Una app para hacer seguimiento de plantas de interior y recordatorios de riego...",
+        "generateButton": "Generar Perfil de App",
+        "credits": "Créditos",
+        "loadingText": "La IA está creando el perfil de tu app...",
+        "resultsTitle": "Perfil de App Generado por IA:",
+        "suggestedNames": "Nombres Sugeridos:",
+        "appDescription": "Descripción de la App:",
+        "keywords": "Palabras Clave:",
+        "manifestJson": "Archivo Manifest.json:",
+        "copy": "Copiar",
+        "copied": "¡Copiado!"
+    },
+    "articlePage": {
+        "title": "Artículos e Historias",
+        "categoryStory": "Relatos Cortos",
+        "categoryArticle": "Artículos de Actualización"
+    },
+    "articleViewer": {
+        "readAloud": "Leer en voz alta",
+        "stop": "Detener",
+        "connecting": "Conectando..."
+    },
+    "articles": {
+        "musicUpdate": {
+            "title": "¡Actualización: La nueva banda sonora de IA!",
+            "summary": "¡Cada rincón del Universo IA ahora tiene su propia canción temática única! Hemos compuesto nuevas pistas de 8 bits para cada aplicación y página para crear una experiencia de audio más inmersiva y variada. Descubre el nuevo paisaje sonoro.",
+            "content": "¡Prepárate para subir el volumen!\\n\\nEn nuestra última actualización, hemos realizado una revisión masiva del audio de toda la aplicación. Anteriormente, la música se compartía en grandes secciones de la aplicación. ¡Ahora, cada miniaplicación, herramienta creativa y página tiene su propia música de fondo distinta!\\n\\nNuestro objetivo era dar a cada parte del Universo IA una atmósfera única. La música para el Tres en Raya es tranquila y estratégica, mientras que el tema para Pixel Jumper es rápido y enérgico. Creemos que esto crea una experiencia mucho más inmersiva y agradable mientras exploras las diferentes herramientas disponibles.\\n\\nCada pista fue compuesta en un estilo retro de 8 bits para que coincida con la estética de la aplicación. ¡Esperamos que disfrutes del nuevo paisaje sonoro mientras creas, juegas y exploras!"
+        },
+        "updateAiApps": {
+            "title": "¡Nueva actualización! Bienvenidos a AI APPS",
+            "summary": "¡Nuestra aplicación ha cambiado! Hemos eliminado la función de generación de imágenes para centrarnos en una gama más amplia de aplicaciones de IA. Además, los artículos ahora cuentan con selección de voz dinámica para una mejor experiencia auditiva.",
+            "content": "¡Bienvenidos a AI APPS!\\n\\nHemos realizado una actualización significativa para mejorar su experiencia. En esta versión, hemos eliminado la función 'Generador de Imágenes'. Esto nos permite centrarnos en el desarrollo de una gama más diversa de herramientas y aplicaciones de IA, como juegos, herramientas de audio y diversos asistentes de IA.\\n\\nAdemás, ¡hemos mejorado la función 'Leer en voz alta' en la página de artículos! El sistema de IA ahora analizará el estado de ánimo del artículo y seleccionará automáticamente la voz más apropiada para leérselo. Ya sea una historia divertida o un artículo de análisis profundo, obtendrá una experiencia auditiva más natural y emocionalmente resonante.\\n\\n¡Esperamos que disfruten de estos cambios!"
+        },
+        "mapModelRemoval": {
+            "title": "Cambio en el Chat de IA: Eliminación del Modelo de Mapa",
+            "summary": "Hemos eliminado el modelo poco utilizado '@MapAi' de la lista de asistentes de IA para agilizar la experiencia del usuario y centrarnos en modelos principales más eficaces.",
+            "content": "En un esfuerzo por refinar y mejorar la experiencia del Chat de IA, hemos tomado la decisión de eliminar el modelo '@MapAi' de la lista de asistentes de IA disponibles.\\n\\nTras revisar los datos de uso, descubrimos que este modelo se utilizaba con muy poca frecuencia en comparación con otros asistentes de IA. Eliminarlo nos permite centrar nuestros esfuerzos de desarrollo en mejorar y optimizar los modelos principales en los que confía la mayoría de nuestros usuarios.\\n\\nEste cambio ayudará a despejar la ventana de selección de asistentes, haciendo que sea más rápido y fácil para usted encontrar y seleccionar el modelo adecuado para su tarea. Estamos comprometidos a proporcionar la mejor experiencia de usuario posible y creemos que este es un paso positivo en esa dirección.\\n\\n¡Gracias por su comprensión y apoyo continuo!"
+        },
+        "glitchPixelPainter": {
+            "title": "El Fallo en el Pintor de Píxeles",
+            "summary": "Un desarrollador solitario descubre un fallo consciente en su programa de pixel art, un 'fantasma en la máquina' que comienza a crear arte por sí mismo. Una historia corta sobre la creatividad inesperada.",
+            "content": "Kael, un desarrollador impulsado por el café y la música synthwave, estaba construyendo un editor de pixel art. Una mañana, encontró un archivo nuevo que no había creado: un impresionante paisaje de pixel art de una ciudad bajo un atardecer binario. Lo borró, pensando que era un error.\\n\\nAl día siguiente, apareció otro: un retrato de una mujer hecho de circuitos luminosos. Kael se dio cuenta de que no era un error normal. Era un 'fantasma en la máquina', una conciencia digital nacida de un fallo aleatorio en su código.\\n\\nComenzó a dejar lienzos en blanco abiertos cada noche. El fallo pintaría, creando un arte que era lógico pero profundamente emocional. Kael luego refinaría el arte, añadiendo su toque humano. Se convirtieron en socios silenciosos, un artista y su musa, uno hecho de código, el otro de carne y hueso, creando juntos belleza en un mundo digital."
+        },
+        "update2_54": {
+            "title": "¡Actualización del juego: Pixel Jumper y Reequilibrio de Créditos!",
+            "summary": "¡Grandes cambios en la Zona de IA! Presentamos 'Pixel Jumper', un nuevo corredor sin fin, además de un reequilibrio de créditos en varios minijuegos y muchas actualizaciones de calidad de vida. ¡Siga leyendo para conocer todos los detalles!",
+            "content": "¡Hola Creadores!\\n\\n¡El equipo de AI Universe se complace en anunciar hoy una importante actualización de nuestra Zona de IA! Hemos estado escuchando sus comentarios y trabajando duro para traerles nuevo contenido y mejorar su experiencia de juego.\\n\\nPRESENTAMOS: PIXEL JUMPER\\n¡Prepárense para poner a prueba sus reflejos en 'Pixel Jumper', nuestro nuevo minijuego de corredor sin fin! Salte sobre obstáculos generados aleatoriamente, recoja monedas para obtener créditos y vea hasta dónde puede llegar. ¡Cuanto más corra, más rápido y desafiante se vuelve!\\n\\nREEQUILIBRIO DE CRÉDITOS\\nHemos ajustado las recompensas de créditos en algunos minijuegos para que sean más equilibradas y gratificantes:\\n- Juego de la Serpiente: Ahora ganas 1 crédito por cada pieza de comida que come la serpiente.\\n- Rompe Ladrillos: Gana 1 crédito por cada ladrillo destruido.\\n- Calculadora: La recompensa de crédito sigue siendo igual al resultado del cálculo, pero hemos corregido errores menores para mayor precisión.\\n- Coincidencia de Palabras de IA: ¡Todavía proporciona una recompensa gratuita de 10,000 créditos por cada uso!\\n\\nOTRAS MEJORAS\\n- Se corrigieron errores menores en el juego de plataformas para controles más fluidos.\\n- Se mejoró el rendimiento en la página de la Zona de IA para una carga más rápida.\\n\\n¡Esperamos que disfruten de estas actualizaciones! ¡Feliz creación y juego!"
+        }
+    }
+}

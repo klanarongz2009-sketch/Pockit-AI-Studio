@@ -9,19 +9,19 @@ import { LanguageProvider } from './contexts/LanguageContext';
 // Component Imports
 import { Intro } from './components/Intro';
 import { GlobalLayout } from './components/GlobalLayout';
-import { ImageGeneratorPage } from './components/ImageGeneratorPage';
 import { MinigameHubPage } from './components/MinigameHubPage';
 import { AiChatPage } from './components/AiChatPage';
 import { ArtGalleryPage } from './components/ArtGalleryPage';
 import { SettingsPage } from './components/SettingsPage';
 import { ALL_AI_MODELS } from './services/aiModels';
+import { ArticlePage } from './components/ArticlePage';
 
 
-export type CurrentPage = 'imageGenerator' | 'minigameHub' | 'artGallery' | 'aiChat';
+export type CurrentPage = 'minigameHub' | 'artGallery' | 'aiChat' | 'article';
 
 export const App: React.FC = () => {
     const [isSoundOn, setIsSoundOn] = useState(() => preferenceService.getPreference('isSoundOn', true));
-    const [currentPage, setCurrentPage] = useState<CurrentPage>('imageGenerator');
+    const [currentPage, setCurrentPage] = useState<CurrentPage>('minigameHub');
     const [isOnline, setIsOnline] = useState(navigator.onLine);
     const [showIntro, setShowIntro] = useState(true);
     const [isSettingsOpen, setIsSettingsOpen] = useState(false);
@@ -48,13 +48,15 @@ export const App: React.FC = () => {
     useEffect(() => {
         preloadAllAssets();
 
-        const initAudioOnce = () => {
+        const initAudioOnce = async () => {
             if (!audioInitialized.current) {
                 audioInitialized.current = true;
-                audioService.initAudio();
-                audioService.startBackgroundMusic(currentPage);
-                // Set initial music volume based on saved preference, using a fixed volume level
-                audioService.setMusicVolume(isSoundOn ? 0.5 : 0);
+                const success = await audioService.initAudio();
+                if (success) {
+                    audioService.startBackgroundMusic(currentPage);
+                    // Set initial music volume based on saved preference, using a fixed volume level
+                    audioService.setMusicVolume(isSoundOn ? 0.5 : 0);
+                }
                 // Clean up listeners after first interaction
                 window.removeEventListener('click', initAudioOnce);
                 window.removeEventListener('keydown', initAudioOnce);
@@ -163,12 +165,6 @@ export const App: React.FC = () => {
                   onToggleSidebar={() => setIsSidebarOpen(prev => !prev)}
                 >
                     <main id="main-content" role="main" className={`flex-grow overflow-y-auto ${isOnline ? 'pt-16' : 'pt-20'}`}>
-                      {currentPage === 'imageGenerator' && (
-                        <ImageGeneratorPage 
-                          isOnline={isOnline}
-                          playSound={playSound}
-                        />
-                      )}
                       {currentPage === 'minigameHub' && (
                         <MinigameHubPage
                           isOnline={isOnline}
@@ -184,6 +180,11 @@ export const App: React.FC = () => {
                       {currentPage === 'aiChat' && (
                           <AiChatPage
                               isOnline={isOnline}
+                              playSound={playSound}
+                          />
+                      )}
+                      {currentPage === 'article' && (
+                          <ArticlePage
                               playSound={playSound}
                           />
                       )}

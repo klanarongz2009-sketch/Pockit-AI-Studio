@@ -7,6 +7,7 @@ import { PaletteIcon } from './icons/PaletteIcon';
 import { GamepadIcon } from './icons/GamepadIcon';
 import { ChatIcon } from './icons/ChatIcon';
 import { GalleryIcon } from './icons/GalleryIcon';
+import { ArticleIcon } from './icons/ArticleIcon';
 import { SettingsIcon } from './icons/SettingsIcon';
 import { MenuIcon } from './icons/MenuIcon';
 import { useLanguage } from '../contexts/LanguageContext';
@@ -83,10 +84,10 @@ const LayoutComponent: React.FC<GlobalLayoutProps> = ({
                 </header>
                 <nav className="flex-grow py-4" aria-label="การนำทางหลัก">
                     <SidebarNavButton
-                        label={t('sidebar.imageGenerator')}
-                        icon={<PaletteIcon className="w-6 h-6" />}
-                        isActive={currentPage === 'imageGenerator'}
-                        onClick={() => onSetPage('imageGenerator')}
+                        label={t('sidebar.aiZone')}
+                        icon={<GamepadIcon className="w-6 h-6" />}
+                        isActive={currentPage === 'minigameHub'}
+                        onClick={() => onSetPage('minigameHub')}
                         playSound={() => playSound(audioService.playHover)}
                     />
                     <SidebarNavButton
@@ -96,18 +97,18 @@ const LayoutComponent: React.FC<GlobalLayoutProps> = ({
                         onClick={() => onSetPage('artGallery')}
                         playSound={() => playSound(audioService.playHover)}
                     />
-                    <SidebarNavButton
-                        label={t('sidebar.aiZone')}
-                        icon={<GamepadIcon className="w-6 h-6" />}
-                        isActive={currentPage === 'minigameHub'}
-                        onClick={() => onSetPage('minigameHub')}
-                        playSound={() => playSound(audioService.playHover)}
-                    />
                      <SidebarNavButton
                         label={t('sidebar.aiChat')}
                         icon={<ChatIcon className="w-6 h-6" />}
                         isActive={currentPage === 'aiChat'}
                         onClick={() => onSetPage('aiChat')}
+                        playSound={() => playSound(audioService.playHover)}
+                    />
+                    <SidebarNavButton
+                        label={t('sidebar.article')}
+                        icon={<ArticleIcon className="w-6 h-6" />}
+                        isActive={currentPage === 'article'}
+                        onClick={() => onSetPage('article')}
                         playSound={() => playSound(audioService.playHover)}
                     />
                 </nav>

@@ -1,226 +1,174 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
+import { GoogleGenAI, LiveServerMessage, Modality, Blob } from '@google/genai';
 import * as audioService from '../services/audioService';
-import * as preferenceService from '../services/preferenceService';
 import { PageHeader, PageWrapper } from './PageComponents';
 import { PlayIcon } from './icons/PlayIcon';
 import { StopIcon } from './icons/StopIcon';
 import { DownloadIcon } from './icons/DownloadIcon';
-import { useCredits } from '../contexts/CreditContext';
+import { LoadingSpinner } from './LoadingSpinner';
+
+// --- Gemini Live API Helper Functions ---
+function encode(bytes: Uint8Array) {
+  let binary = '';
+  const len = bytes.byteLength;
+  for (let i = 0; i < len; i++) {
+    binary += String.fromCharCode(bytes[i]);
+  }
+  return btoa(binary);
+}
+
+function decode(base64: string) {
+  const binaryString = atob(base64);
+  const len = binaryString.length;
+  const bytes = new Uint8Array(len);
+  for (let i = 0; i < len; i++) {
+    bytes[i] = binaryString.charCodeAt(i);
+  }
+  return bytes;
+}
+
+async function decodeAudioData(data: Uint8Array, ctx: AudioContext, sampleRate: number, numChannels: number): Promise<AudioBuffer> {
+  const dataInt16 = new Int16Array(data.buffer);
+  const frameCount = dataInt16.length / numChannels;
+  const buffer = ctx.createBuffer(numChannels, frameCount, sampleRate);
+
+  for (let channel = 0; channel < numChannels; channel++) {
+    const channelData = buffer.getChannelData(channel);
+    for (let i = 0; i < frameCount; i++) {
+      channelData[i] = dataInt16[i * numChannels + channel] / 32768.0;
+    }
+  }
+  return buffer;
+}
+// --- End Helper Functions ---
 
 interface TextToSpeechPageProps {
     onClose: () => void;
     playSound: (player: () => void) => void;
 }
 
-const isSpeechSynthesisSupported = !!window.speechSynthesis;
-const isGetDisplayMediaSupported = !!(navigator.mediaDevices && navigator.mediaDevices.getDisplayMedia);
+const isLiveApiSupported = !!(window.AudioContext || (window as any).webkitAudioContext);
+
+const PREBUILT_VOICES = [
+    { id: 'Zephyr', name: 'Zephyr (Friendly)' },
+    { id: 'Puck', name: 'Puck (Playful)' },
+    { id: 'Charon', name: 'Charon (Deep)' },
+    { id: 'Kore', name: 'Kore (Calm)' },
+    { id: 'Fenrir', name: 'Fenrir (Assertive)' },
+];
+
+let ai: GoogleGenAI | null = null;
+const API_KEY = process.env.API_KEY;
+
+if (API_KEY) {
+    ai = new GoogleGenAI({ apiKey: API_KEY });
+} else {
+    console.error("Gemini API key not found. Text-to-Speech will not work.");
+}
+
 
 export const TextToSpeechPage: React.FC<TextToSpeechPageProps> = ({ onClose, playSound }) => {
-    const [text, setText] = useState('สวัสดี! ยินดีต้อนรับสู่ Ai Studio แบบพกพา');
-    const [voices, setVoices] = useState<SpeechSynthesisVoice[]>([]);
-    const [selectedVoiceURI, setSelectedVoiceURI] = useState<string>(() => preferenceService.getPreference('textToSpeechVoiceURI', ''));
-    const [pitch, setPitch] = useState(() => preferenceService.getPreference('textToSpeechPitch', 1));
-    const [rate, setRate] = useState(() => preferenceService.getPreference('textToSpeechRate', 1));
-    const [isSpeaking, setIsSpeaking] = useState(false);
-    const [isDownloading, setIsDownloading] = useState(false);
+    const [text, setText] = useState('สวัสดี! ยินดีต้อนรับสู่จักรวาล AI สร้างสรรค์');
+    const [selectedVoice, setSelectedVoice] = useState(PREBUILT_VOICES[0].id);
+    const [ttsState, setTtsState] = useState<'idle' | 'connecting' | 'speaking'>('idle');
     const [error, setError] = useState<string | null>(null);
-    const [autoDetectLang, setAutoDetectLang] = useState(() => preferenceService.getPreference('textToSpeechAutoDetectLang', true));
-    const { addCredits } = useCredits();
 
-    // Save preferences when they change
-    useEffect(() => {
-        preferenceService.setPreference('textToSpeechVoiceURI', selectedVoiceURI);
-    }, [selectedVoiceURI]);
-    useEffect(() => {
-        preferenceService.setPreference('textToSpeechPitch', pitch);
-    }, [pitch]);
-    useEffect(() => {
-        preferenceService.setPreference('textToSpeechRate', rate);
-    }, [rate]);
-    useEffect(() => {
-        preferenceService.setPreference('textToSpeechAutoDetectLang', autoDetectLang);
-    }, [autoDetectLang]);
+    const sessionPromiseRef = useRef<Promise<any> | null>(null);
+    const outputAudioContextRef = useRef<AudioContext | null>(null);
+    const audioSources = useRef(new Set<AudioBufferSourceNode>());
+    const nextStartTime = useRef(0);
 
-
-    const populateVoiceList = useCallback(() => {
-        const newVoices = window.speechSynthesis.getVoices();
-        if (newVoices.length === 0) return;
-        setVoices(newVoices);
-
-        // Get saved voice URI
-        const savedVoiceURI = preferenceService.getPreference('textToSpeechVoiceURI', '');
-        // Check if saved voice is still available
-        const savedVoiceExists = newVoices.some(v => v.voiceURI === savedVoiceURI);
-
-        if (savedVoiceExists) {
-            setSelectedVoiceURI(savedVoiceURI);
-        } else {
-            // Fallback if saved voice is not found or none was saved
-            const defaultVoice = newVoices.find(v => v.lang.startsWith('th')) || newVoices[0];
-            if (defaultVoice) {
-                setSelectedVoiceURI(defaultVoice.voiceURI);
+    const handleStop = useCallback(() => {
+        sessionPromiseRef.current?.then(session => session.close());
+        sessionPromiseRef.current = null;
+        
+        if (outputAudioContextRef.current && outputAudioContextRef.current.state !== 'closed') {
+            for (const source of audioSources.current.values()) {
+                try { source.stop(); } catch(e) {}
             }
+            audioSources.current.clear();
+            outputAudioContextRef.current.close();
         }
+        nextStartTime.current = 0;
+        setTtsState('idle');
     }, []);
-
+    
     useEffect(() => {
-        if (!isSpeechSynthesisSupported) {
-            setError("ขออภัย เบราว์เซอร์ของคุณไม่รองรับการแปลงข้อความเป็นเสียง");
-            return;
+        if (!isLiveApiSupported) {
+            setError("ขออภัย เบราว์เซอร์ของคุณไม่รองรับเทคโนโลยีเสียงที่จำเป็นสำหรับฟีเจอร์นี้");
         }
-        
-        populateVoiceList();
-        if (speechSynthesis.onvoiceschanged !== undefined) {
-            speechSynthesis.onvoiceschanged = populateVoiceList;
-        }
-
         return () => {
-            if (isSpeechSynthesisSupported) {
-                window.speechSynthesis.cancel();
-            }
+            handleStop();
         };
-    }, [populateVoiceList]);
+    }, [handleStop]);
 
-    const handleSpeak = () => {
+
+    const handleSpeak = useCallback(async () => {
         const trimmedText = text.trim();
-        if (!trimmedText || isSpeaking) return;
+        if (!trimmedText || ttsState !== 'idle' || !isLiveApiSupported || !ai) return;
         
-        addCredits(trimmedText.length); // Add credits based on character count
         playSound(audioService.playClick);
         setError(null);
-        window.speechSynthesis.cancel();
+        setTtsState('connecting');
 
-        const utterance = new SpeechSynthesisUtterance(trimmedText);
+        const outputCtx = new (window.AudioContext || (window as any).webkitAudioContext)({ sampleRate: 24000 });
+        outputAudioContextRef.current = outputCtx;
+        const outputNode = outputCtx.createGain();
+        outputNode.connect(outputCtx.destination);
         
-        if (!autoDetectLang) {
-            const selectedVoice = voices.find(v => v.voiceURI === selectedVoiceURI);
-            if (selectedVoice) {
-                utterance.voice = selectedVoice;
-                utterance.lang = selectedVoice.lang;
-            }
-        }
-        // If autoDetectLang is true, we don't set voice or lang, letting the browser decide.
+        audioSources.current.clear();
+        nextStartTime.current = 0;
 
-        utterance.pitch = pitch;
-        utterance.rate = rate;
-
-        utterance.onstart = () => setIsSpeaking(true);
-        utterance.onend = () => setIsSpeaking(false);
-        utterance.onerror = (e: SpeechSynthesisErrorEvent) => {
-            if (e.error === 'canceled' || e.error === 'interrupted') {
-                setIsSpeaking(false);
-                return;
-            }
-
-            console.error('SpeechSynthesis Error:', e);
-            let errorMessage = `เกิดข้อผิดพลาดกับระบบเสียง (${e.error})`;
-            setError(errorMessage);
-            setIsSpeaking(false);
-        };
-        
-        window.speechSynthesis.speak(utterance);
-    };
-
-    const handleStop = () => {
-        playSound(audioService.playClick);
-        window.speechSynthesis.cancel();
-        setIsSpeaking(false);
-    };
-
-    const handleDownload = async () => {
-        const trimmedText = text.trim();
-        if (!trimmedText || isSpeaking || isDownloading) return;
-
-        if (!isGetDisplayMediaSupported) {
-            setError("เบราว์เซอร์ของคุณไม่รองรับการบันทึกเสียงเพื่อดาวน์โหลด");
-            return;
-        }
-
-        playSound(audioService.playClick);
-        setError(null);
-        setIsDownloading(true);
-
-        try {
-            setError('โปรดเลือกแท็บนี้และเปิด "แชร์เสียงของแท็บ" เพื่อบันทึก');
-
-            const stream = await navigator.mediaDevices.getDisplayMedia({
-                video: true,
-                audio: true,
-            });
-
-            setError(null); // Clear instruction message
-
-            const [audioTrack] = stream.getAudioTracks();
-            if (!audioTrack) {
-                stream.getTracks().forEach(track => track.stop());
-                throw new Error("ไม่พบแทร็กเสียง โปรดตรวจสอบว่าคุณได้แชร์เสียงของแท็บแล้ว");
-            }
-
-            const audioStream = new MediaStream([audioTrack]);
-            const recorder = new MediaRecorder(audioStream);
-            const chunks: Blob[] = [];
-
-            recorder.ondataavailable = (event) => chunks.push(event.data);
-            
-            const downloadPromise = new Promise<void>((resolve, reject) => {
-                recorder.onstop = () => {
-                    try {
-                        const mimeType = recorder.mimeType || 'audio/webm';
-                        const blob = new Blob(chunks, { type: mimeType });
-                        const url = URL.createObjectURL(blob);
-                        const a = document.createElement('a');
-                        a.href = url;
-                        a.download = `speech.webm`;
-                        document.body.appendChild(a);
-                        a.click();
-                        URL.revokeObjectURL(url);
-                        document.body.removeChild(a);
-                        resolve();
-                    } catch (e) {
-                        reject(e);
+        sessionPromiseRef.current = ai.live.connect({
+            model: 'gemini-2.5-flash-native-audio-preview-09-2025',
+            callbacks: {
+                onopen: () => {
+                    setTtsState('speaking');
+                    sessionPromiseRef.current?.then(session => {
+                        session.sendRealtimeInput({ text: trimmedText });
+                    });
+                },
+                onmessage: async (msg: LiveServerMessage) => {
+                    const base64Audio = msg.serverContent?.modelTurn?.parts[0]?.inlineData?.data;
+                    if (base64Audio) {
+                        nextStartTime.current = Math.max(nextStartTime.current, outputCtx.currentTime);
+                        const audioBuffer = await decodeAudioData(decode(base64Audio), outputCtx, 24000, 1);
+                        const sourceNode = outputCtx.createBufferSource();
+                        sourceNode.buffer = audioBuffer;
+                        sourceNode.connect(outputNode);
+                        sourceNode.addEventListener('ended', () => audioSources.current.delete(sourceNode));
+                        sourceNode.start(nextStartTime.current);
+                        nextStartTime.current += audioBuffer.duration;
+                        audioSources.current.add(sourceNode);
                     }
-                };
-            
-                const utterance = new SpeechSynthesisUtterance(trimmedText);
-                if (!autoDetectLang) {
-                    const selectedVoice = voices.find(v => v.voiceURI === selectedVoiceURI);
-                    if (selectedVoice) utterance.voice = selectedVoice;
-                }
-                utterance.pitch = pitch;
-                utterance.rate = rate;
+                    if (msg.serverContent?.turnComplete) {
+                        const timeToWait = (nextStartTime.current - outputCtx.currentTime) * 1000 + 300;
+                        setTimeout(handleStop, Math.max(0, timeToWait));
+                    }
+                },
+                onerror: (e: ErrorEvent) => {
+                    setError(`เกิดข้อผิดพลาดกับ Live API: ${e.message}`);
+                    handleStop();
+                },
+                onclose: () => {
+                    if (ttsState !== 'idle') {
+                        setTtsState('idle');
+                    }
+                },
+            },
+            config: {
+                responseModalities: [Modality.AUDIO],
+                speechConfig: {
+                    voiceConfig: { prebuiltVoiceConfig: { voiceName: selectedVoice } }
+                },
+                systemInstruction: "You are a text-to-speech engine. Your only task is to read the user's text aloud clearly and naturally, and then end the conversation."
+            }
+        });
 
-                utterance.onend = () => {
-                    setTimeout(() => {
-                        if (recorder.state === "recording") recorder.stop();
-                        stream.getTracks().forEach(track => track.stop());
-                    }, 200);
-                };
-                utterance.onerror = (e) => {
-                     if (recorder.state === "recording") recorder.stop();
-                     stream.getTracks().forEach(track => track.stop());
-                     reject(new Error(`Speech synthesis error: ${e.error}`));
-                };
-                
-                recorder.start();
-                window.speechSynthesis.speak(utterance);
-            });
-            
-            await downloadPromise;
-
-        } catch (err) {
-            playSound(audioService.playError);
-            const msg = err instanceof Error ? err.message : 'เกิดข้อผิดพลาดในการบันทึกเสียง';
-            setError(msg.includes('Permission denied') ? 'คุณต้องอนุญาตให้แชร์เสียงของแท็บเพื่อดาวน์โหลด' : msg);
-        } finally {
-            setIsDownloading(false);
-        }
-    };
-
+    }, [text, ttsState, selectedVoice, handleStop, playSound]);
 
     const handleClose = () => {
-        if (isSpeechSynthesisSupported) {
-            window.speechSynthesis.cancel();
-        }
+        handleStop();
         onClose();
     };
 
@@ -229,7 +177,7 @@ export const TextToSpeechPage: React.FC<TextToSpeechPageProps> = ({ onClose, pla
             <PageHeader title="แปลงข้อความเป็นเสียง AI" onBack={handleClose} />
             <main id="main-content" className="w-full max-w-lg flex flex-col items-center gap-6 font-sans">
                 <p className="text-sm text-center text-brand-light/80">
-                    พิมพ์ข้อความของคุณแล้ว AI จะอ่านให้ฟัง! <strong className="text-brand-yellow">โบนัสสนุกๆ: รับ 1 เครดิตสำหรับทุกตัวอักษรที่ AI อ่าน!</strong>
+                    พิมพ์ข้อความของคุณแล้ว AI จะอ่านให้ฟังด้วยเสียงที่เป็นธรรมชาติ! (ขับเคลื่อนโดย Gemini Live API)
                 </p>
 
                 {error && <div role="alert" className="w-full p-3 bg-brand-magenta/20 border-2 border-brand-magenta text-center text-sm text-brand-light">{error}</div>}
@@ -240,81 +188,40 @@ export const TextToSpeechPage: React.FC<TextToSpeechPageProps> = ({ onClose, pla
                         onChange={(e) => setText(e.target.value)}
                         placeholder="ป้อนข้อความที่นี่..."
                         className="w-full h-32 p-2 bg-brand-light text-black rounded-none border-2 border-black focus:outline-none focus:ring-2 focus:ring-brand-yellow resize-y"
-                        disabled={!isSpeechSynthesisSupported || isSpeaking || isDownloading}
+                        disabled={!isLiveApiSupported || ttsState !== 'idle'}
                     />
                     
                     <div className="flex flex-col gap-2">
-                        <label className="flex items-center gap-3 cursor-pointer">
-                            <input 
-                                type="checkbox" 
-                                checked={autoDetectLang} 
-                                onChange={(e) => { playSound(audioService.playToggle); setAutoDetectLang(e.target.checked); }} 
-                                disabled={!isSpeechSynthesisSupported || isSpeaking || isDownloading}
-                                className="w-5 h-5 accent-brand-magenta"
-                            />
-                            <span className="text-sm">ตรวจจับภาษาอัตโนมัติ</span>
-                        </label>
-                    </div>
-
-                    <div className="flex flex-col gap-2">
-                        <label htmlFor="voice-select" className={`text-xs font-press-start text-brand-cyan transition-opacity ${autoDetectLang ? 'opacity-50' : 'opacity-100'}`}>เลือกเสียง:</label>
+                        <label htmlFor="voice-select" className="text-xs font-press-start text-brand-cyan">เลือกเสียง:</label>
                         <select
                             id="voice-select"
-                            value={selectedVoiceURI}
-                            onChange={(e) => { playSound(audioService.playSelection); setSelectedVoiceURI(e.target.value); }}
-                            className="w-full p-2 bg-brand-light text-black border-2 border-black disabled:opacity-50 disabled:cursor-not-allowed"
-                            disabled={!isSpeechSynthesisSupported || isSpeaking || isDownloading || autoDetectLang}
+                            value={selectedVoice}
+                            onChange={(e) => { playSound(audioService.playSelection); setSelectedVoice(e.target.value); }}
+                            className="w-full p-2 bg-brand-light text-black border-2 border-black"
+                            disabled={!isLiveApiSupported || ttsState !== 'idle'}
                         >
-                            {voices.length > 0 ? voices.map(voice => (
-                                <option key={voice.voiceURI} value={voice.voiceURI}>
-                                    {`${voice.name} (${voice.lang})`}
+                            {PREBUILT_VOICES.map(voice => (
+                                <option key={voice.id} value={voice.id}>
+                                    {voice.name}
                                 </option>
-                            )) : <option>กำลังโหลดเสียง...</option>}
+                            ))}
                         </select>
-                    </div>
-
-                    <div className="flex flex-col gap-2">
-                        <label htmlFor="rate-slider" className="text-xs font-press-start text-brand-cyan">ความเร็ว: {rate.toFixed(1)}x</label>
-                        <input
-                            id="rate-slider"
-                            type="range"
-                            min="0.5"
-                            max="2"
-                            step="0.1"
-                            value={rate}
-                            onChange={(e) => { playSound(audioService.playSliderChange); setRate(parseFloat(e.target.value)); }}
-                            disabled={!isSpeechSynthesisSupported || isSpeaking || isDownloading}
-                        />
-                    </div>
-                    
-                    <div className="flex flex-col gap-2">
-                        <label htmlFor="pitch-slider" className="text-xs font-press-start text-brand-cyan">ระดับเสียง: {pitch.toFixed(1)}</label>
-                         <input
-                            id="pitch-slider"
-                            type="range"
-                            min="0"
-                            max="2"
-                            step="0.1"
-                            value={pitch}
-                            onChange={(e) => { playSound(audioService.playSliderChange); setPitch(parseFloat(e.target.value)); }}
-                            disabled={!isSpeechSynthesisSupported || isSpeaking || isDownloading}
-                        />
                     </div>
 
                     <div className="flex flex-col gap-4 mt-2">
                         <div className="flex flex-col sm:flex-row gap-4">
                             <button
                                 onClick={handleSpeak}
-                                onMouseEnter={() => playSound(audioService.playHover)}
-                                disabled={!text.trim() || isSpeaking || isDownloading || !isSpeechSynthesisSupported}
+                                disabled={!text.trim() || ttsState !== 'idle' || !isLiveApiSupported}
                                 className="w-full flex items-center justify-center gap-3 p-3 bg-brand-lime text-black border-4 border-brand-light shadow-pixel text-base transition-all hover:bg-brand-yellow active:shadow-pixel-active active:translate-y-[2px] active:translate-x-[2px] disabled:bg-gray-500 disabled:cursor-not-allowed"
                             >
-                                <PlayIcon className="w-5 h-5"/> พูด
+                                {ttsState === 'connecting' ? <LoadingSpinner text="" /> : <PlayIcon className="w-5 h-5"/>}
+                                {ttsState === 'connecting' ? 'กำลังเชื่อมต่อ...' : 'พูด'}
                             </button>
                             <button
                                 onClick={handleStop}
                                 onMouseEnter={() => playSound(audioService.playHover)}
-                                disabled={!isSpeaking}
+                                disabled={ttsState === 'idle'}
                                 className="w-full flex items-center justify-center gap-3 p-3 bg-brand-magenta text-white border-4 border-brand-light shadow-pixel text-base transition-all hover:bg-brand-yellow hover:text-black active:shadow-pixel-active active:translate-y-[2px] active:translate-x-[2px] disabled:bg-gray-500 disabled:cursor-not-allowed"
                             >
                                 <StopIcon className="w-5 h-5"/> หยุด
@@ -322,18 +229,15 @@ export const TextToSpeechPage: React.FC<TextToSpeechPageProps> = ({ onClose, pla
                         </div>
                         <div>
                             <button
-                                onClick={handleDownload}
-                                disabled={!text.trim() || isSpeaking || isDownloading || !isSpeechSynthesisSupported || !isGetDisplayMediaSupported}
-                                className="w-full flex items-center justify-center gap-3 p-3 bg-brand-yellow text-black border-4 border-brand-light shadow-pixel text-base transition-all hover:bg-brand-magenta hover:text-white disabled:bg-gray-500 disabled:cursor-not-allowed"
+                                disabled={true}
+                                className="w-full flex items-center justify-center gap-3 p-3 bg-gray-500 text-black border-4 border-brand-light shadow-pixel text-base cursor-not-allowed"
                             >
                                 <DownloadIcon className="w-5 h-5"/>
-                                {isDownloading ? 'กำลังบันทึก...' : 'ดาวน์โหลด'}
+                                ดาวน์โหลด
                             </button>
-                             {!isGetDisplayMediaSupported && (
-                                 <p className="text-xs text-center text-brand-light/60 mt-2">
-                                     (การดาวน์โหลดไม่รองรับในเบราว์เซอร์นี้)
-                                 </p>
-                             )}
+                             <p className="text-xs text-center text-brand-light/60 mt-2">
+                                (การดาวน์โหลดไม่รองรับในเวอร์ชันสาธิตนี้)
+                             </p>
                         </div>
                     </div>
                 </div>

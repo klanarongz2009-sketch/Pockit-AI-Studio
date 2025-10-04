@@ -108,6 +108,13 @@ export const MinigameHubPage: React.FC<MinigameHubPageProps> = ({ playSound, isO
     // High scores are now managed in-memory per component, so we don't need to load them here.
     // The individual game components will manage their own high scores for the current session.
 
+    useEffect(() => {
+        // When the active game changes, also change the background music.
+        // 'hub' will play the main hub theme, and each game will have its own.
+        audioService.changeBackgroundMusic(activeGame);
+    }, [activeGame]);
+
+
     const handleLaunchGame = (game: ActiveGame) => {
         playSound(audioService.playClick);
         setActiveGame(game);

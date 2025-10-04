@@ -1,3 +1,26 @@
+import type { Song } from './geminiService';
+
+const PREFERENCES_KEY = 'app-preferences-v1';
+
+// --- New Types for persistent state ---
+export type ModelVersion = 'v1' | 'v1.5' | 'v2.0-beta';
+
+export interface HistoryItem {
+    id: string;
+    text: string;
+    song: Song;
+    timestamp: number;
+    modelVersion: ModelVersion;
+}
+
+export interface Message {
+  id: string;
+  role: 'user' | 'model';
+  text: string;
+  sources?: { uri: string; title:string }[];
+}
+
+
 // Define the shape of our preferences object
 export interface Preferences {
     // Sound
@@ -8,8 +31,8 @@ export interface Preferences {
 
     // Display & Accessibility
     theme: 'light' | 'dark' | 'system';
-    // FIX: Added 'fr' to support French language selection and resolve type mismatch.
-    language: 'th' | 'en' | 'ja' | 'fr';
+    // FIX: Add 'es' (Spanish) to the language type to align with LanguageContext and available options.
+    language: 'th' | 'en' | 'ja' | 'fr' | 'es';
     uiAnimations: boolean;
     highContrastMode: boolean;
     showTooltips: boolean;
@@ -37,6 +60,14 @@ export interface Preferences {
     confirmCreditSpend: boolean;
     lowCreditWarningThreshold: number;
 
+    // --- New & Updated ---
+    textToSpeechVoiceName: 'Zephyr' | 'Puck' | 'Charon' | 'Kore' | 'Fenrir';
+
+    // --- Persisted State ---
+    credits: number;
+    songHistory: HistoryItem[];
+    chatHistory: { [modelId: string]: Message[] };
+
     // --- Deprecated or Unused in Settings UI, but kept for compatibility ---
     musicVolume: number;
     ticTacToeGameMode: 'ai' | 'player';
@@ -44,24 +75,31 @@ export interface Preferences {
     voiceChangerEffect: string;
     videoEditorSubtitleLang: string;
     videoEditorAutoDetectLang: boolean;
-    textToSpeechVoiceURI: string;
-    textToSpeechPitch: number;
-    textToSpeechRate: number;
     textToSpeechAutoDetectLang: boolean;
 }
 
-// In-memory store for preferences. This will be reset on every page load.
-let inMemoryPreferences: Partial<Preferences> = {};
-
-// Function to get all preferences from the in-memory store
+// Function to get all preferences from localStorage
 function getAllPreferences(): Partial<Preferences> {
-    return inMemoryPreferences;
+    try {
+        const storedPrefs = localStorage.getItem(PREFERENCES_KEY);
+        if (storedPrefs) {
+            return JSON.parse(storedPrefs);
+        }
+    } catch (error) {
+        console.error("Failed to read preferences from localStorage:", error);
+    }
+    return {};
 }
 
-// Function to save all preferences to the in-memory store
+// Function to save all preferences to localStorage
 function saveAllPreferences(prefs: Partial<Preferences>): void {
-    inMemoryPreferences = prefs;
+    try {
+        localStorage.setItem(PREFERENCES_KEY, JSON.stringify(prefs));
+    } catch (error) {
+        console.error("Failed to save preferences to localStorage:", error);
+    }
 }
+
 
 /**
  * Gets a specific preference value from the in-memory store.

@@ -13,6 +13,7 @@ import { TrashIcon } from './icons/TrashIcon';
 import { useCredits } from '../contexts/CreditContext';
 import { showNotification } from '../services/notificationService';
 import { AudioVisualizer } from './AudioVisualizer';
+import type { HistoryItem, ModelVersion } from '../services/preferenceService';
 
 interface TextToSongPageProps {
     onClose: () => void;
@@ -33,16 +34,6 @@ const thinkingMessages = [
     "ขั้นตอนสุดท้าย, กำลังรวมเพลง..."
 ];
 
-type ModelVersion = 'v1' | 'v1.5' | 'v2.0-beta';
-
-interface HistoryItem {
-    id: string;
-    text: string;
-    song: Song;
-    timestamp: number;
-    modelVersion: ModelVersion;
-}
-
 export const TextToSongPage: React.FC<TextToSongPageProps> = ({
     onClose,
     playSound,
@@ -58,7 +49,7 @@ export const TextToSongPage: React.FC<TextToSongPageProps> = ({
     const [modelVersion, setModelVersion] = useState<ModelVersion>(() => preferenceService.getPreference('textToSongModel', 'v1'));
     const [thinkingMessage, setThinkingMessage] = useState<string>(thinkingMessages[0]);
     
-    const [history, setHistory] = useState<HistoryItem[]>([]);
+    const [history, setHistory] = useState<HistoryItem[]>(() => preferenceService.getPreference('songHistory', []));
     const [currentlyPlayingId, setCurrentlyPlayingId] = useState<string | null>(null);
     const { credits, spendCredits } = useCredits();
     const cancellationRequested = useRef(false);
@@ -128,7 +119,11 @@ export const TextToSongPage: React.FC<TextToSongPageProps> = ({
                 timestamp: Date.now(),
                 modelVersion: modelVersion,
             };
-            setHistory(prev => [newHistoryItem, ...prev]);
+            setHistory(prev => {
+                const newHistory = [newHistoryItem, ...prev];
+                preferenceService.setPreference('songHistory', newHistory);
+                return newHistory;
+            });
 
             playSound(audioService.playSuccess);
             
@@ -200,7 +195,11 @@ export const TextToSongPage: React.FC<TextToSongPageProps> = ({
             setIsPlayingSong(false);
             setCurrentlyPlayingId(null);
         }
-        setHistory(prev => prev.filter(item => item.id !== idToDelete));
+        setHistory(prev => {
+            const newHistory = prev.filter(item => item.id !== idToDelete);
+            preferenceService.setPreference('songHistory', newHistory);
+            return newHistory;
+        });
     };
 
     const handleClose = () => {

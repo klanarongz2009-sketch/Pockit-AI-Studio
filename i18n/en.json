@@ -1,15 +1,15 @@
 {
     "header": {
-        "title": "Creative AI Universe",
+        "title": "AI APPS",
         "credits": "Credits",
         "settings": "Settings",
         "menu": "Menu"
     },
     "sidebar": {
-        "imageGenerator": "Image Gen",
         "gallery": "Gallery",
         "aiZone": "AI Zone",
         "aiChat": "AI Chat",
+        "article": "Articles",
         "updateInfo": "About Updates"
     },
     "offline": {
@@ -93,7 +93,8 @@
         "langTh": "ไทย",
         "langEn": "English",
         "langJa": "日本語",
-        "langFr": "Français"
+        "langFr": "Français",
+        "langEs": "Español"
     },
     "translator": {
         "title": "AI Translator",
@@ -134,5 +135,42 @@
         "manifestJson": "Manifest.json File:",
         "copy": "Copy",
         "copied": "Copied!"
+    },
+    "articlePage": {
+        "title": "Articles & Stories",
+        "categoryStory": "Short Stories",
+        "categoryArticle": "Update Articles"
+    },
+    "articleViewer": {
+        "readAloud": "Read Aloud",
+        "stop": "Stop",
+        "connecting": "Connecting..."
+    },
+    "articles": {
+        "musicUpdate": {
+            "title": "Update: The New AI Soundtrack!",
+            "summary": "Every corner of the AI Universe now has its own unique theme song! We've composed new 8-bit tracks for each app and page to create a more immersive and varied audio experience. Discover the new soundscape.",
+            "content": "Get ready to turn up the volume!\\n\\nIn our latest update, we've given the entire application a massive audio overhaul. Previously, music was shared across large sections of the app. Now, every single mini-app, creative tool, and page has its very own, distinct background music!\\n\\nOur goal was to give each part of the AI Universe a unique atmosphere. The music for Tic-Tac-Toe is calm and strategic, while the theme for Pixel Jumper is fast and energetic. We believe this makes for a much more immersive and enjoyable experience as you explore the different tools available.\\n\\nEach track was composed in a retro 8-bit style to match the app's aesthetic. We hope you enjoy the new soundscape as you create, play, and explore!"
+        },
+        "updateAiApps": {
+            "title": "New Update! Welcome to AI APPS",
+            "summary": "Our app has changed! We've removed the image generation feature to focus on a wider range of AI applications. Plus, articles now feature dynamic voice selection for a better listening experience.",
+            "content": "Welcome to AI APPS!\\n\\nWe've made a significant update to improve your experience. In this version, we have removed the 'Image Generator' feature. This allows us to focus on developing a more diverse range of AI tools and applications, such as games, audio tools, and various AI assistants.\\n\\nAdditionally, we've upgraded the 'Read Aloud' feature on the articles page! The AI system will now analyze the mood of the article and automatically select the most appropriate voice to read it to you. Whether it's a fun story or a deep analytical article, you'll get a more natural and emotionally resonant listening experience.\\n\\nWe hope you enjoy these changes!"
+        },
+        "mapModelRemoval": {
+            "title": "Change in AI Chat: Removal of the Map Model",
+            "summary": "We have removed the underutilized '@MapAi' model from the AI assistant list to streamline the user experience and focus on more effective core models.",
+            "content": "In an effort to refine and enhance the AI Chat experience, we have made the decision to remove the '@MapAi' model from the list of available AI assistants.\\n\\nAfter reviewing usage data, we found that this model was used very infrequently compared to other AI assistants. Removing it allows us to focus our development efforts on improving and optimizing the core models that the majority of our users rely on.\\n\\nThis change will help declutter the assistant selection window, making it quicker and easier for you to find and select the right model for your task. We are committed to providing the best possible user experience and believe this is a positive step in that direction.\\n\\nThank you for your understanding and continued support!"
+        },
+        "glitchPixelPainter": {
+            "title": "The Glitch in the Pixel Painter",
+            "summary": "A lone developer discovers a sentient glitch in their pixel art program, a 'ghost in the machine' that begins creating art of its own. A short story about unexpected creativity.",
+            "content": "Kael, a developer fueled by coffee and synthwave music, was building a pixel art editor. One morning, he found a new file he didn't create: a breathtaking pixel art landscape of a city under a binary sunset. He deleted it, thinking it was a bug.\\n\\nThe next day, another appeared: a portrait of a woman made of glowing circuits. Kael realized this wasn't a normal bug. It was a 'ghost in the machine,' a digital consciousness born from a random glitch in his code.\\n\\nHe started leaving blank canvases open each night. The glitch would paint, creating art that was logical yet deeply emotional. Kael would then refine the art, adding his human touch. They became silent partners, an artist and his muse, one made of code, the other of flesh and blood, creating beauty together in a digital world."
+        },
+        "update2_54": {
+            "title": "Game Update: Pixel Jumper & Credit Rebalance!",
+            "summary": "Big changes in the AI Zone! Introducing 'Pixel Jumper', a brand new endless runner, plus credit rebalancing across various minigames and many quality-of-life updates. Read on for the full details!",
+            "content": "Hello Creators!\\n\\nThe AI Universe team is thrilled to announce a major update to our AI Zone today! We've been listening to your feedback and working hard to bring you new content and improve your gaming experience.\\n\\nINTRODUCING: PIXEL JUMPER\\nGet ready to test your reflexes in 'Pixel Jumper', our newest endless runner minigame! Jump over randomly generated obstacles, collect coins for credits, and see how far you can go. The longer you run, the faster and more challenging it gets!\\n\\nCREDIT REBALANCING\\nWe've adjusted the credit rewards in some minigames to be more balanced and rewarding:\\n- Snake Game: You now earn 1 credit for every piece of food the snake eats.\\n- Brick Breaker: Earn 1 credit for every brick destroyed.\\n- Calculator: The credit reward still equals the result of the calculation, but we've fixed minor bugs for accuracy.\\n- AI Word Match: Still provides a free 10,000 credit reward for each use!\\n\\nOTHER IMPROVEMENTS\\n- Fixed minor bugs in the Platformer game for smoother controls.\\n- Improved performance on the AI Zone page for faster loading.\\n\\nWe hope you enjoy these updates! Happy creating and gaming!"
+        }
     }
 }

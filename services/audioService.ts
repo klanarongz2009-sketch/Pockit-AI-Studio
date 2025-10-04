@@ -9,6 +9,7 @@ let isInitialized = false;
 
 // NEW: Centralized audio nodes for effects and analysis
 let masterGain: GainNode | null = null;
+let songGain: GainNode | null = null;
 let analyser: AnalyserNode | null = null;
 
 const preloadedAudioData = new Map<string, ArrayBuffer>();
@@ -56,20 +57,27 @@ export function addPreloadedAudio(name: string, data: ArrayBuffer) {
     preloadedAudioData.set(name, data);
 }
 
-export function initAudio() {
-    if (isInitialized || typeof window === 'undefined') return;
-    
+export async function initAudio(): Promise<boolean> {
+    if (isInitialized || typeof window === 'undefined') return true;
+
     try {
         audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
-        isInitialized = true;
-
+        
         // NEW: Create and connect main audio graph
         masterGain = audioContext.createGain();
         analyser = audioContext.createAnalyser();
         analyser.fftSize = 256; // Good for visuals
 
+        songGain = audioContext.createGain();
+        songGain.connect(masterGain);
+
         masterGain.connect(analyser);
         analyser.connect(audioContext.destination);
+
+        // Crucially, wait for resume if needed
+        if (audioContext.state === 'suspended') {
+            await audioContext.resume();
+        }
 
         // NEW: Create white noise buffer for percussion sounds
         const bufferSize = audioContext.sampleRate * 2; // 2 seconds of noise is plenty
@@ -79,7 +87,7 @@ export function initAudio() {
             output[i] = Math.random() * 2 - 1;
         }
 
-        preloadedAudioData.forEach(async (data, name) => {
+        const decodingPromises = Array.from(preloadedAudioData.entries()).map(async ([name, data]) => {
             if (audioContext) {
                 try {
                     const decodedBuffer = await audioContext.decodeAudioData(data.slice(0));
@@ -89,20 +97,18 @@ export function initAudio() {
                 }
             }
         });
+        await Promise.all(decodingPromises);
 
-        if (audioContext.state === 'suspended') {
-            audioContext.resume().catch(e => {
-                console.error("Error resuming AudioContext:", e);
-                isInitialized = false;
-                audioContext = null;
-            });
-        }
+        isInitialized = true;
+        return true;
     } catch (e) {
         console.error("Web Audio API is not supported or could not be initialized:", e);
         isInitialized = false;
         audioContext = null;
+        return false;
     }
 }
+
 
 // NEW: Export analyser for visualizer component
 export function getAnalyser(): AnalyserNode | null {
@@ -289,7 +295,7 @@ interface MusicSequence {
     }[];
 }
 
-const creativeSequence: MusicSequence = {
+const minigameHubSequence: MusicSequence = {
     bpm: 130,
     tracks: [
         { 
@@ -312,100 +318,140 @@ const creativeSequence: MusicSequence = {
                 'A#3', 'D4', 'F4', 'D4', 'C4', 'A#3', 'A3', 'G3', 'F4', null, null, null, 'G4', 'A4', 'A#4', null,
             ]
         },
-        { 
-            instrument: 'sine',
-            volume: 0.1,
-            notes: [
-                'G4', null, null, null, 'G4', null, null, null, 'D4', null, null, null, 'D4', null, null, null,
-                'F4', null, null, null, 'F4', null, null, null, 'C4', null, null, null, 'C4', null, null, null,
-                'G4', null, null, null, 'G4', null, null, null, 'D4', null, null, null, 'D4', null, null, null,
-                'F4', null, 'C4', null, 'D#4', null, 'A#3', null, 'G4', null, null, 'G4', 'F4', null, 'D#4', null,
-            ]
-        },
-        { 
-            instrument: 'square',
-            volume: 0.12,
-            notes: [
-                'C2', null, 'C3', null, 'C2', null, 'C3', null, 'C2', null, 'C3', null, 'C2', null, 'C3', null,
-                'C2', null, 'C3', null, 'C2', null, 'C3', 'C3', 'C2', null, 'C3', null, 'C2', null, 'C3', 'C3',
-                'C2', null, 'C3', null, 'C2', null, 'C3', null, 'C2', null, 'C3', null, 'C2', null, 'C3', null,
-                'C2', null, 'C3', 'C3', 'C2', 'C2', 'C3', 'C3', 'D#3', 'D#3', 'D#3', null, 'D#3', 'D#3', 'D#3', null,
-            ]
-        }
-    ]
-};
-
-const minigameHubSequence: MusicSequence = {
-    bpm: 150,
-    tracks: [
-        {
-            instrument: 'square',
-            volume: 0.15,
-            notes: ['C5', null, 'E5', null, 'G5', null, 'E5', null, 'C5', null, 'E5', null, 'G5', null, 'E5', null]
-        },
-        {
-            instrument: 'square',
-            volume: 0.2,
-            notes: ['C3', 'C3', null, 'C3', 'G2', 'G2', null, 'G2', 'A#2', 'A#2', null, 'A#2', 'F2', 'F2', null, 'F2']
-        },
-        {
-            instrument: 'noise',
-            volume: 0.3,
-            notes: ['C2', null, null, null, 'C2', null, 'C2', null, 'C2', null, null, null, 'C2', null, 'C2', null]
-        }
     ]
 };
 
 const artGallerySequence: MusicSequence = {
     bpm: 80,
     tracks: [
-        {
-            instrument: 'sine',
-            volume: 0.2,
-            notes: ['C4', null, null, null, null, null, null, null, 'G4', null, null, null, null, null, null, null]
-        },
-        {
-            instrument: 'sine',
-            volume: 0.2,
-            notes: ['E4', null, null, null, null, null, null, null, 'B4', null, null, null, null, null, null, null]
-        },
-        {
-            instrument: 'sine',
-            volume: 0.15,
-            notes: ['G4', null, null, null, null, null, null, null, 'D5', null, null, null, null, null, null, null]
-        }
+        { instrument: 'sine', volume: 0.2, notes: ['C4', null, null, null, 'G4', null, null, null, 'E4', null, null, null, 'F4', null, null, null] },
+        { instrument: 'triangle', volume: 0.15, notes: [null, null, 'C5', null, null, null, 'G5', null, null, null, 'E5', null, null, null, 'F5', null] },
+        { instrument: 'sine', volume: 0.1, notes: ['C3', null, 'G3', null, 'E3', null, 'F3', null, 'C3', null, 'G3', null, 'E3', null, 'F3', null] },
     ]
 };
 
 const aiChatSequence: MusicSequence = {
     bpm: 110,
     tracks: [
-        {
-            instrument: 'triangle',
-            volume: 0.15,
-            notes: ['C4', null, 'E4', null, 'G4', null, 'C5', null, 'G4', null, 'E4', null, 'C4', null, null, null]
-        },
-        {
-            instrument: 'sawtooth',
-            volume: 0.2,
-            notes: ['C2', null, null, null, 'C2', null, null, null, 'F2', null, null, null, 'F2', null, null, null]
-        },
-         {
-            instrument: 'sine',
-            volume: 0.1,
-            notes: ['G3', null, null, null, null, null, null, null, 'C4', null, null, null, null, null, null, null]
-        }
+        { instrument: 'triangle', volume: 0.15, notes: ['C4', null, 'E4', null, 'G4', null, 'C5', null, 'G4', null, 'E4', null, 'C4', null, null, null] },
+        { instrument: 'sawtooth', volume: 0.2, notes: ['C2', null, null, null, 'C2', null, null, null, 'F2', null, null, null, 'F2', null, null, null] },
+        { instrument: 'sine', volume: 0.1, notes: ['G3', null, null, null, null, null, null, null, 'C4', null, null, null, null, null, null, null] },
     ]
 };
 
-const PAGE_MUSIC: Record<CurrentPage, MusicSequence> = {
-    imageGenerator: creativeSequence,
+const articleSequence: MusicSequence = {
+    bpm: 90,
+    tracks: [
+        { instrument: 'sine', volume: 0.15, notes: ['C3', null, null, null, 'G3', null, null, null, 'E3', null, null, null, 'A3', null, null, null] },
+        { instrument: 'triangle', volume: 0.1, notes: [null, null, 'C5', null, null, null, 'G5', null, null, null, 'E5', null, null, null, 'A5', null] },
+    ]
+};
+
+// --- NEW MINIGAME MUSIC SEQUENCES ---
+const ticTacToeSequence: MusicSequence = {
+    bpm: 100,
+    tracks: [
+        { instrument: 'triangle', volume: 0.15, notes: ['E4', null, 'G4', null, 'C4', null, null, null, 'D4', null, 'F4', null, 'B3', null, null, null] },
+        { instrument: 'sine', volume: 0.1, notes: ['C2', null, null, null, 'G2', null, null, null, 'F2', null, null, null, 'B2', null, null, null] }
+    ]
+};
+
+const snakeSequence: MusicSequence = {
+    bpm: 140,
+    tracks: [
+        { instrument: 'square', volume: 0.1, notes: ['C4','D4','E4','F4','G4','A4','B4','C5'] },
+        { instrument: 'square', volume: 0.15, notes: ['C3', null, 'C3', null, 'G3', null, 'G3', null] },
+    ]
+};
+
+const brickBreakerSequence: MusicSequence = {
+    bpm: 160,
+    tracks: [
+        { instrument: 'square', volume: 0.15, notes: ['C5', 'G4', 'E4', 'G4', 'C5', 'G4', 'E4', 'G4'] },
+        { instrument: 'sawtooth', volume: 0.2, notes: ['C3', null, 'C3', null, 'C3', null, 'C3', null] },
+        { instrument: 'noise', volume: 0.1, notes: [null, null, 'C2', null, null, null, 'C2', null] },
+    ]
+};
+
+const jumpingGameSequence: MusicSequence = {
+    bpm: 155,
+    tracks: [
+        { instrument: 'square', volume: 0.15, notes: ['C4', 'E4', 'G4', 'E4', 'C4', 'E4', 'G4', 'E4'] },
+        { instrument: 'square', volume: 0.1, notes: ['C3', null, 'G2', null, 'C3', null, 'G2', null] },
+    ]
+};
+
+const calculatorSequence: MusicSequence = {
+    bpm: 120,
+    tracks: [
+        { instrument: 'sine', volume: 0.15, notes: ['C5', 'E5', 'G5', 'C6', 'G5', 'E5', 'C5', null] },
+        { instrument: 'sine', volume: 0.1, notes: ['C3', null, null, null, 'G3', null, null, null] }
+    ]
+};
+
+const aiOracleSequence: MusicSequence = {
+    bpm: 70,
+    tracks: [
+        { instrument: 'triangle', volume: 0.2, notes: ['A3', null, null, null, 'E4', null, null, 'C4'] },
+        { instrument: 'sine', volume: 0.15, notes: ['A2', null, null, null, null, null, null, null] },
+    ]
+};
+
+const songSearchSequence: MusicSequence = {
+    bpm: 125,
+    tracks: [
+        { instrument: 'sawtooth', volume: 0.15, notes: ['C3', 'C3', 'G3', 'G3', 'A3', 'A3', 'G3', null] },
+        { instrument: 'square', volume: 0.1, notes: [null, null, null, null, 'C5', null, 'A4', null] },
+    ]
+};
+
+const videoEditorSequence: MusicSequence = {
+    bpm: 115,
+    tracks: [
+        { instrument: 'sawtooth', volume: 0.2, notes: ['C2', null, 'C2', null, 'D#2', null, 'D#2', null] },
+        { instrument: 'sine', volume: 0.1, notes: ['G4', 'G4', null, 'G4', 'A#4', 'A#4', null, 'A#4'] },
+        { instrument: 'noise', volume: 0.05, notes: [null, 'C2', null, 'C2', null, 'C2', null, 'C2'] },
+    ]
+};
+
+const pixelSequencerSequence: MusicSequence = {
+    bpm: 130,
+    tracks: [
+        { instrument: 'square', volume: 0.15, notes: ['C3', 'E3', 'G3', 'B3', 'C4', 'B3', 'G3', 'E3'] },
+        { instrument: 'square', volume: 0.1, notes: ['C2', null, null, null, 'G2', null, null, null] },
+    ]
+};
+
+const talkingCatSequence: MusicSequence = {
+    bpm: 110,
+    tracks: [
+        { instrument: 'triangle', volume: 0.15, notes: ['E4', 'G4', null, 'E4', 'D4', 'C4', null, null] },
+        { instrument: 'sine', volume: 0.1, notes: ['C3', null, 'G3', null, 'F3', null, 'C3', null] },
+    ]
+};
+
+const PAGE_MUSIC: Record<string, MusicSequence> = {
+    // Main Pages
     minigameHub: minigameHubSequence,
     artGallery: artGallerySequence,
     aiChat: aiChatSequence,
+    article: articleSequence,
+
+    // Minigames / Apps
+    hub: minigameHubSequence, // Alias for when closing a game
+    ticTacToe: ticTacToeSequence,
+    snake: snakeSequence,
+    brickBreaker: brickBreakerSequence,
+    jumpingGame: jumpingGameSequence,
+    calculator: calculatorSequence,
+    aiOracle: aiOracleSequence,
+    songSearch: songSearchSequence,
+    videoEditor: videoEditorSequence,
+    pixelSequencer: pixelSequencerSequence,
+    talkingCat: talkingCatSequence,
 };
 
-let currentMusicPage: CurrentPage | null = null;
+let currentMusicPage: string | null = null;
 
 function stopSynthesizedMusic() {
     musicTimeouts.forEach(clearTimeout);
@@ -477,7 +523,7 @@ function playSynthesizedMusicLoop(sequence: MusicSequence) {
 }
 
 
-export const startBackgroundMusic = (page: CurrentPage) => { 
+export const startBackgroundMusic = (page: string) => { 
     if (!audioContext || !masterGain || isMusicPlaying || audioContext.state !== 'running') return;
 
     if (!musicGain) {
@@ -489,13 +535,13 @@ export const startBackgroundMusic = (page: CurrentPage) => {
 
     isMusicPlaying = true;
     currentMusicPage = page;
-    const sequence = PAGE_MUSIC[page] || PAGE_MUSIC.imageGenerator;
+    const sequence = PAGE_MUSIC[page] || PAGE_MUSIC.minigameHub;
     playSynthesizedMusicLoop(sequence);
 
     musicGain.gain.linearRampToValueAtTime(desiredMusicVolume, audioContext.currentTime + 2.0);
 };
 
-export const changeBackgroundMusic = (page: CurrentPage) => {
+export const changeBackgroundMusic = (page: string) => {
     if (!audioContext || !masterGain || !isMusicPlaying || !musicGain || page === currentMusicPage) return;
 
     musicGain.gain.cancelScheduledValues(audioContext.currentTime);
@@ -510,7 +556,7 @@ export const changeBackgroundMusic = (page: CurrentPage) => {
         musicTimeouts = [];
         
         currentMusicPage = page;
-        const newSequence = PAGE_MUSIC[page] || PAGE_MUSIC.imageGenerator;
+        const newSequence = PAGE_MUSIC[page] || PAGE_MUSIC.minigameHub;
         playSynthesizedMusicLoop(newSequence);
 
         if (musicGain) {
@@ -535,21 +581,33 @@ export function stopSong() {
     activeSongSources.forEach(source => {
         try {
             source.stop();
+            source.disconnect();
         } catch (e) {
             // Source may have already been stopped or finished playing.
         }
     });
     activeSongSources = [];
+
+    // As a fail-safe, quickly fade out the dedicated song gain node.
+    // This ensures any lingering sounds from this song channel are silenced without affecting other channels.
+    if (songGain && audioContext) {
+        songGain.gain.cancelScheduledValues(audioContext.currentTime);
+        // Use setValueAtTime and linearRampToValueAtTime for a smooth and quick fade out.
+        songGain.gain.setValueAtTime(songGain.gain.value, audioContext.currentTime);
+        songGain.gain.linearRampToValueAtTime(0, audioContext.currentTime + 0.05);
+    }
 }
 export function playSong(song: Song, bpm: number, onEnd?: () => void) {
-    if (!audioContext || !masterGain || audioContext.state !== 'running') return;
+    if (!audioContext || !masterGain || !songGain || audioContext.state !== 'running') return;
     stopSong(); // Stop any currently playing song
+
+    // After stopping, ensure the gain is reset to 1 for the new song.
+    const startTime = audioContext.currentTime;
+    songGain.gain.cancelScheduledValues(startTime);
+    songGain.gain.setValueAtTime(1, startTime);
 
     const noteDuration = 60 / bpm; // Assuming each step is a quarter note
     let totalTime = 0;
-    
-    // Use the reliable Web Audio API for scheduling
-    const startTime = audioContext.currentTime;
     
     song.forEach((track, trackIndex) => {
         let currentTime = 0;
@@ -559,8 +617,8 @@ export function playSong(song: Song, bpm: number, onEnd?: () => void) {
             if (note) { // Don't process null/empty notes (rests)
                 const freq = NOTE_FREQUENCIES[note];
                 if (freq) {
-                    const oscillator = audioContext.createOscillator();
-                    const gainNode = audioContext.createGain();
+                    const oscillator = audioContext!.createOscillator();
+                    const gainNode = audioContext!.createGain();
                     const notePlayTime = startTime + currentTime;
 
                     oscillator.type = instrumentType;
@@ -571,8 +629,8 @@ export function playSong(song: Song, bpm: number, onEnd?: () => void) {
                     gainNode.gain.exponentialRampToValueAtTime(0.0001, notePlayTime + (noteDuration * 0.9)); // Fade out
 
                     oscillator.connect(gainNode);
-                    gainNode.connect(masterGain);
-
+                    gainNode.connect(songGain);
+                    
                     oscillator.start(notePlayTime);
                     oscillator.stop(notePlayTime + noteDuration);
                     

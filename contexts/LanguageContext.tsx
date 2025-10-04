@@ -1,7 +1,7 @@
 import React, { createContext, useContext, useState, useEffect, useCallback, FC, ReactNode } from 'react';
 import * as preferenceService from '../services/preferenceService';
 
-type Language = 'th' | 'en' | 'ja' | 'fr';
+type Language = 'th' | 'en' | 'ja' | 'fr' | 'es';
 type Translations = { [key: string]: any };
 
 interface LanguageContextType {

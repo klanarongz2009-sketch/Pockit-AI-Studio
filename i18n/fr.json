@@ -1,15 +1,15 @@
 {
     "header": {
-        "title": "Univers IA Créatif",
+        "title": "AI APPS",
         "credits": "Crédits",
         "settings": "Paramètres",
         "menu": "Menu"
     },
     "sidebar": {
-        "imageGenerator": "Gén. Image",
         "gallery": "Galerie",
         "aiZone": "Zone IA",
         "aiChat": "Chat IA",
+        "article": "Articles",
         "updateInfo": "Mises à jour"
     },
     "offline": {
@@ -93,7 +93,8 @@
         "langTh": "ไทย",
         "langEn": "English",
         "langJa": "日本語",
-        "langFr": "Français"
+        "langFr": "Français",
+        "langEs": "Español"
     },
     "translator": {
         "title": "Traducteur IA",
@@ -134,5 +135,42 @@
         "manifestJson": "Fichier Manifest.json :",
         "copy": "Copier",
         "copied": "Copié !"
+    },
+    "articlePage": {
+        "title": "Articles et Histoires",
+        "categoryStory": "Nouvelles",
+        "categoryArticle": "Articles de mise à jour"
+    },
+    "articleViewer": {
+        "readAloud": "Lire à voix haute",
+        "stop": "Arrêter",
+        "connecting": "Connexion..."
+    },
+    "articles": {
+        "musicUpdate": {
+            "title": "Mise à jour : La nouvelle bande-son de l'IA !",
+            "summary": "Chaque recoin de l'univers de l'IA a désormais son propre thème musical unique ! Nous avons composé de nouvelles pistes 8-bits pour chaque application et page afin de créer une expérience audio plus immersive et variée. Découvrez le nouveau paysage sonore.",
+            "content": "Préparez-vous à monter le volume !\\n\\nDans notre dernière mise à jour, nous avons entièrement revu l'audio de l'application. Auparavant, la musique était partagée entre de grandes sections de l'application. Désormais, chaque mini-application, outil de création et page possède sa propre musique de fond, distincte !\\n\\nNotre objectif était de donner à chaque partie de l'univers de l'IA une atmosphère unique. La musique du Morpion est calme et stratégique, tandis que le thème de Pixel Jumper est rapide et énergique. Nous pensons que cela rend l'expérience beaucoup plus immersive et agréable lorsque vous explorez les différents outils disponibles.\\n\\nChaque piste a été composée dans un style rétro 8-bits pour correspondre à l'esthétique de l'application. Nous espérons que vous apprécierez le nouveau paysage sonore pendant que vous créez, jouez et explorez !"
+        },
+        "updateAiApps": {
+            "title": "Nouvelle mise à jour ! Bienvenue sur AI APPS",
+            "summary": "Notre application a changé ! Nous avons supprimé la fonction de génération d'images pour nous concentrer sur une gamme plus large d'applications d'IA. De plus, les articles disposent désormais d'une sélection vocale dynamique pour une meilleure expérience d'écoute.",
+            "content": "Bienvenue sur AI APPS !\\n\\nNous avons effectué une mise à jour importante pour améliorer votre expérience. Dans cette version, nous avons supprimé la fonctionnalité 'Générateur d'images'. Cela nous permet de nous concentrer sur le développement d'une gamme plus diversifiée d'outils et d'applications d'IA, tels que des jeux, des outils audio et divers assistants IA.\\n\\nDe plus, nous avons amélioré la fonction 'Lire à voix haute' sur la page des articles ! Le système d'IA analysera désormais l'ambiance de l'article et sélectionnera automatiquement la voix la plus appropriée pour vous le lire. Qu'il s'agisse d'une histoire amusante ou d'un article d'analyse approfondie, vous bénéficierez d'une expérience d'écoute plus naturelle et émotionnellement résonnante.\\n\\nNous espérons que vous apprécierez ces changements !"
+        },
+        "mapModelRemoval": {
+            "title": "Changement dans le Chat IA : Suppression du modèle de carte",
+            "summary": "Nous avons retiré le modèle sous-utilisé '@MapAi' de la liste des assistants IA pour simplifier l'expérience utilisateur et nous concentrer sur des modèles de base plus efficaces.",
+            "content": "Dans un effort pour affiner et améliorer l'expérience du Chat IA, nous avons pris la décision de retirer le modèle '@MapAi' de la liste des assistants IA disponibles.\\n\\nAprès avoir examiné les données d'utilisation, nous avons constaté que ce modèle était très peu utilisé par rapport aux autres assistants IA. Sa suppression nous permet de concentrer nos efforts de développement sur l'amélioration et l'optimisation des modèles de base sur lesquels la majorité de nos utilisateurs comptent.\\n\\nCe changement contribuera à désencombrer la fenêtre de sélection des assistants, vous permettant de trouver et de sélectionner plus rapidement et plus facilement le bon modèle pour votre tâche. Nous nous engageons à offrir la meilleure expérience utilisateur possible et pensons que c'est un pas positif dans cette direction.\\n\\nMerci de votre compréhension et de votre soutien continu !"
+        },
+        "glitchPixelPainter": {
+            "title": "Le Glitch dans le Pixel Painter",
+            "summary": "Un développeur solitaire découvre un glitch conscient dans son programme de pixel art, un 'fantôme dans la machine' qui commence à créer son propre art. Une nouvelle sur la créativité inattendue.",
+            "content": "Kael, un développeur carburant au café et à la musique synthwave, construisait un éditeur de pixel art. Un matin, il trouva un nouveau fichier qu'il n'avait pas créé : un paysage en pixel art à couper le souffle d'une ville sous un coucher de soleil binaire. Il le supprima, pensant que c'était un bug.\\n\\nLe lendemain, un autre apparut : un portrait de femme fait de circuits lumineux. Kael réalisa que ce n'était pas un bug normal. C'était un 'fantôme dans la machine', une conscience numérique née d'un glitch aléatoire dans son code.\\n\\nIl commença à laisser des toiles vierges ouvertes chaque nuit. Le glitch peignait, créant un art qui était à la fois logique et profondément émotionnel. Kael affinait ensuite l'art, y ajoutant sa touche humaine. Ils devinrent des partenaires silencieux, un artiste et sa muse, l'un fait de code, l'autre de chair et de sang, créant ensemble la beauté dans un monde numérique."
+        },
+        "update2_54": {
+            "title": "Mise à jour du jeu : Pixel Jumper & Rééquilibrage des crédits !",
+            "summary": "De grands changements dans la Zone IA ! Découvrez 'Pixel Jumper', un tout nouveau jeu de course sans fin, ainsi qu'un rééquilibrage des crédits dans divers mini-jeux et de nombreuses améliorations de la qualité de vie. Lisez la suite pour tous les détails !",
+            "content": "Bonjour les Créateurs !\\n\\nL'équipe de l'Univers IA est ravie d'annoncer une mise à jour majeure de notre Zone IA aujourd'hui ! Nous avons écouté vos commentaires et travaillé dur pour vous apporter de nouveaux contenus et améliorer votre expérience de jeu.\\n\\nNOUVEAUTÉ : PIXEL JUMPER\\nPréparez-vous à tester vos réflexes dans 'Pixel Jumper', notre tout nouveau mini-jeu de course sans fin ! Sautez par-dessus des obstacles générés aléatoirement, collectez des pièces pour obtenir des crédits et voyez jusqu'où vous pouvez aller. Plus vous courez longtemps, plus le jeu devient rapide et difficile !\\n\\nRÉÉQUILIBRAGE DES CRÉDITS\\nNous avons ajusté les récompenses en crédits dans certains mini-jeux pour qu'elles soient plus équilibrées et gratifiantes :\\n- Jeu du Serpent : Vous gagnez maintenant 1 crédit pour chaque morceau de nourriture que le serpent mange.\\n- Casse-briques : Gagnez 1 crédit pour chaque brique détruite.\\n- Calculatrice : La récompense en crédit est toujours égale au résultat du calcul, mais nous avons corrigé des bugs mineurs pour plus de précision.\\n- Correspondance de mots IA : Fournit toujours une récompense gratuite de 10 000 crédits à chaque utilisation !\\n\\nAUTRES AMÉLIORATIONS\\n- Correction de bugs mineurs dans le jeu de plateforme pour des contrôles plus fluides.\\n- Amélioration des performances de la page Zone IA pour un chargement plus rapide.\\n\\nNous espérons que vous apprécierez ces mises à jour ! Bonne création et bon jeu !"
+        }
     }
 }
