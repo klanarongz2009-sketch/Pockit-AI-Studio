@@ -88,8 +88,7 @@ export const FileChatPage: React.FC<FileChatPageProps> = ({ onClose, playSound, 
         playSound(audioService.playClick);
         setError(null);
         const userMessage: geminiService.FileChatMessage = { role: 'user', text: trimmedInput };
-        const currentMessages = [...messages, userMessage];
-        setMessages(currentMessages);
+        setMessages(prev => [...prev, userMessage]);
         setUserInput('');
         setIsLoading(true);
 
@@ -105,8 +104,6 @@ export const FileChatPage: React.FC<FileChatPageProps> = ({ onClose, playSound, 
         } catch (err) {
             setError(err instanceof Error ? err.message : 'เกิดข้อผิดพลาดในการสื่อสารกับ AI');
             playSound(audioService.playError);
-            // Revert optimistic update on error
-            setMessages(messages);
         } finally {
             setIsLoading(false);
         }

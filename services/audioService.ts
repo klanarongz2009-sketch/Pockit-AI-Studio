@@ -430,6 +430,15 @@ const talkingCatSequence: MusicSequence = {
     ]
 };
 
+const musicAndSoundSequence: MusicSequence = {
+    bpm: 110,
+    tracks: [
+        { instrument: 'sine', volume: 0.15, notes: ['C4', null, 'E4', null, 'G4', null, 'C5', null] },
+        { instrument: 'triangle', volume: 0.1, notes: [null, 'G4', null, 'E4', null, 'C4', null, null] },
+        { instrument: 'sawtooth', volume: 0.2, notes: ['C2', null, null, null, 'G2', null, null, null] },
+    ]
+};
+
 const PAGE_MUSIC: Record<string, MusicSequence> = {
     // Main Pages
     minigameHub: minigameHubSequence,
@@ -449,6 +458,8 @@ const PAGE_MUSIC: Record<string, MusicSequence> = {
     videoEditor: videoEditorSequence,
     pixelSequencer: pixelSequencerSequence,
     talkingCat: talkingCatSequence,
+    musicAndSound: musicAndSoundSequence,
+    colorFinder: aiOracleSequence,
 };
 
 let currentMusicPage: string | null = null;

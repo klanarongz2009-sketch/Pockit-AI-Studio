@@ -7,13 +7,13 @@ import { PaletteIcon } from './icons/PaletteIcon';
 import { GamepadIcon } from './icons/GamepadIcon';
 import { ChatIcon } from './icons/ChatIcon';
 import { GalleryIcon } from './icons/GalleryIcon';
-import { ArticleIcon } from './icons/ArticleIcon';
+import { ArticleIcon } from './ArticleIcon';
 import { SettingsIcon } from './icons/SettingsIcon';
 import { MenuIcon } from './icons/MenuIcon';
 import { useLanguage } from '../contexts/LanguageContext';
 import { UpdateIcon } from './icons/UpdateIcon';
 import { UpdateInfoPage } from './UpdateInfoPage';
-import { EarnCreditsModal } from './EarnCreditsModal';
+import { EarnCreditsModal } from './icons/EarnCreditsModal';
 
 interface GlobalLayoutProps {
     children: React.ReactNode;
