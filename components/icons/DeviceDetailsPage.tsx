@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { PageWrapper, PageHeader } from './PageComponents';
-import { LoadingSpinner } from './LoadingSpinner';
+import { PageWrapper, PageHeader } from '../PageComponents';
+import { LoadingSpinner } from '../LoadingSpinner';
 
 interface DeviceDetailsPageProps {
     onClose: () => void;

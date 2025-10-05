@@ -1,16 +1,11 @@
-
-
-
-
-
 import React, { useState } from 'react';
-import * as audioService from '../services/audioService';
-import { analyzeFeedback } from '../services/geminiService';
-import { PageHeader, PageWrapper } from './PageComponents';
-import { LoadingSpinner } from './LoadingSpinner';
-import { SendIcon } from './icons/SendIcon';
-import { SparklesIcon } from './icons/SparklesIcon';
-import { useCredits, CREDIT_COSTS } from '../contexts/CreditContext';
+import * as audioService from '../../services/audioService';
+import { analyzeFeedback } from '../../services/geminiService';
+import { PageHeader, PageWrapper } from '../PageComponents';
+import { LoadingSpinner } from '../LoadingSpinner';
+import { SendIcon } from './SendIcon';
+import { SparklesIcon } from './SparklesIcon';
+import { useCredits, CREDIT_COSTS } from '../../contexts/CreditContext';
 
 interface FeedbackPageProps {
     onClose: () => void;

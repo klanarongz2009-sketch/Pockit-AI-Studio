@@ -12,7 +12,7 @@ import { DownloadIcon } from './icons/DownloadIcon';
 import { TrashIcon } from './icons/TrashIcon';
 import { useCredits } from '../contexts/CreditContext';
 import { showNotification } from '../services/notificationService';
-import { AudioVisualizer } from './AudioVisualizer';
+import { AudioVisualizer } from './icons/AudioVisualizer';
 import type { HistoryItem, ModelVersion } from '../services/preferenceService';
 
 interface TextToSongPageProps {

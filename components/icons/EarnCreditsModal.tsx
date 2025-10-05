@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { Modal } from './Modal';
-import { useCredits } from '../contexts/CreditContext';
-import * as audioService from '../services/audioService';
-import { SpinningWheel } from './SpinningWheel';
+import { Modal } from '../Modal';
+import { useCredits } from '../../contexts/CreditContext';
+import * as audioService from '../../services/audioService';
+import { SpinningWheel } from '../SpinningWheel';
 
 const REFILL_AMOUNT = 100;
 const EMERGENCY_REFILL_AMOUNT = 25;

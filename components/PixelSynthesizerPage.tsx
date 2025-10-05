@@ -1,7 +1,7 @@
 import React, { useState, useCallback } from 'react';
 import { PageWrapper, PageHeader } from './PageComponents';
 import * as audioService from '../services/audioService';
-import { AudioVisualizer } from './AudioVisualizer';
+import { AudioVisualizer } from './icons/AudioVisualizer';
 
 const keys = [
     { note: 'C4', type: 'white' }, { note: 'C#4', type: 'black' },

@@ -10,7 +10,7 @@ import { PlayIcon } from './icons/PlayIcon';
 import { StopIcon } from './icons/StopIcon';
 import { MusicNoteIcon } from './icons/MusicNoteIcon';
 import { DownloadIcon } from './icons/DownloadIcon';
-import { AudioVisualizer } from './AudioVisualizer';
+import { AudioVisualizer } from './icons/AudioVisualizer';
 
 interface MediaToSongPageProps {
     onClose: () => void;

@@ -6,7 +6,7 @@ import { StopIcon } from './icons/StopIcon';
 import { DownloadIcon } from './icons/DownloadIcon';
 import { LoadingSpinner } from './LoadingSpinner';
 import type { SoundEffectParameters, Song } from '../services/geminiService';
-import { AudioVisualizer } from './AudioVisualizer';
+import { AudioVisualizer } from './icons/AudioVisualizer';
 
 interface MusicAndSoundPageProps {
     onClose: () => void;

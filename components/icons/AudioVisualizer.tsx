@@ -1,6 +1,6 @@
 import React, { useRef, useEffect } from 'react';
-import * as audioService from '../services/audioService';
-import { useTheme } from '../contexts/ThemeContext';
+import * as audioService from '../../services/audioService';
+import { useTheme } from '../../contexts/ThemeContext';
 
 export const AudioVisualizer: React.FC = () => {
     const canvasRef = useRef<HTMLCanvasElement>(null);
