@@ -159,13 +159,31 @@
         "upload": "Subir Imagen",
         "changeImage": "Cambiar Imagen",
         "button": "Extraer Paleta",
+        "buttonLocal": "Análisis Completo",
         "loading": "Analizando colores...",
         "thinking": "La IA está buscando colores...",
         "error": "Ocurrió un error",
         "resultsTitle": "Paleta Detectada",
-        "copied": "¡Copiado!"
+        "copied": "¡Copiado!",
+        "modeAi": "Paleta IA",
+        "modeLocal": "Análisis Completo"
     },
     "articles": {
+        "githubRelease": {
+            "title": "Nuestro modelo se lanzará en GitHub el 15 de octubre de 2025 (Predicción)",
+            "summary": "Planeamos lanzar uno de nuestros modelos de IA en GitHub el 15 de octubre de 2025. Tenga en cuenta que esto es solo una predicción y la fecha de lanzamiento puede cambiar.",
+            "content": "Para fomentar la colaboración en la comunidad de código abierto, nos complace anunciar nuestro plan para lanzar uno de nuestros modelos de IA en GitHub. Tentativamente, tenemos como objetivo el 15 de octubre de 2025 para este lanzamiento.\\n\\nSin embargo, es crucial entender que esta fecha es solo una predicción. El desarrollo de software, especialmente en el campo de la IA que avanza rápidamente, siempre puede presentar desafíos imprevistos. Nuestro equipo está trabajando arduamente para garantizar que el lanzamiento sea fluido y de la más alta calidad, lo que podría resultar en un ajuste de la fecha de lanzamiento.\\n\\nProporcionaremos actualizaciones periódicas sobre nuestro progreso. Estén atentos a futuros anuncios para la fecha definitiva. ¡Gracias por su comprensión y apoyo!"
+        },
+        "deepChatPro2": {
+            "title": "Presentamos DeepChatPro2 NLP: Una nueva era en la comprensión del lenguaje",
+            "summary": "Conoce el nuevo y potente modelo DeepChatPro2 NLP del equipo DEEPCHAT. Esta actualización reemplaza el antiguo DeepChatPro con un potente motor especializado en NLP, actualmente disponible para grupos de usuarios selectos.",
+            "content": "Estamos emocionados de anunciar una mejora significativa en nuestra línea de asistentes de IA: la introducción de DeepChatPro2 NLP. Desarrollado por el equipo de DEEPCHAT, este modelo representa un gran avance en las capacidades de Procesamiento del Lenguaje Natural (NLP), ofreciendo una comprensión del texto más profunda y matizada que su predecesor.\\n\\nPara agilizar nuestras ofertas y proporcionar las mejores herramientas posibles, el antiguo modelo DeepChatPro ha sido dado de baja y reemplazado por este poderoso sucesor.\\n\\nTenga en cuenta que DeepChatPro2 NLP se encuentra actualmente en una fase de lanzamiento limitado y puede que solo esté disponible para ciertos grupos de usuarios mientras recopilamos comentarios y garantizamos la estabilidad.\\n\\nPara nuestra comunidad de desarrolladores, también nos complace anunciar que la arquitectura y los detalles de implementación del modelo están planeados para un futuro lanzamiento de código abierto en GitHub.com. ¡Estén atentos para más actualizaciones mientras continuamos superando los límites de la IA conversacional!"
+        },
+        "introducingNewModel": {
+            "title": "Presentamos el nuevo modelo: Chatwaff 1.0 Mid Beta",
+            "summary": "¡Conoce a nuestro último asistente de IA! Chatwaff 1.0 Mid Beta ofrece una mayor calidad y capacidades de razonamiento más profundas, perfecto para tareas complejas y conversaciones detalladas.",
+            "content": "Estamos emocionados de anunciar la llegada del asistente de IA más nuevo a nuestra colección: Chatwaff 1.0 Mid Beta (01).\\n\\nEste nuevo modelo ha sido mejorado significativamente para ofrecer capacidades superiores a la versión anterior 'Mini'. Está diseñado para proporcionar respuestas detalladas y de alta calidad, y demostrar una comprensión más profunda de temas complejos.\\n\\nNotarás la diferencia en tareas que requieren razonamiento complejo, análisis en profundidad o conversaciones que demandan una comprensión matizada. Hemos refinado la Instrucción del Sistema de este modelo para enfatizar respuestas perspicaces y bien informadas.\\n\\nHemos eliminado el modelo anterior 'Chatwaff1.0 Mini BETA' para centrarnos en ofrecer la mejor experiencia con la última tecnología. ¡Te animamos a probar 'Chatwaff 1.0 Mid Beta' para tus tareas diarias y experimentar sus capacidades mejoradas hoy mismo!"
+        },
         "geminiApiInfo": {
             "title": "Lo que debes saber sobre la API de Gemini (No lo pases por alto)",
             "summary": "Un análisis profundo de la API de Gemini: el motor detrás de esta aplicación que ofrece capacidades creativas increíbles y diversas. Veamos por qué es tan importante.",

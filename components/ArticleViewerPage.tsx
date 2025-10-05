@@ -184,11 +184,13 @@ export const ArticleViewerPage: React.FC<ArticleViewerPageProps> = ({ article, o
 
     return (
         <PageWrapper>
-            <PageHeader title={t(article.titleKey)} onBack={onClose} />
+            <PageHeader title={t('articlePage.title')} onBack={onClose} />
             <main id="main-content" className="w-full max-w-2xl flex-grow overflow-y-auto font-sans pr-2 pb-8 space-y-4">
-                <div className="flex justify-between items-center flex-wrap gap-4">
+                <h1 className="font-press-start text-2xl text-brand-yellow">{t(article.titleKey)}</h1>
+
+                <div className="flex justify-between items-center flex-wrap gap-4 border-b-2 border-brand-light/20 pb-4">
                     <div className="text-xs text-brand-light/70">
-                        by <span>{article.author}</span>
+                        by <span className="font-bold">{article.author}</span>
                     </div>
                     <button
                         onClick={handleButtonClick}
@@ -199,8 +201,10 @@ export const ArticleViewerPage: React.FC<ArticleViewerPageProps> = ({ article, o
                     </button>
                 </div>
                 {error && <div className="text-red-400 text-sm" role="alert">{error}</div>}
-                <div className="text-text-primary whitespace-pre-line leading-relaxed border-t-2 border-brand-light/20 pt-4 mt-4">
-                    {t(article.contentKey)}
+                <div className="text-text-primary leading-relaxed mt-4 space-y-4">
+                     {t(article.contentKey).split('\\n').map((paragraph, index) => (
+                        <p key={index}>{paragraph}</p>
+                     ))}
                 </div>
             </main>
         </PageWrapper>

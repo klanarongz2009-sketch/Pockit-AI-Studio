@@ -342,8 +342,7 @@ export const AiChatPage: React.FC<AiChatPageProps> = ({ isOnline, playSound }) =
         try {
             const response = await geminiService.sendMessageToChat(
                 prompt,
-                selectedModel.id,
-                selectedModel.systemInstruction,
+                selectedModel,
                 webSearchEnabled && canUseWebSearch
             );
 

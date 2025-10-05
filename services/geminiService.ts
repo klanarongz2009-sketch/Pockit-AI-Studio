@@ -1,11 +1,6 @@
-
-
-
-
-
-
 import { GoogleGenAI, Type, Chat, Modality, Content, GenerateContentResponse } from "@google/genai";
 import * as preferenceService from './preferenceService';
+import { AiModel } from './aiModels';
 
 // Interfaces remain as exports for type safety across the app
 export interface AnimationIdea {
@@ -762,30 +757,36 @@ export function resetChatSession() {
 }
 
 // FIX: Implemented missing function sendMessageToChat
-export async function sendMessageToChat(prompt: string, modelId: string, systemInstruction: string, webSearchEnabled: boolean): Promise<{ text: string, sources?: any[] }> {
+export async function sendMessageToChat(prompt: string, model: AiModel, webSearchEnabled: boolean): Promise<{ text: string, sources?: any[] }> {
     const ai = checkApi();
-    if (modelId === 'local-robot') {
+    if (model.id === 'local-robot') {
         return { text: "บี๊บ บู๊บ... ฉันคือหุ่นยนต์" };
     }
     try {
-        let chat = chatSessions.get(modelId);
+        let chat = chatSessions.get(model.id);
         if (!chat) {
+            const chatConfig = {
+                systemInstruction: model.systemInstruction,
+                ...model.config
+            };
+
             chat = ai.chats.create({
-                model: modelId,
-                config: {
-                    systemInstruction: systemInstruction,
-                },
+                model: model.id,
+                config: chatConfig,
             });
-            chatSessions.set(modelId, chat);
+            chatSessions.set(model.id, chat);
         }
 
         if (webSearchEnabled) {
+            const webSearchConfig = {
+                systemInstruction: model.systemInstruction,
+                ...model.config,
+                tools: [{ googleSearch: {} }]
+            };
             const response = await ai.models.generateContent({
-                model: modelId,
+                model: model.id,
                 contents: prompt,
-                config: {
-                    tools: [{ googleSearch: {} }],
-                },
+                config: webSearchConfig,
             });
             const sources = response.candidates?.[0]?.groundingMetadata?.groundingChunks?.map(chunk => ({
                 uri: chunk.web?.uri || '',
