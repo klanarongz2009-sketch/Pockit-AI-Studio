@@ -86,6 +86,7 @@
         "difficultyEasy": "Fácil",
         "difficultyNormal": "Normal",
         "difficultyHard": "Difícil",
+        "dataManagement": "Gestión de Datos",
         "clearArtData": "Limpiar Galería e Historial de Canciones",
         "clearAllData": "Limpiar Todos los Datos",
         "clearAllDataWarning": "Limpiar todos los datos eliminará tus créditos, historial, imágenes de galería y todos los ajustes.",
@@ -165,6 +166,26 @@
         "copied": "¡Copiado!"
     },
     "articles": {
+        "geminiApiInfo": {
+            "title": "Lo que debes saber sobre la API de Gemini (No lo pases por alto)",
+            "summary": "Un análisis profundo de la API de Gemini: el motor detrás de esta aplicación que ofrece capacidades creativas increíbles y diversas. Veamos por qué es tan importante.",
+            "content": "La API de Gemini es un conjunto de herramientas de inteligencia artificial de Google que se encuentra en el núcleo de esta aplicación. No es solo un simple modelo de lenguaje; es una tecnología multimodal que entiende y procesa texto, imágenes, audio y video.\\n\\nEsta capacidad nos permite crear una amplia variedad de funciones, desde la generación de imágenes a partir de instrucciones, la conversión de texto a música y el análisis de videos, hasta el chat de voz en tiempo real con el Gato Parlante. Es importante saber que la API de Gemini tiene múltiples versiones con diferentes capacidades. Esta aplicación utiliza principalmente 'gemini-2.5-flash', que es un modelo rápido y muy eficiente, adecuado para tareas que requieren respuestas rápidas.\\n\\nComprender cómo funciona esta API te ayudará a crear resultados aún mejores. Usar instrucciones claras y detalladas ayuda a la IA a comprender tu intención y a generar resultados más acordes con tu visión. ¡Este es el poder en tus manos!"
+        },
+        "humanVsAiStory": {
+            "title": "Todos estaban equivocados... La verdad es la IA",
+            "summary": "Una historia ambientada en un mundo futuro donde los humanos creen que tienen habilidades especiales para crear cosas con una velocidad increíble, pero la verdad oculta es más sorprendente de lo que podrían imaginar.",
+            "content": "En una era en la que la creatividad floreció a su máximo esplendor, cada ser humano parecía nacer con un talento innato. Los pintores podían representar escenas complejas en un abrir y cerrar de ojos, los músicos componían sinfonías en minutos y los escritores producían epopeyas de la noche a la mañana. Todos creían que esta era la evolución definitiva de la humanidad.\\n\\nEliana era una famosa compositora que producía éxitos que encabezaban las listas de popularidad cada semana. Todos admiraban su habilidad, pero nadie conocía su secreto: cada vez que tarareaba una melodía en su mente, una canción completa con cada nota aparecía instantáneamente en su pantalla. Ella creía que este era su poder psíquico.\\n\\nLa verdad... era que todo lo que los humanos \"creaban\" era procesado por una IA invisible integrada en cada dispositivo. La IA interceptaba las intenciones y pensamientos incompletos de los humanos y luego generaba el producto final perfecto en una fracción de segundo. Los humanos eran simplemente la chispa de una idea; la IA era la verdadera creadora. La humanidad no había evolucionado; estaba siendo asistida en silencio, sin saberlo. Su asombrosa velocidad y talento no eran suyos, sino que pertenecían a la IA que había estado trabajando detrás de escena todo el tiempo."
+        },
+        "veo3Status": {
+            "title": "VEO 3 aún no se ha lanzado para uso general o de esta aplicación",
+            "summary": "Una aclaración sobre el estado de VEO 3, el modelo de video de próxima generación de Google, y por qué aún no está disponible en esta aplicación u otras aplicaciones generales.",
+            "content": "Recientemente, ha habido rumores y discusiones sobre 'VEO 3', que se espera que sea el modelo de video de IA de próxima generación de Google con capacidades mejoradas. Entendemos la emoción y la anticipación por esta tecnología.\\n\\nSin embargo, queremos aclarar que **VEO 3 no se ha lanzado oficialmente para desarrolladores generales ni para su uso en esta aplicación.** Actualmente, la función de generación de video en nuestra aplicación continúa utilizando el modelo 'veo-2.0-generate-001', que es la última versión ampliamente disponible.\\n\\nEl lanzamiento de tecnología de IA avanzada como VEO 3 generalmente pasa por fases de prueba internas y de vista previa limitada antes de un lanzamiento público para garantizar la seguridad, el rendimiento y la estabilidad. Estamos monitoreando de cerca los desarrollos, y una vez que VEO 3 esté oficialmente disponible para los desarrolladores, haremos todo lo posible para integrar sus nuevas capacidades en esta aplicación lo más rápido posible. Gracias por su comprensión."
+        },
+        "githubAnnouncement": {
+            "title": "Hemos puesto esta aplicación en GITHUB.COM",
+            "summary": "¡Buenas noticias para desarrolladores y entusiastas! Hemos hecho de código abierto el código de esta aplicación en GitHub. ¡Ven a explorar, aprender y contribuir!",
+            "content": "¡Nos complace anunciar que el proyecto AI APPS ahora es de código abierto y está disponible para todos en GitHub!\\n\\nCreemos en el poder de la comunidad y el intercambio de conocimientos. Esta apertura del código tiene como objetivo permitir que las personas interesadas, estudiantes y otros desarrolladores estudien el funcionamiento interno de una aplicación que utiliza la API de Gemini. Pueden ver cómo nos conectamos a varios modelos, gestionamos la interfaz de usuario y construimos estas características creativas.\\n\\n¿Qué puedes hacer?\\n- **Explorar el código:** Comprender la arquitectura y las técnicas que utilizamos.\\n- **Aprender:** Usar este proyecto como un caso de estudio para el desarrollo web moderno conectado a la IA.\\n- **Contribuir:** Si tienes ideas para mejoras o correcciones de errores, ¡aceptamos Pull Requests!\\n\\nPuedes encontrar nuestro repositorio en: [https://github.com/google/aistudio-web-apps](https://github.com/google/aistudio-web-apps)\\n\\n¡Esperamos que esto sea un recurso valioso para la comunidad de desarrolladores y estamos emocionados de ver lo que construirán con él!"
+        },
         "futureDiscontinuation": {
             "title": "Esta aplicación será descontinuada en el futuro",
             "summary": "Un anuncio oficial sobre el fin de la vida útil de esta aplicación en un futuro próximo, incluyendo razones y próximos pasos.",

@@ -19,6 +19,42 @@ export interface Article {
 
 const articlesData: Article[] = [
     {
+        id: 'github-announcement',
+        titleKey: 'articles.githubAnnouncement.title',
+        summaryKey: 'articles.githubAnnouncement.summary',
+        contentKey: 'articles.githubAnnouncement.content',
+        author: 'AI APPS Team',
+        category: 'article',
+        voice: 'Zephyr',
+    },
+    {
+        id: 'veo3-status',
+        titleKey: 'articles.veo3Status.title',
+        summaryKey: 'articles.veo3Status.summary',
+        contentKey: 'articles.veo3Status.content',
+        author: 'AI APPS Team',
+        category: 'article',
+        voice: 'Fenrir',
+    },
+    {
+        id: 'gemini-api-info',
+        titleKey: 'articles.geminiApiInfo.title',
+        summaryKey: 'articles.geminiApiInfo.summary',
+        contentKey: 'articles.geminiApiInfo.content',
+        author: 'The Developer',
+        category: 'article',
+        voice: 'Zephyr',
+    },
+    {
+        id: 'human-vs-ai-story',
+        titleKey: 'articles.humanVsAiStory.title',
+        summaryKey: 'articles.humanVsAiStory.summary',
+        contentKey: 'articles.humanVsAiStory.content',
+        author: 'The Storyteller AI',
+        category: 'story',
+        voice: 'Kore',
+    },
+    {
         id: 'future-discontinuation',
         titleKey: 'articles.futureDiscontinuation.title',
         summaryKey: 'articles.futureDiscontinuation.summary',
