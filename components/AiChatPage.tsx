@@ -22,6 +22,8 @@ import { MicrophoneIcon } from './icons/MicrophoneIcon';
 import { StopIcon } from './icons/StopIcon';
 import { SpeakerOnIcon } from './icons/SpeakerOnIcon';
 import type { Message } from '../services/preferenceService';
+// FIX: Added missing import for the useCredits hook.
+import { useCredits } from '../contexts/CreditContext';
 
 // --- Gemini Live API Helper Functions ---
 function encode(bytes: Uint8Array) {
@@ -78,10 +80,22 @@ const ModelSelectionModal: React.FC<{
 }> = ({ isOpen, onClose, onSelect, onLearnMore, models }) => {
     const [searchQuery, setSearchQuery] = useState('');
     const { t } = useLanguage();
-    const categories = useMemo(() => ['All', ...Array.from(new Set(models.map(m => m.category)))], [models]);
+    const categories = useMemo(() => {
+        // FIX: The error "Property 'map' does not exist on type 'unknown'" occurs here.
+        // Although the prop `models` is typed as AiModel[], TypeScript can sometimes fail to infer it inside a useMemo hook, treating it as `unknown`.
+        // Adding an explicit `Array.isArray` check acts as a type guard, ensuring `models` is treated as an array before `map` is called.
+        if (!Array.isArray(models)) {
+            return ['All'];
+        }
+        return ['All', ...Array.from(new Set(models.map(m => m.category)))];
+    }, [models]);
     const [activeCategory, setActiveCategory] = useState<'All' | AiModel['category']>('All');
 
     const filteredModels = useMemo(() => {
+        // FIX: Add a type guard to ensure `models` is an array before calling array methods.
+        if (!Array.isArray(models)) {
+            return [];
+        }
         return models
             .filter(model => activeCategory === 'All' || model.category === activeCategory)
             .filter(model => 
@@ -200,261 +214,155 @@ export const AiChatPage: React.FC<AiChatPageProps> = ({ isOnline, playSound }) =
     const mediaStreamRef = useRef<MediaStream | null>(null);
     const audioSources = useRef(new Set<AudioBufferSourceNode>());
     const nextStartTime = useRef(0);
-
-    // --- Gemini Text-to-Speech State ---
-    const [speakingMessageId, setSpeakingMessageId] = useState<string | null>(null);
-
+    
     const messagesEndRef = useRef<HTMLDivElement>(null);
     const fileInputRef = useRef<HTMLInputElement>(null);
+    const { spendCredits } = useCredits();
 
-    // Load messages when model or save setting changes
+    useEffect(() => {
+        messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    }, [messages, isLoading, currentMicInput, currentModelOutput]);
+
     useEffect(() => {
         if (saveChatHistory) {
-            const allHistory = preferenceService.getPreference('chatHistory', {});
-            const modelHistory = allHistory[selectedModel.id];
-            if (Array.isArray(modelHistory)) {
-                setMessages(modelHistory);
+            const savedHistory = preferenceService.getPreference('chatHistory', {})[selectedModel.id];
+            if (savedHistory) {
+                setMessages(savedHistory);
             } else {
                 setMessages([]);
             }
         } else {
-            setMessages([]); // Clear messages if history is turned off
+            setMessages([]);
         }
-        geminiService.resetChatSession();
-        setError(null);
     }, [selectedModel, saveChatHistory]);
 
-    // Save messages whenever they change
     useEffect(() => {
-        if (saveChatHistory) {
+        if (saveChatHistory && messages.length > 0) {
             const allHistory = preferenceService.getPreference('chatHistory', {});
-            const newHistoryForModel = { ...allHistory, [selectedModel.id]: messages };
-            preferenceService.setPreference('chatHistory', newHistoryForModel);
+            allHistory[selectedModel.id] = messages;
+            preferenceService.setPreference('chatHistory', allHistory);
         }
-    }, [messages, selectedModel.id, saveChatHistory]);
+    }, [messages, selectedModel, saveChatHistory]);
 
-    useEffect(() => {
-        messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-    }, [messages, isLoading]);
-
-    const handleSpeakTextWithGemini = useCallback(async (message: Message) => {
-        if (!ai || !isOnline || speakingMessageId) return;
-
-        playSound(audioService.playClick);
-        setSpeakingMessageId(message.id);
-        setError(null);
-        
-        const selectedVoice = preferenceService.getPreference('textToSpeechVoiceName', 'Zephyr');
-        const ttsOutputCtx = new (window.AudioContext || (window as any).webkitAudioContext)({ sampleRate: 24000 });
-        const ttsAudioSources = new Set<AudioBufferSourceNode>();
-        let ttsNextStartTime = 0;
-        let ttsSessionPromise: Promise<any> | null = null;
-        let cleanedUp = false;
-
-        const cleanup = () => {
-            if (cleanedUp) return;
-            cleanedUp = true;
-            
-            ttsSessionPromise?.then(s => s.close());
-            
-            if (ttsOutputCtx.state !== 'closed') {
-                for (const source of ttsAudioSources.values()) {
-                    try { source.stop(); } catch(e) {}
-                }
-                ttsAudioSources.clear();
-                ttsOutputCtx.close();
-            }
-            if(speakingMessageId === message.id) {
-                setSpeakingMessageId(null);
-            }
-        };
-
-        ttsSessionPromise = ai.live.connect({
-            model: 'gemini-2.5-flash-native-audio-preview-09-2025',
-            callbacks: {
-                onopen: () => {
-                    ttsSessionPromise?.then(session => {
-                        session.sendRealtimeInput({ text: message.text });
-                    });
-                },
-                onmessage: async (msg: LiveServerMessage) => {
-                    const base64Audio = msg.serverContent?.modelTurn?.parts[0]?.inlineData?.data;
-                    if (base64Audio) {
-                        ttsNextStartTime = Math.max(ttsNextStartTime, ttsOutputCtx.currentTime);
-                        const audioBuffer = await decodeAudioData(decode(base64Audio), ttsOutputCtx, 24000, 1);
-                        const sourceNode = ttsOutputCtx.createBufferSource();
-                        sourceNode.buffer = audioBuffer;
-                        sourceNode.connect(ttsOutputCtx.destination);
-                        sourceNode.addEventListener('ended', () => ttsAudioSources.delete(sourceNode));
-                        sourceNode.start(ttsNextStartTime);
-                        ttsNextStartTime += audioBuffer.duration;
-                        ttsAudioSources.add(sourceNode);
-                    }
-                    if (msg.serverContent?.turnComplete) {
-                        const timeToWait = (ttsNextStartTime - ttsOutputCtx.currentTime) * 1000 + 200;
-                        setTimeout(cleanup, Math.max(0, timeToWait));
-                    }
-                },
-                onerror: (e: ErrorEvent) => {
-                    setError(geminiService.parseApiError(e));
-                    cleanup();
-                },
-                onclose: () => {
-                    cleanup();
-                },
-            },
-            config: {
-                responseModalities: [Modality.AUDIO],
-                speechConfig: {
-                    voiceConfig: { prebuiltVoiceConfig: { voiceName: selectedVoice } }
-                },
-                systemInstruction: "You are a text-to-speech engine. Your only task is to read the user's text aloud clearly and naturally, and then end the conversation."
-            }
-        });
-    }, [isOnline, speakingMessageId, playSound]);
-
-    // --- Core Chat Logic ---
-    
     const handleNewChat = useCallback(() => {
         playSound(audioService.playTrash);
         geminiService.resetChatSession();
         setMessages([]);
-        setError(null);
         setUserInput('');
+        setError(null);
         setFileData(null);
-        if (fileInputRef.current) fileInputRef.current.value = "";
-    
-        // Also explicitly clear from storage
-        const allHistory = preferenceService.getPreference('chatHistory', {});
-        delete allHistory[selectedModel.id];
-        preferenceService.setPreference('chatHistory', allHistory);
-    }, [playSound, selectedModel.id]);
+        if (saveChatHistory) {
+            const allHistory = preferenceService.getPreference('chatHistory', {});
+            delete allHistory[selectedModel.id];
+            preferenceService.setPreference('chatHistory', allHistory);
+        }
+    }, [playSound, saveChatHistory, selectedModel.id]);
 
-    const runGemini = useCallback(async (prompt: string) => {
-         if (selectedModel.id !== 'local-robot' && !isOnline) {
-             setError("You must be online to use this model.");
-             return;
+    const handleSendMessage = useCallback(async (messageText?: string) => {
+        const textToSend = (messageText || userInput).trim();
+        if ((!textToSend && !fileData) || isLoading || !isOnline) return;
+
+        if (!spendCredits(1)) {
+            setError("Not enough credits to send a message.");
+            return;
         }
 
-        setIsLoading(true);
+        playSound(audioService.playClick);
         setError(null);
 
+        const userMessage: Message = {
+            id: `msg_${Date.now()}`,
+            role: 'user',
+            text: textToSend
+        };
+        setMessages(prev => [...prev, userMessage]);
+        setUserInput('');
+        setIsLoading(true);
+
         try {
-            const response = await geminiService.sendMessageToChat(
-                prompt,
-                selectedModel,
-                webSearchEnabled && canUseWebSearch
-            );
-
-            const modelMessage: Message = {
-                id: `msg-${Date.now()}`,
-                role: 'model',
-                text: response.text,
-                sources: response.sources
-            };
-            setMessages(prev => [...prev, modelMessage]);
-
+            if (fileData) {
+                const responseText = await geminiService.chatWithFile(
+                    { base64: fileData.base64, mimeType: fileData.file.type },
+                    messages.filter(m => m.role !== 'user' || m.text).map(m => ({ role: m.role, text: m.text })),
+                    textToSend
+                );
+                 const modelMessage: Message = {
+                    id: `msg_${Date.now()}_model`,
+                    role: 'model',
+                    text: responseText
+                };
+                setMessages(prev => [...prev, modelMessage]);
+                setFileData(null);
+            } else {
+                const response = await geminiService.sendMessageToChat(textToSend, selectedModel, webSearchEnabled);
+                const modelMessage: Message = {
+                    id: `msg_${Date.now()}_model`,
+                    role: 'model',
+                    text: response.text,
+                    sources: response.sources
+                };
+                setMessages(prev => [...prev, modelMessage]);
+            }
+            
         } catch (err) {
             const errorMessage = err instanceof Error ? err.message : 'An unknown error occurred.';
             setError(errorMessage);
+            setMessages(prev => prev.slice(0, -1)); // Remove the user's message on error
         } finally {
             setIsLoading(false);
         }
-    }, [isOnline, selectedModel, webSearchEnabled, canUseWebSearch]);
-    
-    const handleSendMessage = useCallback(async () => {
-        const trimmedInput = userInput.trim();
-        if (!trimmedInput || isLoading) return;
-        
-        playSound(audioService.playClick);
-        const userMessage: Message = { id: `msg-${Date.now()}`, role: 'user', text: trimmedInput };
-    
-        // Update UI with user message immediately
-        const currentMessages = [...messages, userMessage];
-        setMessages(currentMessages);
-        setUserInput('');
-        
-        if (fileData) {
-            setIsLoading(true);
-            setError(null);
-            try {
-                const historyForApi = messages.map(m => ({ role: m.role, text: m.text }));
+    }, [userInput, isLoading, isOnline, playSound, spendCredits, selectedModel, webSearchEnabled, fileData, messages]);
 
-                const responseText = await geminiService.chatWithFile(
-                    { base64: fileData.base64, mimeType: fileData.file.type },
-                    historyForApi, 
-                    trimmedInput
-                );
-                const modelMessage: Message = { id: `msg-${Date.now()}-model`, role: 'model', text: responseText };
-                setMessages(prev => [...prev, modelMessage]);
-            } catch(err) {
-                 const errorMessage = err instanceof Error ? err.message : 'An unknown error occurred.';
-                 setError(errorMessage);
-            } finally {
-                setIsLoading(false);
-            }
-        } else {
-            await runGemini(trimmedInput);
-        }
-    }, [userInput, isLoading, playSound, runGemini, fileData, messages]);
-
-    const handleRegenerate = useCallback(() => {
-        const lastUserMessage = messages.slice().reverse().find(m => m.role === 'user');
+    const handleRegenerate = useCallback(async () => {
+        const lastUserMessage = messages.filter(m => m.role === 'user').pop();
         if (!lastUserMessage || isLoading) return;
-
-        playSound(audioService.playClick);
-        setMessages(prev => prev.slice(-1)[0].role === 'model' ? prev.slice(0, -1) : prev);
         
-        runGemini(lastUserMessage.text);
-    }, [messages, isLoading, playSound, runGemini]);
+        // Remove the last model response
+        setMessages(prev => prev.filter((_, index) => index < prev.length - 1));
+        
+        await handleSendMessage(lastUserMessage.text);
+    }, [messages, isLoading, handleSendMessage]);
 
-    const handleCopyToClipboard = (text: string) => {
-        navigator.clipboard.writeText(text);
-        playSound(audioService.playSelection);
+    const handleSelectModel = (model: AiModel) => {
+        handleNewChat();
+        setSelectedModel(model);
+        setIsModelModalOpen(false);
+        playSound(audioService.playSuccess);
     };
-    
+
     const handleFileChange = useCallback(async (event: React.ChangeEvent<HTMLInputElement>) => {
         const file = event.target.files?.[0];
         if (!file) return;
 
         playSound(audioService.playSelection);
-        setIsLoading(true);
-        setError(null);
+        handleNewChat();
         
         try {
-            const toBase64 = (file: File): Promise<string> => new Promise((resolve, reject) => {
+            const toBase64 = (f: File): Promise<string> => new Promise((resolve, reject) => {
                 const reader = new FileReader();
-                reader.readAsDataURL(file);
+                reader.readAsDataURL(f);
                 reader.onload = () => resolve((reader.result as string).split(',')[1]);
                 reader.onerror = error => reject(error);
             });
             const base64 = await toBase64(file);
             setFileData({ file, base64 });
-            setMessages([]); 
-        } catch(e) {
-            setError("Could not read file.");
-            playSound(audioService.playError);
-        } finally {
-            setIsLoading(false);
+        } catch (err) {
+            setError("Failed to load file.");
         }
-    }, [playSound]);
+    }, [handleNewChat, playSound]);
 
-    // --- Voice Assistant Logic ---
-    const stopLiveSession = useCallback(() => {
+    const stopVoiceSession = useCallback(() => {
         setLiveConnectionState('idle');
         
-        if (sessionPromiseRef.current) {
-            sessionPromiseRef.current.then(session => session.close());
-            sessionPromiseRef.current = null;
-        }
-        if (scriptProcessorRef.current) {
-            scriptProcessorRef.current.disconnect();
-            scriptProcessorRef.current = null;
-        }
-        if (mediaStreamRef.current) {
-            mediaStreamRef.current.getTracks().forEach(track => track.stop());
-            mediaStreamRef.current = null;
-        }
+        sessionPromiseRef.current?.then(session => session.close());
+        sessionPromiseRef.current = null;
+        
+        scriptProcessorRef.current?.disconnect();
+        scriptProcessorRef.current = null;
+
+        mediaStreamRef.current?.getTracks().forEach(track => track.stop());
+        mediaStreamRef.current = null;
+        
         if (inputAudioContextRef.current?.state !== 'closed') inputAudioContextRef.current?.close();
         if (outputAudioContextRef.current?.state !== 'closed') {
              for (const source of audioSources.current.values()) source.stop();
@@ -462,17 +370,13 @@ export const AiChatPage: React.FC<AiChatPageProps> = ({ isOnline, playSound }) =
              outputAudioContextRef.current?.close();
         }
         nextStartTime.current = 0;
-
     }, []);
 
-    const startLiveSession = useCallback(async () => {
-        if (!ai || !isOnline) {
-            setError("Voice Assistant requires an internet connection and API key.");
-            return;
-        }
-        if (liveConnectionState !== 'idle' && liveConnectionState !== 'error') return;
+    const startVoiceSession = useCallback(async () => {
+        if (!ai || !isOnline || (liveConnectionState !== 'idle' && liveConnectionState !== 'error')) return;
 
         playSound(audioService.playClick);
+        handleNewChat();
         setLiveConnectionState('connecting');
         setError(null);
 
@@ -495,8 +399,8 @@ export const AiChatPage: React.FC<AiChatPageProps> = ({ isOnline, playSound }) =
                         const scriptProcessor = inputAudioContextRef.current!.createScriptProcessor(4096, 1, 1);
                         scriptProcessorRef.current = scriptProcessor;
 
-                        scriptProcessor.onaudioprocess = (audioProcessingEvent) => {
-                            const inputData = audioProcessingEvent.inputBuffer.getChannelData(0);
+                        scriptProcessor.onaudioprocess = (event) => {
+                            const inputData = event.inputBuffer.getChannelData(0);
                             const pcmBlob: Blob = {
                                 data: encode(new Uint8Array(new Int16Array(inputData.map(x => x * 32768)).buffer)),
                                 mimeType: 'audio/pcm;rate=16000',
@@ -508,13 +412,11 @@ export const AiChatPage: React.FC<AiChatPageProps> = ({ isOnline, playSound }) =
                     },
                     onmessage: async (message: LiveServerMessage) => {
                         if (message.serverContent?.inputTranscription) {
-                            const text = message.serverContent.inputTranscription.text;
-                            currentMicInputRef.current += text;
+                            currentMicInputRef.current += message.serverContent.inputTranscription.text;
                             setCurrentMicInput(currentMicInputRef.current);
                         }
                         if (message.serverContent?.outputTranscription) {
-                            const text = message.serverContent.outputTranscription.text;
-                            currentModelOutputRef.current += text;
+                            currentModelOutputRef.current += message.serverContent.outputTranscription.text;
                             setCurrentModelOutput(currentModelOutputRef.current);
                         }
 
@@ -533,22 +435,20 @@ export const AiChatPage: React.FC<AiChatPageProps> = ({ isOnline, playSound }) =
                         }
 
                         if (message.serverContent?.turnComplete) {
-                            const fullInput = currentMicInputRef.current;
-                            const fullOutput = currentModelOutputRef.current;
+                            if (currentMicInputRef.current.trim()) {
+                                setMessages(prev => [...prev, { id: `msg_${Date.now()}_user`, role: 'user', text: currentMicInputRef.current.trim() }]);
+                            }
+                            if (currentModelOutputRef.current.trim()) {
+                                 setMessages(prev => [...prev, { id: `msg_${Date.now()}_model`, role: 'model', text: currentModelOutputRef.current.trim() }]);
+                            }
                             currentMicInputRef.current = '';
                             currentModelOutputRef.current = '';
                             setCurrentMicInput('');
                             setCurrentModelOutput('');
-                            if (fullInput.trim() || fullOutput.trim()) {
-                                const newMessages: Message[] = [];
-                                if (fullInput.trim()) newMessages.push({ id: `msg-${Date.now()}-user`, role: 'user', text: fullInput });
-                                if (fullOutput.trim()) newMessages.push({ id: `msg-${Date.now()}-model`, role: 'model', text: fullOutput });
-                                setMessages(prev => [...prev, ...newMessages]);
-                            }
                         }
                     },
-                    onerror: (e: ErrorEvent) => { setError(geminiService.parseApiError(e)); stopLiveSession(); },
-                    onclose: () => stopLiveSession(),
+                    onerror: (e: ErrorEvent) => { setError("A connection error occurred."); stopVoiceSession(); },
+                    onclose: stopVoiceSession,
                 },
                 config: {
                     responseModalities: [Modality.AUDIO],
@@ -558,242 +458,138 @@ export const AiChatPage: React.FC<AiChatPageProps> = ({ isOnline, playSound }) =
                 }
             });
         } catch (err) {
-            setError(geminiService.parseApiError(err));
-            stopLiveSession();
+            setError("Could not access microphone. Please grant permission.");
+            stopVoiceSession();
         }
-    }, [liveConnectionState, playSound, isOnline, stopLiveSession, selectedModel.systemInstruction]);
-
+    }, [liveConnectionState, isOnline, playSound, handleNewChat, stopVoiceSession, selectedModel]);
+    
     useEffect(() => {
-        return stopLiveSession;
-    }, [stopLiveSession]);
-    
-    const renderMessageContent = (text: string) => {
-        const parts = text.split(/(```[\s\S]*?```)/g).filter(Boolean);
-    
-        return (
-            <div className="prose prose-sm prose-invert max-w-none break-words">
-                {parts.map((part, i) => {
-                    if (part.startsWith('```') && part.endsWith('```')) {
-                        const code = part.slice(3, -3);
-                        const langMatch = code.match(/^(\w+)\n/);
-                        const codeContent = langMatch ? code.substring(langMatch[0].length) : code;
-                        
-                        return (
-                            <div key={i} className="relative group my-2">
-                                <pre className="bg-black p-3 border border-brand-light/50 overflow-x-auto text-xs font-mono">
-                                    <code>{codeContent.trim()}</code>
-                                </pre>
-                                <button
-                                    onClick={() => handleCopyToClipboard(codeContent.trim())}
-                                    className="absolute top-2 right-2 p-1 bg-gray-700 text-white rounded opacity-0 group-hover:opacity-100 transition-opacity"
-                                    aria-label={t('aiChat.copyCode')}
-                                >
-                                    <CopyIcon className="w-4 h-4" />
-                                </button>
-                            </div>
-                        );
-                    }
-                    return <div key={i} dangerouslySetInnerHTML={{ __html: part.replace(/\n/g, '<br />') }} />;
-                })}
-            </div>
-        );
-    };
-
-    if (isModelInfoOpen) {
-        return <ModelInfoPage onClose={() => setIsModelInfoOpen(false)} />;
-    }
+        return stopVoiceSession;
+    }, [stopVoiceSession]);
 
     return (
-        <div className="w-full h-full flex flex-col items-center px-4 font-sans">
-            <input type="file" ref={fileInputRef} onChange={handleFileChange} className="hidden" aria-hidden="true" />
-             <ModelSelectionModal 
+        <div className="w-full h-full flex flex-col items-center bg-black/40">
+            <ModelSelectionModal
                 isOpen={isModelModalOpen}
                 onClose={() => setIsModelModalOpen(false)}
-                onSelect={(model) => {
-                    playSound(audioService.playClick);
-                    setSelectedModel(model);
-                    preferenceService.setPreference('defaultChatModelName', model.name);
-                    setIsModelModalOpen(false);
-                    if (model.id === 'local-robot') {
-                        setWebSearchEnabled(false);
-                    }
-                }}
+                onSelect={handleSelectModel}
                 onLearnMore={() => {
                     setIsModelModalOpen(false);
                     setIsModelInfoOpen(true);
                 }}
                 models={ALL_AI_MODELS}
             />
-
-            <h1 className="text-3xl sm:text-4xl text-brand-yellow text-center drop-shadow-[3px_3px_0_#000] mb-4">{t('aiChat.title')}</h1>
-            <div className="w-full max-w-3xl flex-grow flex flex-col bg-black/40 border-4 border-brand-light shadow-pixel">
-                <header className="flex-shrink-0 p-2 border-b-4 border-brand-light flex flex-wrap items-center justify-between gap-2">
-                    <div className="flex items-center gap-2">
-                        <button 
+            {isModelInfoOpen && <ModelInfoPage onClose={() => setIsModelInfoOpen(false)} />}
+            
+            {/* Main Chat Area */}
+            <main className="w-full max-w-4xl flex-grow overflow-y-auto px-4 pt-4 pb-2">
+                {messages.length === 0 && !isLoading && !fileData && liveConnectionState === 'idle' && (
+                    <div className="h-full flex flex-col items-center justify-center text-center">
+                        <button
                             onClick={() => setIsModelModalOpen(true)}
                             onMouseEnter={() => playSound(audioService.playHover)}
-                            disabled={!!fileData || liveConnectionState !== 'idle'}
-                            className="flex items-center gap-2 p-2 bg-surface-primary border-2 border-border-primary text-text-primary hover:bg-brand-cyan/20 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                            title={fileData ? "Model selection is disabled when a file is attached" : ""}
+                            className="p-4 bg-surface-primary border-4 border-border-primary shadow-pixel hover:bg-brand-cyan/20"
                         >
-                            <SparklesIcon className="w-4 h-4 text-brand-cyan" />
-                            <span className="text-xs font-press-start truncate max-w-32 sm:max-w-xs">{fileData ? 'File Q&A' : selectedModel.name}</span>
+                            <SparklesIcon className="w-16 h-16 text-brand-cyan mb-4 mx-auto" />
+                            <h2 className="font-press-start text-lg text-brand-yellow">{selectedModel.name}</h2>
+                            <p className="font-sans text-xs text-text-secondary mt-1">{t('aiChat.selectAssistant')}</p>
                         </button>
                     </div>
-                     <div className="flex items-center gap-4">
-                        <label className={`flex items-center gap-2 cursor-pointer transition-opacity ${!canUseWebSearch ? 'opacity-50' : ''}`}>
-                            <input
-                                type="checkbox"
-                                checked={webSearchEnabled && canUseWebSearch}
-                                onChange={(e) => {
-                                    if(canUseWebSearch) {
-                                        playSound(audioService.playToggle);
-                                        setWebSearchEnabled(e.target.checked);
-                                    }
-                                }}
-                                className="w-4 h-4 accent-brand-magenta"
-                                disabled={isLoading || !canUseWebSearch}
-                                title={!canUseWebSearch ? "Web Search is not available for this model or when a file is attached" : ""}
-                            />
-                            <span className="text-xs font-press-start text-brand-cyan">{t('aiChat.webSearch')}</span>
-                        </label>
-                        <button onClick={handleNewChat} onMouseEnter={() => playSound(audioService.playHover)} disabled={isLoading} className="flex items-center gap-2 p-2 bg-brand-magenta/80 text-white border-2 border-black hover:bg-brand-magenta" aria-label={t('aiChat.newChat')}>
-                            <TrashIcon className="w-4 h-4"/>
-                        </button>
-                    </div>
-                </header>
-                
-                <main className="flex-grow p-4 overflow-y-auto">
-                    {messages.length === 0 && !isLoading && !fileData && (
-                        <div className="text-center text-brand-light/70 h-full flex flex-col justify-center items-center">
-                            <SparklesIcon className="w-16 h-16 text-brand-cyan mb-4" />
-                            <p className="font-press-start">{t('aiChat.startConversation')}</p>
-                            <p className="text-xs mt-2">{selectedModel.description}</p>
-                        </div>
-                    )}
-
-                    <div className="space-y-6">
-                        {messages.map((msg) => (
-                            <div key={msg.id} className={`flex gap-4 ${msg.role === 'user' ? 'justify-end' : ''}`}>
-                                {msg.role === 'model' && <div className="flex-shrink-0 w-8 h-8 text-brand-cyan mt-1"><SparklesIcon/></div>}
-                                <div className={`max-w-xl text-sm ${msg.role === 'user' ? 'bg-brand-cyan/80 text-black p-3 rounded-lg' : ''}`}>
-                                    <div className={`${msg.role === 'model' ? 'bg-surface-primary text-text-primary p-3 rounded-lg' : ''}`}>
-                                        {renderMessageContent(msg.text)}
+                )}
+                <div className="space-y-6">
+                    {messages.map((msg, index) => (
+                        <div key={msg.id || index} className={`flex gap-4 ${msg.role === 'user' ? 'justify-end' : ''}`}>
+                            {msg.role === 'model' && <div className="flex-shrink-0 w-8 h-8 text-brand-cyan mt-1"><SparklesIcon/></div>}
+                            <div className={`max-w-xl p-3 text-sm rounded-lg ${msg.role === 'user' ? 'bg-brand-cyan/80 text-black' : 'bg-surface-primary text-text-primary'}`}>
+                               <div className="whitespace-pre-wrap font-sans leading-relaxed">{msg.text}</div>
+                                {msg.sources && msg.sources.length > 0 && (
+                                    <div className="mt-4 border-t-2 border-brand-light/20 pt-2">
+                                        <h4 className="font-press-start text-xs text-brand-cyan mb-1">Sources:</h4>
+                                        <ul className="text-xs space-y-1 list-disc list-inside">
+                                            {msg.sources.map((source, i) => (
+                                                <li key={i}><a href={source.uri} target="_blank" rel="noopener noreferrer" className="underline hover:text-brand-yellow">{source.title || source.uri}</a></li>
+                                            ))}
+                                        </ul>
                                     </div>
-                                    {msg.sources && Array.isArray(msg.sources) && msg.sources.length > 0 && (
-                                        <div className="mt-4 pt-2 border-t border-brand-light/30">
-                                            <h4 className="text-xs font-bold mb-1">Sources:</h4>
-                                            <ul className="text-xs space-y-1">
-                                                {msg.sources.map((source, i) => (
-                                                    <li key={i}>
-                                                        <a href={source.uri} target="_blank" rel="noopener noreferrer" className="text-brand-yellow underline hover:text-brand-lime break-all">
-                                                            {i+1}. {source.title}
-                                                        </a>
-                                                    </li>
-                                                ))}
-                                            </ul>
-                                        </div>
-                                    )}
-                                    {msg.role === 'model' && (
-                                        <div className="flex items-center gap-2 mt-3">
-                                            <button onClick={() => playSound(audioService.playClick)} className="p-1 text-text-secondary hover:text-brand-lime"><ThumbsUpIcon className="w-4 h-4"/></button>
-                                            <button onClick={() => playSound(audioService.playClick)} className="p-1 text-text-secondary hover:text-brand-magenta"><ThumbsDownIcon className="w-4 h-4"/></button>
-                                            <button onClick={() => handleCopyToClipboard(msg.text)} className="p-1 text-text-secondary hover:text-brand-yellow"><CopyIcon className="w-4 h-4"/></button>
-                                            <button onClick={handleRegenerate} disabled={isLoading || !!fileData} className="p-1 text-text-secondary hover:text-brand-cyan disabled:opacity-50"><RegenerateIcon className="w-4 h-4"/></button>
-                                            <button
-                                                onClick={() => handleSpeakTextWithGemini(msg)}
-                                                disabled={speakingMessageId !== null || liveConnectionState !== 'idle'}
-                                                className="p-1 text-text-secondary hover:text-brand-yellow disabled:opacity-50 disabled:cursor-wait"
-                                            >
-                                                {speakingMessageId === msg.id ? (
-                                                    <SpeakerOnIcon className="w-4 h-4 text-brand-lime animate-pulse" />
-                                                ) : (
-                                                    <SpeakerOnIcon className="w-4 h-4" />
-                                                )}
-                                            </button>
-                                        </div>
-                                    )}
-                                </div>
+                                )}
+                                {msg.role === 'model' && (
+                                    <div className="flex items-center gap-2 mt-2 -ml-1">
+                                        <button className="p-1 hover:text-brand-yellow"><CopyIcon className="w-4 h-4" /></button>
+                                        <button className="p-1 hover:text-brand-yellow"><ThumbsUpIcon className="w-4 h-4" /></button>
+                                        <button className="p-1 hover:text-brand-yellow"><ThumbsDownIcon className="w-4 h-4" /></button>
+                                        {index === messages.length - 1 && <button onClick={handleRegenerate} className="p-1 hover:text-brand-yellow"><RegenerateIcon className="w-4 h-4" /></button>}
+                                    </div>
+                                )}
                             </div>
-                        ))}
+                        </div>
+                    ))}
+                    {currentMicInput && <div className="text-right text-brand-cyan/80 italic animate-pulse">...{currentMicInput}</div>}
+                    {currentModelOutput && <div className="text-left text-brand-light/80 italic animate-pulse">...{currentModelOutput}</div>}
+
+                </div>
+                {isLoading && (
+                    <div className="flex gap-4 mt-6">
+                        <div className="flex-shrink-0 w-8 h-8 text-brand-cyan mt-1"><SparklesIcon/></div>
+                        <div className="p-3"><LoadingSpinner text="" /></div>
                     </div>
-                    
-                    {isLoading && (
-                        <div className="flex gap-4 mt-6">
-                            <div className="flex-shrink-0 w-8 h-8 text-brand-cyan mt-1"><SparklesIcon/></div>
-                            <div className="max-w-xl p-3 text-sm bg-surface-primary text-text-primary rounded-lg">
-                                <LoadingSpinner text="AI is thinking..." />
-                            </div>
-                        </div>
-                    )}
+                )}
+                <div ref={messagesEndRef} />
+            </main>
 
-                    {error && (
-                         <div role="alert" className="w-full p-3 mt-4 text-center text-sm text-brand-light bg-brand-magenta/20 border-2 border-brand-magenta">
-                            {error}
-                        </div>
-                     )}
-                    <div ref={messagesEndRef} />
-                </main>
-
-                <footer className="flex-shrink-0 p-2 border-t-4 border-brand-light">
-                    {liveConnectionState === 'connected' && (
-                        <div className="p-2 mb-2 text-left text-sm border-2 border-brand-light/50 bg-black/30 animate-fadeIn">
-                            {currentMicInput && <p className="text-brand-cyan truncate"><strong className="font-press-start text-xs">YOU:</strong> {currentMicInput}</p>}
-                            {currentModelOutput && <p className="text-brand-light/80 truncate"><strong className="font-press-start text-xs">AI:</strong> {currentModelOutput}</p>}
-                            {!currentMicInput && !currentModelOutput && <p className="text-brand-light/70 animate-pulse text-center font-press-start text-xs">LISTENING...</p>}
-                        </div>
-                    )}
-                    {fileData && (
-                        <div className="flex items-center justify-between p-2 mb-2 bg-surface-primary border-2 border-border-secondary">
-                            <span className="text-xs text-text-secondary truncate">Attached: {fileData.file.name}</span>
-                            <button onClick={() => setFileData(null)} className="p-1 text-text-secondary hover:text-brand-magenta"><XIcon className="w-4 h-4" /></button>
-                        </div>
-                    )}
-                    <div className="flex items-end gap-2">
-                        <button 
-                            className="w-10 h-10 flex-shrink-0 flex items-center justify-center bg-surface-primary border-2 border-black hover:bg-brand-cyan/20" 
-                            aria-label="Attach file"
-                            onClick={() => fileInputRef.current?.click()}
-                        >
-                            <UploadIcon className="w-5 h-5" />
-                        </button>
-                        <textarea
+            {/* Input Footer */}
+            <footer className="w-full max-w-4xl flex-shrink-0 p-4 space-y-3 bg-background border-t-2 border-border-secondary">
+                {error && <div role="alert" className="text-center text-xs text-brand-magenta">{error}</div>}
+                {fileData && (
+                     <div className="flex items-center gap-2 p-2 bg-black/50 border border-brand-light/50">
+                        <SparklesIcon className="w-5 h-5 text-brand-cyan" />
+                        <span className="flex-grow text-xs truncate">{fileData.file.name}</span>
+                        <button onClick={() => setFileData(null)}><XIcon className="w-5 h-5 hover:text-brand-magenta" /></button>
+                    </div>
+                )}
+                <div className="flex items-center gap-2">
+                    <button onClick={handleNewChat} onMouseEnter={() => playSound(audioService.playHover)} className="p-3 border-2 border-border-primary text-text-primary hover:bg-brand-magenta/80" title={t('aiChat.newChat')}>
+                        <TrashIcon className="w-5 h-5"/>
+                    </button>
+                    <div className="relative flex-grow">
+                        <input
+                            type="text"
                             value={userInput}
                             onChange={(e) => setUserInput(e.target.value)}
-                            onKeyDown={(e) => {
-                                if (e.key === 'Enter' && !e.shiftKey) {
-                                    e.preventDefault();
-                                    handleSendMessage();
-                                }
-                            }}
-                            placeholder={isOnline || selectedModel.id === 'local-robot' ? (fileData ? 'Ask about the file...' : t('aiChat.inputPlaceholder')) : t('aiChat.inputOffline')}
-                            className="flex-grow p-2 bg-brand-light text-black rounded-none border-2 border-black focus:outline-none focus:ring-2 focus:ring-brand-yellow resize-none leading-tight"
-                            rows={1}
-                            style={{ minHeight: '40px', maxHeight: '120px' }}
-                            onInput={(e) => {
-                                const target = e.target as HTMLTextAreaElement;
-                                target.style.height = 'auto';
-                                target.style.height = `${target.scrollHeight}px`;
-                            }}
-                            disabled={isLoading || (!isOnline && selectedModel.id !== 'local-robot') || liveConnectionState === 'connected'}
+                            onKeyPress={(e) => e.key === 'Enter' && handleSendMessage()}
+                            placeholder={isLoading ? "AI is thinking..." : (liveConnectionState === 'connected' ? 'Listening...' : t('aiChat.inputPlaceholder'))}
+                            className="w-full p-3 pr-24 bg-surface-primary border-2 border-border-primary text-text-primary focus:outline-none focus:border-brand-yellow font-sans disabled:bg-gray-800"
+                            disabled={isLoading || !isOnline || liveConnectionState === 'connected'}
                         />
-                        <button onClick={handleSendMessage} disabled={!userInput.trim() || isLoading || (!isOnline && selectedModel.id !== 'local-robot')} className="w-10 h-10 flex-shrink-0 flex items-center justify-center bg-brand-magenta text-white border-2 border-black hover:bg-brand-yellow hover:text-black disabled:bg-gray-500 disabled:cursor-not-allowed" aria-label={t('aiChat.sendMessage')}>
-                            <SendIcon className="w-5 h-5"/>
-                        </button>
-                         <button 
-                            onClick={liveConnectionState === 'connected' ? stopLiveSession : startLiveSession}
-                            disabled={!isOnline || !!fileData || isLoading || selectedModel.id === 'local-robot'}
-                            className={`w-10 h-10 flex-shrink-0 flex items-center justify-center border-2 border-black transition-colors ${
-                                liveConnectionState === 'connected' ? 'bg-red-500 text-white' : 'bg-brand-cyan text-black hover:bg-brand-yellow'
-                            } disabled:bg-gray-500 disabled:cursor-not-allowed`}
-                            aria-label={liveConnectionState === 'connected' ? "Stop voice session" : "Start voice session"}
-                            title={fileData ? "Voice input disabled with file" : ""}
-                        >
-                            {liveConnectionState === 'connecting' ? <div className="w-5 h-5"><LoadingSpinner text=""/></div> : liveConnectionState === 'connected' ? <StopIcon className="w-5 h-5"/> : <MicrophoneIcon className="w-5 h-5"/>}
-                        </button>
+                        <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-1">
+                            <button onClick={() => fileInputRef.current?.click()} onMouseEnter={() => playSound(audioService.playHover)} className="p-2 hover:text-brand-yellow disabled:opacity-50" disabled={isLoading || liveConnectionState !== 'idle'}>
+                                <UploadIcon className="w-5 h-5"/>
+                            </button>
+                            <input type="file" ref={fileInputRef} onChange={handleFileChange} className="hidden" />
+                             <button onClick={() => handleSendMessage()} disabled={(!userInput.trim() && !fileData) || isLoading || !isOnline || liveConnectionState !== 'idle'} className="p-2 hover:text-brand-yellow disabled:opacity-50">
+                                <SendIcon className="w-5 h-5"/>
+                            </button>
+                        </div>
                     </div>
-                </footer>
-            </div>
+                    {liveConnectionState === 'idle' || liveConnectionState === 'error' ? (
+                        <button onClick={startVoiceSession} disabled={!isOnline || isLoading} className="p-3 border-2 border-border-primary text-text-primary hover:bg-brand-cyan hover:text-black" title={`${t('aiChat.voice')} Chat`}>
+                            <MicrophoneIcon className="w-5 h-5"/>
+                        </button>
+                    ) : (
+                        <button onClick={stopVoiceSession} className="p-3 border-2 border-brand-magenta text-brand-magenta bg-brand-magenta/20 animate-pulse" title="Stop Voice Chat">
+                            <StopIcon className="w-5 h-5"/>
+                        </button>
+                    )}
+                </div>
+                 <div className="flex items-center justify-between text-xs font-press-start">
+                    {canUseWebSearch ? (
+                        <label className="flex items-center gap-2 cursor-pointer text-brand-light/70 hover:text-brand-light">
+                            <input type="checkbox" checked={webSearchEnabled} onChange={(e) => setWebSearchEnabled(e.target.checked)} className="w-4 h-4 accent-brand-magenta" />
+                            {t('aiChat.webSearch')}
+                        </label>
+                    ) : <div/>}
+                    <button onClick={() => setIsModelModalOpen(true)} className="text-brand-light/70 hover:text-brand-yellow truncate max-w-[50%]">{selectedModel.name}</button>
+                </div>
+            </footer>
         </div>
     );
 };

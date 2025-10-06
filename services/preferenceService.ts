@@ -31,8 +31,7 @@ export interface Preferences {
 
     // Display & Accessibility
     theme: 'light' | 'dark' | 'system';
-    // FIX: Add 'es' (Spanish) to the language type to align with LanguageContext and available options.
-    language: 'th' | 'en' | 'ja' | 'fr' | 'es';
+    language: 'th' | 'en';
     uiAnimations: boolean;
     highContrastMode: boolean;
     showTooltips: boolean;

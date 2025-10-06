@@ -151,9 +151,6 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({
                         >
                             <option value="th">{t('settings.langTh')}</option>
                             <option value="en">{t('settings.langEn')}</option>
-                            <option value="ja">{t('settings.langJa')}</option>
-                            <option value="fr">{t('settings.langFr')}</option>
-                            <option value="es">{t('settings.langEs')}</option>
                         </select>
                     </div>
                     <SettingToggle label={t('settings.uiAnimations')} isChecked={uiAnimations} onToggle={() => { playSound(audioService.playToggle); onUiAnimationsChange(!uiAnimations); }} />
@@ -260,7 +257,7 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({
                 </Section>
 
                 <footer className="text-center text-xs text-brand-light/50 py-4 font-sans">
-                    Version: 2.54.179810000
+                    Version: 2.54.179810001
                 </footer>
             </main>
         </PageWrapper>

@@ -19,6 +19,33 @@ export interface Article {
 
 const articlesData: Article[] = [
     {
+        id: 'workshop-sound-update',
+        titleKey: 'articles.workshopSoundUpdate.title',
+        summaryKey: 'articles.workshopSoundUpdate.summary',
+        contentKey: 'articles.workshopSoundUpdate.content',
+        author: 'The Development Team',
+        category: 'article',
+        voice: 'Zephyr',
+    },
+    {
+        id: 'feature-summary-update',
+        titleKey: 'articles.featureSummaryUpdate.title',
+        summaryKey: 'articles.featureSummaryUpdate.summary',
+        contentKey: 'articles.featureSummaryUpdate.content',
+        author: 'The Development Team',
+        category: 'article',
+        voice: 'Zephyr',
+    },
+    {
+        id: 'new-feature-early-release',
+        titleKey: 'articles.newFeatureEarlyRelease.title',
+        summaryKey: 'articles.newFeatureEarlyRelease.summary',
+        contentKey: 'articles.newFeatureEarlyRelease.content',
+        author: 'The Development Team',
+        category: 'article',
+        voice: 'Zephyr',
+    },
+    {
         id: 'github-release-prediction',
         titleKey: 'articles.githubRelease.title',
         summaryKey: 'articles.githubRelease.summary',

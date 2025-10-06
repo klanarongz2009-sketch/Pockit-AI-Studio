@@ -1,3 +1,4 @@
+
 import { GoogleGenAI, Type, Chat, Modality, Content, GenerateContentResponse } from "@google/genai";
 import * as preferenceService from './preferenceService';
 import { AiModel } from './aiModels';
@@ -676,48 +677,14 @@ export async function identifyAndSearchMusic(base64Data: string, mimeType: strin
         });
 
         const result = safeJsonParse<Omit<SearchResult, 'sources'>>(response.text);
-        const sources = response.candidates?.[0]?.groundingMetadata?.groundingChunks?.map(chunk => ({
+        // FIX: Safely handle optional chaining to prevent runtime errors when grounding chunks are not available.
+        const sources = (response.candidates?.[0]?.groundingMetadata?.groundingChunks || []).map((chunk: any) => ({
             uri: chunk.web?.uri || '',
             title: chunk.web?.title || ''
-        })).filter(s => s.uri) || [];
+        })).filter(s => s.uri);
 
         return { ...result, sources };
 
-    } catch (error) {
-        throw new Error(parseApiError(error));
-    }
-}
-
-// FIX: Implemented missing function generateSoundFromImage
-export async function generateSoundFromImage(base64Data: string, mimeType: string): Promise<SoundEffectParameters> {
-    const ai = checkApi();
-    const schema = {
-        type: Type.OBJECT,
-        properties: {
-            name: { type: Type.STRING },
-            type: { type: Type.STRING, enum: ['sine', 'square', 'sawtooth', 'triangle'] },
-            startFreq: { type: Type.NUMBER },
-            endFreq: { type: Type.NUMBER },
-            duration: { type: Type.NUMBER },
-            volume: { type: Type.NUMBER },
-        },
-        required: ['name', 'type', 'startFreq', 'endFreq', 'duration', 'volume']
-    };
-    try {
-        const response = await ai.models.generateContent({
-            model: 'gemini-2.5-flash',
-            contents: {
-                parts: [
-                    { inlineData: { data: base64Data, mimeType: mimeType } },
-                    { text: 'Analyze this image and create parameters for a single, representative 8-bit sound effect. Give it a descriptive name. Duration should be between 0.1 and 0.5s. Volume between 0.1-0.4. Frequencies between 100-4000. Respond ONLY with the JSON.' }
-                ]
-            },
-            config: {
-                responseMimeType: "application/json",
-                responseSchema: schema,
-            }
-        });
-        return safeJsonParse<SoundEffectParameters>(response.text);
     } catch (error) {
         throw new Error(parseApiError(error));
     }
@@ -788,10 +755,11 @@ export async function sendMessageToChat(prompt: string, model: AiModel, webSearc
                 contents: prompt,
                 config: webSearchConfig,
             });
-            const sources = response.candidates?.[0]?.groundingMetadata?.groundingChunks?.map(chunk => ({
+            // FIX: Safely handle optional chaining to prevent runtime errors when grounding chunks are not available.
+            const sources = (response.candidates?.[0]?.groundingMetadata?.groundingChunks || []).map((chunk: any) => ({
                 uri: chunk.web?.uri || '',
                 title: chunk.web?.title || ''
-            })).filter(s => s.uri) || [];
+            })).filter(s => s.uri);
             return { text: response.text, sources: sources };
         } else {
             const response = await chat.sendMessage({ message: prompt });

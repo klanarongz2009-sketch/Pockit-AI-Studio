@@ -14,6 +14,7 @@ import { useLanguage } from '../contexts/LanguageContext';
 import { UpdateIcon } from './icons/UpdateIcon';
 import { UpdateInfoPage } from './UpdateInfoPage';
 import { EarnCreditsModal } from './icons/EarnCreditsModal';
+import { OfflineAiIcon } from './icons/OfflineAiIcon';
 
 interface GlobalLayoutProps {
     children: React.ReactNode;
@@ -102,6 +103,13 @@ const LayoutComponent: React.FC<GlobalLayoutProps> = ({
                         icon={<ChatIcon className="w-6 h-6" />}
                         isActive={currentPage === 'aiChat'}
                         onClick={() => onSetPage('aiChat')}
+                        playSound={() => playSound(audioService.playHover)}
+                    />
+                    <SidebarNavButton
+                        label={t('sidebar.offlineAi')}
+                        icon={<OfflineAiIcon className="w-6 h-6" />}
+                        isActive={currentPage === 'offlineAi'}
+                        onClick={() => onSetPage('offlineAi')}
                         playSound={() => playSound(audioService.playHover)}
                     />
                     <SidebarNavButton
