@@ -7,13 +7,14 @@ import { SparklesIcon } from './icons/SparklesIcon';
 import { PlayIcon } from './icons/PlayIcon';
 import { StopIcon } from './icons/StopIcon';
 import { DownloadIcon } from './icons/DownloadIcon';
-import { SoundEffectParameters } from '../services/geminiService';
+import { SoundEffectParameters, MidiNote } from '../services/geminiService';
 import { useLanguage } from '../contexts/LanguageContext';
 import { CopyIcon } from './icons/CopyIcon';
 import { AudioVisualizer } from './icons/AudioVisualizer';
 import { AudioTransformIcon } from './icons/AudioTransformIcon';
 import { ImageSoundIcon } from './icons/ImageSoundIcon';
 import { ReverseIcon } from './icons/ReverseIcon';
+import { MusicKeyboardIcon } from './icons/MusicKeyboardIcon';
 
 // --- Helper Functions from ImageToSoundPage ---
 function rgbToHsl(r: number, g: number, b: number): [number, number, number] {
@@ -43,7 +44,8 @@ const analyzeImageToSound = (imageUrl: string): Promise<SoundEffectParameters> =
             const scale = Math.min(1, MAX_WIDTH / img.width);
             canvas.width = img.width * scale;
             canvas.height = img.height * scale;
-            const ctx = canvas.getContext('2d', { willReadFrequently: true });
+            // FIX: Removed second argument from getContext to resolve "Expected 1 arguments, but got 2" error.
+            const ctx = canvas.getContext('2d');
             if (!ctx) return reject(new Error("Failed to get canvas context."));
             ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
             const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
@@ -83,7 +85,8 @@ const analyzeImageToSongEnhanced = (imageUrl: string, steps: number = 32): Promi
             const canvas = document.createElement('canvas');
             canvas.width = steps;
             canvas.height = steps;
-            const ctx = canvas.getContext('2d', { willReadFrequently: true });
+            // FIX: Removed second argument from getContext to resolve "Expected 1 arguments, but got 2" error.
+            const ctx = canvas.getContext('2d');
             if (!ctx) return reject(new Error("Failed to get canvas context."));
             ctx.drawImage(img, 0, 0, steps, steps);
 
@@ -178,7 +181,8 @@ const transformImageToGlyphCode = (imageUrl: string, gridWidth: number = 48): Pr
             canvas.width = gridWidth;
             canvas.height = gridHeight;
 
-            const ctx = canvas.getContext('2d', { willReadFrequently: true });
+            // FIX: Removed second argument from getContext to resolve "Expected 1 arguments, but got 2" error.
+            const ctx = canvas.getContext('2d');
             if (!ctx) return reject(new Error("Failed to get canvas context."));
 
             ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
@@ -224,7 +228,8 @@ const transformImageToEmoji = (imageUrl: string, gridWidth: number = 24): Promis
             const gridHeight = Math.round(gridWidth / aspectRatio);
             canvas.width = gridWidth;
             canvas.height = gridHeight;
-            const ctx = canvas.getContext('2d', { willReadFrequently: true });
+            // FIX: Removed second argument from getContext to resolve "Expected 1 arguments, but got 2" error.
+            const ctx = canvas.getContext('2d');
             if (!ctx) return reject(new Error("Failed to get canvas context."));
             ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
             
@@ -243,6 +248,7 @@ const transformImageToEmoji = (imageUrl: string, gridWidth: number = 24): Promis
     });
 };
 
+
 interface LocalColorResult { hex: string; count: number; }
 const analyzeImageLocally = (imageUrl: string): Promise<LocalColorResult[]> => {
     return new Promise((resolve, reject) => {
@@ -254,7 +260,8 @@ const analyzeImageLocally = (imageUrl: string): Promise<LocalColorResult[]> => {
             const scale = Math.min(1, MAX_DIM / img.width, MAX_DIM / img.height);
             canvas.width = img.width * scale;
             canvas.height = img.height * scale;
-            const ctx = canvas.getContext('2d', { willReadFrequently: true });
+            // FIX: Removed second argument from getContext to resolve "Expected 1 arguments, but got 2" error.
+            const ctx = canvas.getContext('2d');
             if (!ctx) return reject(new Error("Could not get canvas context"));
             
             ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
@@ -275,6 +282,7 @@ const analyzeImageLocally = (imageUrl: string): Promise<LocalColorResult[]> => {
         img.src = imageUrl;
     });
 };
+
 
 const ChiptuneCreator = ({ playSound, t }: { playSound: (player: () => void) => void; t: (key: string) => string; }) => {
     const [uploadedFile, setUploadedFile] = useState<File | null>(null);
@@ -589,6 +597,152 @@ const AudioReverserTool = ({ playSound, t }: { playSound: (player: () => void) =
     );
 };
 
+// --- New Audio to MIDI Tool ---
+const AudioToMidiTool = ({ playSound, t }: { playSound: (player: () => void) => void; t: (key: string) => string; }) => {
+    const [uploadedFile, setUploadedFile] = useState<File | null>(null);
+    const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+    const [isLoading, setIsLoading] = useState(false);
+    const [error, setError] = useState<string | null>(null);
+    const [processedMidi, setProcessedMidi] = useState<MidiNote[] | null>(null);
+    const [isPlaying, setIsPlaying] = useState(false);
+    const [isDownloading, setIsDownloading] = useState(false);
+    const fileInputRef = useRef<HTMLInputElement>(null);
+
+    useEffect(() => {
+        return () => audioService.stopMidi(); // Cleanup on unmount
+    }, []);
+
+    const resetState = useCallback((clearFile: boolean = false) => {
+        setError(null);
+        setProcessedMidi(null);
+        audioService.stopMidi();
+        setIsPlaying(false);
+        if (clearFile) {
+            setUploadedFile(null);
+            if (previewUrl) URL.revokeObjectURL(previewUrl);
+            setPreviewUrl(null);
+            if (fileInputRef.current) fileInputRef.current.value = "";
+        }
+    }, [previewUrl]);
+
+    const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+        const file = event.target.files?.[0];
+        if (!file || (!file.type.startsWith('audio/') && !file.type.startsWith('video/'))) {
+            setError(t('offlineAiPage.audioToMidi.errorSelectMedia'));
+            playSound(audioService.playError);
+            return;
+        }
+        resetState(true);
+        setUploadedFile(file);
+        setPreviewUrl(URL.createObjectURL(file));
+        playSound(audioService.playSelection);
+    };
+    
+    const handleTransform = useCallback(async () => {
+        if (!uploadedFile || isLoading) return;
+        resetState();
+        playSound(audioService.playGenerate);
+        setIsLoading(true);
+        try {
+            const arrayBuffer = await uploadedFile.arrayBuffer();
+            const audioCtx = new (window.AudioContext || (window as any).webkitAudioContext)();
+            const audioBuffer = await audioCtx.decodeAudioData(arrayBuffer);
+            const midiNotes = await audioService.analyzeAudioBufferToMidi(audioBuffer);
+            if (midiNotes.length === 0) {
+                throw new Error("Could not detect any distinct notes in the audio.");
+            }
+            setProcessedMidi(midiNotes);
+            playSound(audioService.playSuccess);
+        } catch (err) {
+            setError(err instanceof Error ? err.message : "Failed to convert audio to MIDI.");
+            playSound(audioService.playError);
+        } finally {
+            setIsLoading(false);
+        }
+    }, [uploadedFile, isLoading, playSound, resetState]);
+
+    const handlePlaybackToggle = useCallback(() => {
+        playSound(audioService.playClick);
+        if (isPlaying) {
+            audioService.stopMidi();
+            setIsPlaying(false);
+        } else if (processedMidi) {
+            setIsPlaying(true);
+            audioService.playMidi(processedMidi, () => setIsPlaying(false));
+        }
+    }, [isPlaying, processedMidi, playSound]);
+    
+    const handleDownload = useCallback(async () => {
+        if (!processedMidi || isDownloading) return;
+        playSound(audioService.playDownload);
+        setIsDownloading(true);
+        try {
+            const wavBlob = await audioService.exportMidiToWav(processedMidi);
+            if (!wavBlob) throw new Error('Failed to create WAV file.');
+            const url = URL.createObjectURL(wavBlob);
+            const a = document.createElement('a');
+            a.href = url;
+            const fileName = uploadedFile?.name.split('.').slice(0, -1).join('.') || 'audio-to-midi';
+            a.download = `${fileName}-midi.wav`;
+            document.body.appendChild(a);
+            a.click();
+            URL.revokeObjectURL(url);
+            document.body.removeChild(a);
+        } catch (err) {
+            setError('Failed to create WAV file.');
+            playSound(audioService.playError);
+        } finally {
+            setIsDownloading(false);
+        }
+    }, [processedMidi, isDownloading, playSound, uploadedFile?.name]);
+    
+    return (
+         <>
+            <input type="file" ref={fileInputRef} onChange={handleFileChange} accept="audio/*,video/*" className="hidden" />
+            <p className="text-sm text-center text-brand-light/80">{t('offlineAiPage.audioToMidi.description')}</p>
+            {!uploadedFile ? (
+                <button onClick={() => fileInputRef.current?.click()} className="w-full flex items-center justify-center gap-3 p-4 bg-brand-magenta text-white border-4 border-brand-light shadow-pixel">
+                    <UploadIcon className="w-6 h-6" /> {t('offlineAiPage.audioToMidi.uploadMedia')}
+                </button>
+            ) : (
+                <div className="w-full space-y-4">
+                    <div className="bg-black/40 p-4 border-2 border-brand-light/50">
+                        <h3 className="font-press-start text-brand-cyan">{t('offlineAiPage.audioToMidi.sourceMedia')}:</h3>
+                        {uploadedFile.type.startsWith('video/') ? (
+                            <video src={previewUrl!} controls className="w-full max-h-60 border-2 border-brand-light object-contain bg-black mt-2" />
+                        ) : (
+                            <audio src={previewUrl!} controls className="w-full mt-2" />
+                        )}
+                        <button onClick={() => fileInputRef.current?.click()} className="text-sm underline hover:text-brand-yellow mt-2">{t('offlineAiPage.audioToMidi.changeFile')}</button>
+                    </div>
+                    <button onClick={handleTransform} disabled={isLoading} className="w-full flex items-center justify-center gap-3 p-4 bg-brand-magenta text-white border-4 border-brand-light shadow-pixel disabled:bg-gray-500">
+                        <SparklesIcon className="w-6 h-6" /> {isLoading ? t('offlineAiPage.audioToMidi.transforming') : t('offlineAiPage.audioToMidi.transform')}
+                    </button>
+                </div>
+            )}
+             <div className="w-full min-h-[8rem] p-4 bg-black/50 border-4 border-brand-light flex flex-col items-center justify-center">
+                {isLoading && <LoadingSpinner text={t('offlineAiPage.audioToMidi.transforming')} />}
+                {error && <div role="alert" className="text-center text-brand-magenta"><p className="font-press-start">Error</p><p className="text-sm mt-2">{error}</p></div>}
+                {processedMidi && !isLoading && (
+                    <div className="w-full space-y-4">
+                        <h3 className="font-press-start text-lg text-brand-cyan text-center">{t('offlineAiPage.audioToMidi.resultTitle')}</h3>
+                        <p className="text-center">{t('offlineAiPage.audioToMidi.notesFound', { count: processedMidi.length })}</p>
+                        <div className="flex gap-4">
+                            <button onClick={handlePlaybackToggle} className="w-full flex items-center justify-center gap-2 p-3 bg-brand-cyan text-black border-2 border-brand-light shadow-sm">
+                                {isPlaying ? <StopIcon className="w-5 h-5"/> : <PlayIcon className="w-5 h-5"/>} {isPlaying ? t('offlineAiPage.audioToMidi.stop') : t('offlineAiPage.audioToMidi.playMidi')}
+                            </button>
+                            <button onClick={handleDownload} disabled={isDownloading} className="w-full flex items-center justify-center gap-2 p-3 bg-brand-yellow text-black border-2 border-brand-light shadow-sm disabled:bg-gray-500">
+                                <DownloadIcon className="w-5 h-5"/> {isDownloading ? '...' : t('offlineAiPage.audioToMidi.download')}
+                            </button>
+                        </div>
+                    </div>
+                )}
+            </div>
+        </>
+    );
+};
+
+
 // Component for Image Transformation Tools
 const ImageTransformerTool = ({ playSound, t }: { playSound: (player: () => void) => void; t: (key: string) => string; }) => {
     const [mode, setMode] = useState<ImageMode>('sound');
@@ -700,7 +854,8 @@ const ImageTransformerTool = ({ playSound, t }: { playSound: (player: () => void
                 case 'videoCode':
                     const video = document.createElement('video');
                     const canvas = document.createElement('canvas');
-                    const ctx = canvas.getContext('2d', { willReadFrequently: true });
+                    // FIX: Removed second argument from getContext to resolve "Expected 1 arguments, but got 2" error.
+                    const ctx = canvas.getContext('2d');
                     if (!ctx) throw new Error("Could not get canvas context");
                     
                     const frames: string[] = [];
@@ -1020,7 +1175,7 @@ interface OfflineAiPageProps {
     playSound: (player: () => void) => void;
 }
 
-type ActiveTab = 'audio' | 'image' | 'reverser';
+type ActiveTab = 'audio' | 'image' | 'reverser' | 'midi';
 type ImageMode = 'sound' | 'song' | 'glyph' | 'color' | 'emoji' | 'videoCode';
 
 export const OfflineAiPage: React.FC<OfflineAiPageProps> = ({ playSound }) => {
@@ -1032,7 +1187,7 @@ export const OfflineAiPage: React.FC<OfflineAiPageProps> = ({ playSound }) => {
              <h1 className="text-3xl sm:text-4xl text-brand-yellow text-center drop-shadow-[3px_3px_0_#000] mb-2">{t('offlineAiPage.title')}</h1>
              <p className="text-sm text-center text-brand-light/80 mb-6">{t('offlineAiPage.description')}</p>
             
-            <div className="w-full max-w-lg mb-4 flex justify-center gap-1 p-1 bg-black/50">
+            <div className="w-full max-w-2xl mb-4 flex justify-center gap-1 p-1 bg-black/50">
                 <button onClick={() => { playSound(audioService.playClick); setActiveTab('audio'); }} className={`flex items-center justify-center gap-2 flex-1 py-2 px-1 text-xs font-press-start border-2 transition-colors ${activeTab === 'audio' ? 'bg-brand-yellow text-black border-black' : 'bg-surface-primary border-transparent text-text-primary hover:bg-brand-cyan/20'}`}>
                    <AudioTransformIcon className="w-5 h-5" /> {t('offlineAiPage.tabAudio')}
                 </button>
@@ -1041,6 +1196,9 @@ export const OfflineAiPage: React.FC<OfflineAiPageProps> = ({ playSound }) => {
                 </button>
                  <button onClick={() => { playSound(audioService.playClick); setActiveTab('reverser'); }} className={`flex items-center justify-center gap-2 flex-1 py-2 px-1 text-xs font-press-start border-2 transition-colors ${activeTab === 'reverser' ? 'bg-brand-yellow text-black border-black' : 'bg-surface-primary border-transparent text-text-primary hover:bg-brand-cyan/20'}`}>
                    <ReverseIcon className="w-5 h-5" /> {t('offlineAiPage.tabReverser')}
+                </button>
+                 <button onClick={() => { playSound(audioService.playClick); setActiveTab('midi'); }} className={`flex items-center justify-center gap-2 flex-1 py-2 px-1 text-xs font-press-start border-2 transition-colors ${activeTab === 'midi' ? 'bg-brand-yellow text-black border-black' : 'bg-surface-primary border-transparent text-text-primary hover:bg-brand-cyan/20'}`}>
+                   <MusicKeyboardIcon className="w-5 h-5" /> {t('offlineAiPage.tabMidi')}
                 </button>
             </div>
 
@@ -1053,6 +1211,9 @@ export const OfflineAiPage: React.FC<OfflineAiPageProps> = ({ playSound }) => {
                 )}
                  {activeTab === 'reverser' && (
                     <AudioReverserTool playSound={playSound} t={t} />
+                )}
+                {activeTab === 'midi' && (
+                    <AudioToMidiTool playSound={playSound} t={t} />
                 )}
             </div>
         </div>

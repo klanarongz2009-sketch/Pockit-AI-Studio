@@ -168,6 +168,7 @@
         "tabAudio": "แปลงเสียง",
         "tabImage": "แปลงรูปภาพ",
         "tabReverser": "สลับเสียง",
+        "tabMidi": "แปลงเป็น MIDI",
         "chiptuneCreator": {
             "title": "เครื่องสร้าง Chiptune",
             "description": "อัปโหลดไฟล์เสียงหรือวิดีโอและแปลงเป็นเสียง chiptune 8-bit! เอฟเฟกต์นี้ทำงานในเบราว์เซอร์ของคุณ",
@@ -199,6 +200,21 @@
             "playReversed": "เล่นเสียงสลับ",
             "stop": "หยุด",
             "download": "ดาวน์โหลดเสียงที่สลับแล้ว"
+        },
+        "audioToMidi": {
+            "title": "เครื่องมือแปลงเสียงเป็น MIDI (หลายเสียง)",
+            "description": "อัปโหลดไฟล์เสียงหรือวิดีโอเพื่อวิเคราะห์และแปลงคอร์ดและเมโลดี้เป็นโน้ต MIDI โดยไม่ต้องใช้ AI (รองรับหลายเสียง)",
+            "uploadMedia": "อัปโหลดเสียงหรือวิดีโอ",
+            "sourceMedia": "ไฟล์สื่อต้นฉบับ",
+            "changeFile": "เปลี่ยนไฟล์",
+            "errorSelectMedia": "กรุณาเลือกไฟล์เสียงหรือวิดีโอ",
+            "transform": "แปลงเป็น MIDI",
+            "transforming": "กำลังแปลง...",
+            "resultTitle": "ผลลัพธ์:",
+            "notesFound": "พบ {count} โน้ต",
+            "playMidi": "เล่น MIDI",
+            "stop": "หยุด",
+            "download": "ดาวน์โหลด (.wav)"
         }
     },
     "articles": {

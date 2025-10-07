@@ -169,6 +169,7 @@
         "tabAudio": "Audio Transformer",
         "tabImage": "Image Transformer",
         "tabReverser": "Audio Reverser",
+        "tabMidi": "Audio to MIDI",
         "chiptuneCreator": {
             "title": "Chiptune Creator",
             "description": "Upload an audio or video file and transform its sound into a retro 8-bit chiptune! This effect works locally in your browser.",
@@ -200,6 +201,21 @@
             "playReversed": "Play Reversed",
             "stop": "Stop",
             "download": "Download Reversed Audio"
+        },
+        "audioToMidi": {
+            "title": "Audio to MIDI Converter (Polyphonic)",
+            "description": "Upload an audio or video file to analyze and convert chords and melodies into MIDI notes, without using AI (Polyphonic).",
+            "uploadMedia": "Upload Audio or Video",
+            "sourceMedia": "Source Media",
+            "changeFile": "Change file",
+            "errorSelectMedia": "Please select an audio or video file.",
+            "transform": "Convert to MIDI",
+            "transforming": "Converting...",
+            "resultTitle": "Result:",
+            "notesFound": "{count} notes found",
+            "playMidi": "Play MIDI",
+            "stop": "Stop",
+            "download": "Download (.wav)"
         }
     },
     "articles": {

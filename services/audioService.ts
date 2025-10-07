@@ -803,3 +803,162 @@ export const extractAndReverseAudioFromFile = async (file: File): Promise<AudioB
     const decodedBuffer = await audioContext.decodeAudioData(arrayBuffer);
     return reverseAudioBuffer(decodedBuffer);
 };
+
+// --- New Polyphonic Offline Audio to MIDI conversion ---
+
+// FFT implementation (helper, not exported)
+function fft(buffer: Float32Array): { real: Float32Array, imag: Float32Array } {
+    const n = buffer.length;
+    if ((n & (n - 1)) !== 0) { // Not a power of 2
+        console.warn("FFT input size is not a power of 2. Results may be inaccurate.");
+    }
+    if (n <= 1) return { real: buffer, imag: new Float32Array(n).fill(0) };
+
+    const even = new Float32Array(n / 2);
+    const odd = new Float32Array(n / 2);
+    for (let i = 0; i < n / 2; i++) {
+        even[i] = buffer[2 * i];
+        odd[i] = buffer[2 * i + 1];
+    }
+
+    const { real: even_fft_real, imag: even_fft_imag } = fft(even);
+    const { real: odd_fft_real, imag: odd_fft_imag } = fft(odd);
+
+    const real = new Float32Array(n);
+    const imag = new Float32Array(n);
+
+    for (let k = 0; k < n / 2; k++) {
+        const angle = -2 * Math.PI * k / n;
+        const cos_angle = Math.cos(angle);
+        const sin_angle = Math.sin(angle);
+        
+        const t_real = cos_angle * odd_fft_real[k] - sin_angle * odd_fft_imag[k];
+        const t_imag = sin_angle * odd_fft_real[k] + cos_angle * odd_fft_imag[k];
+
+        real[k] = even_fft_real[k] + t_real;
+        imag[k] = even_fft_imag[k] + t_imag;
+        real[k + n / 2] = even_fft_real[k] - t_real;
+        imag[k + n / 2] = even_fft_imag[k] - t_imag;
+    }
+    return { real, imag };
+}
+
+
+function analyzePolyphonicFrequency(buffer: Float32Array, sampleRate: number): number[] {
+    const n = buffer.length;
+    
+    // Apply a window function (Hann) to reduce spectral leakage
+    const windowedBuffer = new Float32Array(n);
+    for (let i = 0; i < n; i++) {
+        windowedBuffer[i] = buffer[i] * (0.5 - 0.5 * Math.cos(2 * Math.PI * i / n));
+    }
+
+    const { real, imag } = fft(windowedBuffer);
+    const magnitudes = new Float32Array(n / 2);
+    for (let i = 0; i < n / 2; i++) {
+        magnitudes[i] = Math.sqrt(real[i] * real[i] + imag[i] * imag[i]);
+    }
+    
+    const peaks: { freq: number, mag: number }[] = [];
+    const avgMag = magnitudes.reduce((a, b) => a + b, 0) / magnitudes.length;
+    const threshold = avgMag * 5; // Peaks must be 5x the average noise floor
+
+    for (let i = 1; i < magnitudes.length - 1; i++) {
+        if (magnitudes[i] > magnitudes[i - 1] && magnitudes[i] > magnitudes[i + 1] && magnitudes[i] > threshold) {
+            const y1 = magnitudes[i-1], y2 = magnitudes[i], y3 = magnitudes[i+1];
+            const p = 0.5 * (y1 - y3) / (y1 - 2 * y2 + y3);
+            const peakIndex = i + p;
+            const freq = peakIndex * sampleRate / n;
+            peaks.push({ freq, mag: y2 });
+        }
+    }
+    
+    if (peaks.length === 0) return [];
+    
+    peaks.sort((a, b) => b.mag - a.mag);
+    
+    const MAX_NOTES = 6;
+    const potentialNotes = peaks.slice(0, MAX_NOTES * 3); 
+
+    const fundamentalNotes: { freq: number, mag: number }[] = [];
+    for (const peak of potentialNotes) {
+        if (peak.freq < 50) continue; // Ignore very low frequencies
+        let isHarmonic = false;
+        for (const fundamental of fundamentalNotes) {
+            const ratio = peak.freq / fundamental.freq;
+            const harmonicNumber = Math.round(ratio);
+            if (harmonicNumber > 1 && Math.abs(ratio - harmonicNumber) < 0.05 && peak.mag < fundamental.mag * 0.9) {
+                isHarmonic = true;
+                break;
+            }
+        }
+        if (!isHarmonic) {
+            fundamentalNotes.push(peak);
+        }
+    }
+    
+    const midiPitches = fundamentalNotes
+        .slice(0, MAX_NOTES)
+        .map(note => 69 + 12 * Math.log2(note.freq / 440))
+        .filter(midi => midi >= 21 && midi <= 108) // Piano range
+        .map(midi => Math.round(midi));
+
+    return [...new Set(midiPitches)];
+}
+
+
+export async function analyzeAudioBufferToMidi(buffer: AudioBuffer): Promise<MidiNote[]> {
+    if (!buffer) return [];
+    
+    const channelData = buffer.getChannelData(0); // Use mono
+    const sampleRate = buffer.sampleRate;
+    const chunkSize = 4096; // Power of 2 for FFT
+    const chunkDuration = chunkSize / sampleRate;
+
+    let activeNotes = new Map<number, { pitch: number, startTime: number, duration: number }>();
+    const finishedNotes: MidiNote[] = [];
+    
+    for (let offset = 0; offset + chunkSize <= channelData.length; offset += chunkSize) {
+        const chunk = channelData.slice(offset, offset + chunkSize);
+        const currentTime = offset / sampleRate;
+        const detectedPitches = analyzePolyphonicFrequency(chunk, sampleRate);
+        const detectedPitchesSet = new Set(detectedPitches);
+        const activePitchesSet = new Set(activeNotes.keys());
+
+        // Finish notes that have ended
+        for (const pitch of activePitchesSet) {
+            if (!detectedPitchesSet.has(pitch)) {
+                const finishedNote = activeNotes.get(pitch)!;
+                if (finishedNote.duration > chunkDuration * 1.5) { // Filter out very short notes
+                    finishedNotes.push(finishedNote);
+                }
+                activeNotes.delete(pitch);
+            }
+        }
+
+        // Extend or start notes
+        for (const pitch of detectedPitches) {
+            if (activeNotes.has(pitch)) {
+                activeNotes.get(pitch)!.duration += chunkDuration;
+            } else {
+                activeNotes.set(pitch, {
+                    pitch: pitch,
+                    startTime: currentTime,
+                    duration: chunkDuration
+                });
+            }
+        }
+    }
+
+    // Add any remaining active notes at the end of the audio
+    for (const note of activeNotes.values()) {
+        if (note.duration > chunkDuration * 1.5) {
+            finishedNotes.push(note);
+        }
+    }
+
+    // Sort notes by start time, just in case
+    finishedNotes.sort((a, b) => a.startTime - b.startTime);
+
+    return finishedNotes;
+}
