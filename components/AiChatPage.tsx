@@ -1,4 +1,5 @@
 
+
 import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { GoogleGenAI, LiveServerMessage, Modality, Blob } from '@google/genai';
 import * as geminiService from '../services/geminiService';
@@ -82,6 +83,7 @@ const ModelSelectionModal: React.FC<{
     const categories = useMemo(() => {
         // FIX: Added type guard. Although the prop `models` is typed as AiModel[], TypeScript can fail to infer it inside `useMemo`, treating it as `unknown`.
         // This `Array.isArray` check ensures `models` is an array before `.map` is called, preventing the error.
+// FIX: Added Array.isArray check to prevent calling .map on a non-array.
         if (!Array.isArray(models)) {
             return ['All'];
         }
@@ -91,6 +93,7 @@ const ModelSelectionModal: React.FC<{
 
     const filteredModels = useMemo(() => {
         // FIX: Added a type guard to ensure `models` is an array before calling array methods like `.filter`.
+// FIX: Added Array.isArray check to prevent calling .filter on a non-array.
         if (!Array.isArray(models)) {
             return [];
         }

@@ -88,15 +88,14 @@ export const FileChatPage: React.FC<FileChatPageProps> = ({ onClose, playSound, 
         playSound(audioService.playClick);
         setError(null);
         const userMessage: geminiService.FileChatMessage = { role: 'user', text: trimmedInput };
-        const currentMessages = [...messages, userMessage];
-        setMessages(currentMessages);
+        setMessages(prev => [...prev, userMessage]);
         setUserInput('');
         setIsLoading(true);
 
         try {
             const responseText = await geminiService.chatWithFile(
                 { base64: fileData.base64, mimeType: fileData.file.type },
-                // FIX: Pass only the previous messages. `messages` from the closure is correct as it doesn't include the new `userMessage` yet.
+// FIX: The complex filter/map was unnecessary and potentially buggy. Passing the `messages` array from the closure correctly represents the history before the current user message was added.
                 messages,
                 trimmedInput
             );
@@ -105,8 +104,6 @@ export const FileChatPage: React.FC<FileChatPageProps> = ({ onClose, playSound, 
         } catch (err) {
             setError(err instanceof Error ? err.message : 'เกิดข้อผิดพลาดในการสื่อสารกับ AI');
             playSound(audioService.playError);
-            // Revert optimistic update on error
-            setMessages(messages);
         } finally {
             setIsLoading(false);
         }

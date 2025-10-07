@@ -1,4 +1,5 @@
 
+
 import React, { useState, useMemo, useEffect } from 'react';
 import { LoadingSpinner } from './LoadingSpinner';
 import * as audioService from '../services/audioService';
@@ -60,6 +61,8 @@ import { ColorFinderPage } from './ColorFinderPage';
 import { useLanguage } from '../contexts/LanguageContext';
 import { AsteroidShooterIcon } from './icons/AsteroidShooterIcon';
 import { AsteroidShooterPage } from './AsteroidShooterPage';
+import { MinesweeperIcon } from './icons/MinesweeperIcon';
+import { MinesweeperPage } from './MinesweeperPage';
 
 interface MinigameHubPageProps {
     playSound: (player: () => void) => void;
@@ -72,7 +75,7 @@ type ActiveGame =
     | 'songSearch' | 'magicButton' | 'videoEditor'
     | 'guessThePrompt' | 'musicMemory' | 'fileChat' | 'analyzeMedia'
     | 'imageToCode' | 'mediaRecorder' | 'textToSpeech' | 'translator' | 'pixelSequencer'
-    | 'jumpingGame' | 'deviceDetails' | 'aiDetector' | 'talkingCat' | 'appPublisher' | 'musicAndSound' | 'colorFinder';
+    | 'jumpingGame' | 'deviceDetails' | 'aiDetector' | 'talkingCat' | 'appPublisher' | 'musicAndSound' | 'colorFinder' | 'minesweeper';
 
 const GameButton: React.FC<{ icon: React.ReactNode; title: string; description: string; onClick?: () => void; disabled?: boolean; comingSoon?: boolean; beta?: boolean; highScore?: number; }> = ({ icon, title, description, onClick, disabled, comingSoon, beta, highScore }) => (
     <div className="relative group h-full">
@@ -166,7 +169,8 @@ export const MinigameHubPage: React.FC<MinigameHubPageProps> = ({ playSound, isO
                 { icon: <GuessThePromptIcon className="w-16 h-16" />, title: "Guess The Prompt", description: "See an AI-generated image and try to guess what prompt was used to create it! Test your AI intuition.", onClick: () => handleLaunchGame('guessThePrompt'), disabled: !isOnline, beta: true },
                 { icon: <MusicInspectIcon className="w-16 h-16" />, title: "Music Inspector", description: "Test your musical memory! Listen to the AI's sequence and play it back correctly.", onClick: () => handleLaunchGame('musicMemory'), beta: true },
                 { icon: <WordMatchIcon className="w-16 h-16" />, title: "AI Word Match", description: "Enter any topic and have the AI generate creative associations.", onClick: () => handleLaunchGame('wordMatch'), disabled: !isOnline },
-                { icon: <TicTacToeIcon className="w-16 h-16" />, title: "Smart Tic-Tac-Toe", description: "Challenge a surprisingly smart AI in the classic game of Tic-Tac-Toe, or play with a friend.", onClick: () => handleLaunchGame('ticTacToe'), disabled: !isOnline }
+                { icon: <TicTacToeIcon className="w-16 h-16" />, title: "Smart Tic-Tac-Toe", description: "Challenge a surprisingly smart AI in the classic game of Tic-Tac-Toe, or play with a friend.", onClick: () => handleLaunchGame('ticTacToe'), disabled: !isOnline },
+                { icon: <MinesweeperIcon className="w-16 h-16" />, title: "Minesweeper", description: "The classic logic puzzle. Find the mines without setting one off!", onClick: () => handleLaunchGame('minesweeper') },
             ]
         },
         {
@@ -282,6 +286,9 @@ export const MinigameHubPage: React.FC<MinigameHubPageProps> = ({ playSound, isO
     }
     if (activeGame === 'colorFinder') {
         return <ColorFinderPage onClose={() => setActiveGame('hub')} playSound={playSound} isOnline={isOnline} />;
+    }
+    if (activeGame === 'minesweeper') {
+        return <MinesweeperPage onClose={() => setActiveGame('hub')} playSound={playSound} />;
     }
 
 

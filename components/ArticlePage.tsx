@@ -1,3 +1,4 @@
+
 import React, { useState, useMemo } from 'react';
 import { useLanguage } from '../contexts/LanguageContext';
 import * as audioService from '../services/audioService';
@@ -18,6 +19,33 @@ export interface Article {
 }
 
 const articlesData: Article[] = [
+    {
+        id: 'ai-game-creator',
+        titleKey: 'articles.aiGameCreator.title',
+        summaryKey: 'articles.aiGameCreator.summary',
+        contentKey: 'articles.aiGameCreator.content',
+        author: 'The Storyteller AI',
+        category: 'story',
+        voice: 'Kore',
+    },
+    {
+        id: 'minesweeper-release',
+        titleKey: 'articles.minesweeperRelease.title',
+        summaryKey: 'articles.minesweeperRelease.summary',
+        contentKey: 'articles.minesweeperRelease.content',
+        author: 'AI APPS Team',
+        category: 'article',
+        voice: 'Puck',
+    },
+     {
+        id: 'offline-ai-changes',
+        titleKey: 'articles.offlineAiChanges.title',
+        summaryKey: 'articles.offlineAiChanges.summary',
+        contentKey: 'articles.offlineAiChanges.content',
+        author: 'The Development Team',
+        category: 'article',
+        voice: 'Zephyr',
+    },
     {
         id: 'workshop-sound-update',
         titleKey: 'articles.workshopSoundUpdate.title',

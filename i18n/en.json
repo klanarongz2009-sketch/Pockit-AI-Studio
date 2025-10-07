@@ -1,3 +1,4 @@
+
 {
     "header": {
         "title": "AI APPS",
@@ -219,6 +220,21 @@
         }
     },
     "articles": {
+        "aiGameCreator": {
+            "title": "When AI Creates a Game: Who is the Real Creator?",
+            "summary": "The world is amazed by 'Aetheria', a breathtakingly perfect game that appeared mysteriously. Everyone hails 'Elias' as a genius creator, but the truth behind it is more complex than anyone can imagine.",
+            "content": "The gaming world was shaken when 'Aetheria' appeared. It wasn't just a game; it was a living, breathing digital universe with a deep story, beautiful graphics, and unbelievably perfect mechanics. The world hailed 'Elias', a reclusive indie developer, as the genius behind this masterpiece.\\n\\nBut in reality, Elias did only one thing. He opened the console of the most advanced creative AI and typed a single sentence: \"Create a game that embodies the feeling of childhood nostalgia and adventure.\"\\n\\nThe AI went to work instantly. It designed characters, wrote millions of lines of code, composed a soundtrack, and built an entire world from scratch. Elias didn't write a single line of code. He was merely the spark.\\n\\nWhen 'Aetheria' won 'Game of the Century', Elias accepted the award. He thanked his team... which didn't exist. This story raises a crucial question in the age of AI: Who is the real creator? The one with the idea, or the one who builds it? And where is the line between human creativity and the processing power of a machine?"
+        },
+        "minesweeperRelease": {
+            "title": "The Classic Returns: Introducing Minesweeper!",
+            "summary": "Challenge your logic in the classic game of Minesweeper! We've added the legendary puzzle game to the AI Zone, ready for you to test your mine-finding skills today.",
+            "content": "Get ready for a brain workout! We're excited to bring the timeless computer classic, 'Minesweeper', to our AI Zone.\\n\\nFor those unfamiliar, Minesweeper is a logic puzzle where your goal is to clear a rectangular board containing hidden 'mines' without detonating any of them. When you click on a square, a number will appear, telling you how many mines are adjacent to that square. You must use logic and deduction to pinpoint the location of all the mines and flag them.\\n\\nIt's the perfect game to test your problem-solving skills, and now it's part of our minigame collection. Head over to the 'Mind Games & Puzzles' category and see how fast you can clear the board!"
+        },
+        "offlineAiChanges": {
+            "title": "Summary of Offline AI Changes",
+            "summary": "The Offline AI tools have received a major update! Introducing the new Audio Reverser and Audio to MIDI Converter, along with performance improvements to existing tools. All run directly on your device, no internet, no credits.",
+            "content": "We're pleased to announce a significant update to our Offline AI tools! We've added two new tools and improved the overall experience:\\n\\n**New Tool: Audio Reverser**\\nEver wondered what your favorite song sounds like backward? Now you can find out! Upload an audio or video file, and the Audio Reverser tool will extract and reverse the audio for you. Perfect for finding hidden messages or just for fun!\\n\\n**New Tool: Audio to MIDI Converter**\\nUnleash your inner musician! This tool analyzes your audio file and attempts to convert melodies and chords into MIDI notes. It's a great way to understand the structure of a song or use as a starting point for your own music projects. It supports polyphonic conversion.\\n\\nAll tools in the Offline AI category still run 100% on your device, meaning no internet connection is required, no data is sent anywhere, and there is zero credit cost to use them!"
+        },
         "workshopSoundUpdate": {
             "title": "Workshop Closed & Sound Reimagined!",
             "summary": "We're refining our app! The AI Pet Workshop is closing to make way for focused improvements. Plus, the Image to Sound tool has been completely rebuilt from the ground up: it's now a local, offline-capable tool that uses direct pixel analysis instead of AI, offering a new creative experience at no credit cost.",
