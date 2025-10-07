@@ -49,7 +49,7 @@ const analyzeImageToSound = (imageUrl: string): Promise<SoundEffectParameters> =
             const scale = Math.min(1, MAX_WIDTH / img.width);
             canvas.width = img.width * scale;
             canvas.height = img.height * scale;
-            const ctx = canvas.getContext('2d', { willReadFrequently: true });
+            const ctx = canvas.getContext('2d');
             if (!ctx) return reject(new Error("Failed to get canvas context."));
             ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
             const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
@@ -90,7 +90,7 @@ const analyzeImageToSongEnhanced = (imageUrl: string, steps: number = 32): Promi
             const canvas = document.createElement('canvas');
             canvas.width = steps;
             canvas.height = steps;
-            const ctx = canvas.getContext('2d', { willReadFrequently: true });
+            const ctx = canvas.getContext('2d');
             if (!ctx) return reject(new Error("Failed to get canvas context."));
             ctx.drawImage(img, 0, 0, steps, steps);
 
@@ -187,7 +187,7 @@ const transformImageToGlyphCode = (imageUrl: string, gridWidth: number = 48): Pr
             canvas.width = gridWidth;
             canvas.height = gridHeight;
 
-            const ctx = canvas.getContext('2d', { willReadFrequently: true });
+            const ctx = canvas.getContext('2d');
             if (!ctx) return reject(new Error("Failed to get canvas context."));
 
             ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
@@ -234,7 +234,7 @@ const transformImageToEmoji = (imageUrl: string, gridWidth: number = 24): Promis
             const gridHeight = Math.round(gridWidth / aspectRatio);
             canvas.width = gridWidth;
             canvas.height = gridHeight;
-            const ctx = canvas.getContext('2d', { willReadFrequently: true });
+            const ctx = canvas.getContext('2d');
             if (!ctx) return reject(new Error("Failed to get canvas context."));
             ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
             
@@ -266,7 +266,7 @@ const analyzeImageLocally = (imageUrl: string): Promise<LocalColorResult[]> => {
             const scale = Math.min(1, MAX_DIM / img.width, MAX_DIM / img.height);
             canvas.width = img.width * scale;
             canvas.height = img.height * scale;
-            const ctx = canvas.getContext('2d', { willReadFrequently: true });
+            const ctx = canvas.getContext('2d');
             if (!ctx) return reject(new Error("Could not get canvas context"));
             
             ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
@@ -400,7 +400,7 @@ export const ImageToSoundPage: React.FC<NonAiCreativePageProps> = ({ onClose, pl
                 case 'videoCode':
                     const video = document.createElement('video');
                     const canvas = document.createElement('canvas');
-                    const ctx = canvas.getContext('2d', { willReadFrequently: true });
+                    const ctx = canvas.getContext('2d');
                     if (!ctx) throw new Error("Could not get canvas context");
                     
                     const frames: string[] = [];
