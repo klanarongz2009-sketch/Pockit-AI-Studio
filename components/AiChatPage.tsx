@@ -81,9 +81,8 @@ const ModelSelectionModal: React.FC<{
     const [searchQuery, setSearchQuery] = useState('');
     const { t } = useLanguage();
     const categories = useMemo(() => {
-        // FIX: The error "Property 'map' does not exist on type 'unknown'" occurs here.
-        // Although the prop `models` is typed as AiModel[], TypeScript can sometimes fail to infer it inside a useMemo hook, treating it as `unknown`.
-        // Adding an explicit `Array.isArray` check acts as a type guard, ensuring `models` is treated as an array before `map` is called.
+        // FIX: Added type guard. Although the prop `models` is typed as AiModel[], TypeScript can fail to infer it inside `useMemo`, treating it as `unknown`.
+        // This `Array.isArray` check ensures `models` is an array before `.map` is called, preventing the error.
         if (!Array.isArray(models)) {
             return ['All'];
         }
@@ -92,7 +91,7 @@ const ModelSelectionModal: React.FC<{
     const [activeCategory, setActiveCategory] = useState<'All' | AiModel['category']>('All');
 
     const filteredModels = useMemo(() => {
-        // FIX: Add a type guard to ensure `models` is an array before calling array methods.
+        // FIX: Added a type guard to ensure `models` is an array before calling array methods like `.filter`.
         if (!Array.isArray(models)) {
             return [];
         }

@@ -44,7 +44,7 @@ const analyzeImageToSound = (imageUrl: string): Promise<SoundEffectParameters> =
             const scale = Math.min(1, MAX_WIDTH / img.width);
             canvas.width = img.width * scale;
             canvas.height = img.height * scale;
-            // FIX: Removed second argument from getContext to resolve "Expected 1 arguments, but got 2" error.
+            // FIX: Removed the second argument from `getContext` to match the expected signature and resolve the "Expected 1 arguments, but got 2" error.
             const ctx = canvas.getContext('2d');
             if (!ctx) return reject(new Error("Failed to get canvas context."));
             ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
@@ -85,7 +85,7 @@ const analyzeImageToSongEnhanced = (imageUrl: string, steps: number = 32): Promi
             const canvas = document.createElement('canvas');
             canvas.width = steps;
             canvas.height = steps;
-            // FIX: Removed second argument from getContext to resolve "Expected 1 arguments, but got 2" error.
+            // FIX: Removed the second argument from `getContext` to match the expected signature and resolve the "Expected 1 arguments, but got 2" error.
             const ctx = canvas.getContext('2d');
             if (!ctx) return reject(new Error("Failed to get canvas context."));
             ctx.drawImage(img, 0, 0, steps, steps);
@@ -152,6 +152,8 @@ const analyzeImageToSongEnhanced = (imageUrl: string, steps: number = 32): Promi
     });
 };
 
+
+// --- Image to Glyph Code Logic ---
 const GLYPHS = '`.-=+#@█';
 const transformCanvasToGlyphCode = (canvas: HTMLCanvasElement, ctx: CanvasRenderingContext2D): string => {
     const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
@@ -181,7 +183,7 @@ const transformImageToGlyphCode = (imageUrl: string, gridWidth: number = 48): Pr
             canvas.width = gridWidth;
             canvas.height = gridHeight;
 
-            // FIX: Removed second argument from getContext to resolve "Expected 1 arguments, but got 2" error.
+            // FIX: Removed the second argument from `getContext` to match the expected signature and resolve the "Expected 1 arguments, but got 2" error.
             const ctx = canvas.getContext('2d');
             if (!ctx) return reject(new Error("Failed to get canvas context."));
 
@@ -193,6 +195,7 @@ const transformImageToGlyphCode = (imageUrl: string, gridWidth: number = 48): Pr
     });
 };
 
+// --- Image to Emoji Logic ---
 const EMOJI_PALETTE = [
     { emoji: '⬛', color: [30, 30, 30] }, { emoji: '⬜', color: [240, 240, 240] },
     { emoji: '🟥', color: [220, 40, 40] }, { emoji: '🟧', color: [255, 140, 0] },
@@ -228,7 +231,7 @@ const transformImageToEmoji = (imageUrl: string, gridWidth: number = 24): Promis
             const gridHeight = Math.round(gridWidth / aspectRatio);
             canvas.width = gridWidth;
             canvas.height = gridHeight;
-            // FIX: Removed second argument from getContext to resolve "Expected 1 arguments, but got 2" error.
+            // FIX: Removed the second argument from `getContext` to match the expected signature and resolve the "Expected 1 arguments, but got 2" error.
             const ctx = canvas.getContext('2d');
             if (!ctx) return reject(new Error("Failed to get canvas context."));
             ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
@@ -249,6 +252,7 @@ const transformImageToEmoji = (imageUrl: string, gridWidth: number = 24): Promis
 };
 
 
+// --- Local Color Analysis Logic ---
 interface LocalColorResult { hex: string; count: number; }
 const analyzeImageLocally = (imageUrl: string): Promise<LocalColorResult[]> => {
     return new Promise((resolve, reject) => {
@@ -260,7 +264,7 @@ const analyzeImageLocally = (imageUrl: string): Promise<LocalColorResult[]> => {
             const scale = Math.min(1, MAX_DIM / img.width, MAX_DIM / img.height);
             canvas.width = img.width * scale;
             canvas.height = img.height * scale;
-            // FIX: Removed second argument from getContext to resolve "Expected 1 arguments, but got 2" error.
+            // FIX: Removed the second argument from `getContext` to match the expected signature and resolve the "Expected 1 arguments, but got 2" error.
             const ctx = canvas.getContext('2d');
             if (!ctx) return reject(new Error("Could not get canvas context"));
             
@@ -283,6 +287,49 @@ const analyzeImageLocally = (imageUrl: string): Promise<LocalColorResult[]> => {
     });
 };
 
+
+export const OfflineAiPage: React.FC<OfflineAiPageProps> = ({ playSound }) => {
+    const { t } = useLanguage();
+    const [activeTab, setActiveTab] = useState<ActiveTab>('audio');
+
+    return (
+        <div className="w-full h-full flex flex-col items-center px-4">
+             <h1 className="text-3xl sm:text-4xl text-brand-yellow text-center drop-shadow-[3px_3px_0_#000] mb-2">{t('offlineAiPage.title')}</h1>
+             <p className="text-sm text-center text-brand-light/80 mb-6">{t('offlineAiPage.description')}</p>
+            
+            <div className="w-full max-w-2xl mb-4 flex justify-center gap-1 p-1 bg-black/50">
+                <button onClick={() => { playSound(audioService.playClick); setActiveTab('audio'); }} className={`flex items-center justify-center gap-2 flex-1 py-2 px-1 text-xs font-press-start border-2 transition-colors ${activeTab === 'audio' ? 'bg-brand-yellow text-black border-black' : 'bg-surface-primary border-transparent text-text-primary hover:bg-brand-cyan/20'}`}>
+                   <AudioTransformIcon className="w-5 h-5" /> {t('offlineAiPage.tabAudio')}
+                </button>
+                <button onClick={() => { playSound(audioService.playClick); setActiveTab('image'); }} className={`flex items-center justify-center gap-2 flex-1 py-2 px-1 text-xs font-press-start border-2 transition-colors ${activeTab === 'image' ? 'bg-brand-yellow text-black border-black' : 'bg-surface-primary border-transparent text-text-primary hover:bg-brand-cyan/20'}`}>
+                   <ImageSoundIcon className="w-5 h-5" /> {t('offlineAiPage.tabImage')}
+                </button>
+                 <button onClick={() => { playSound(audioService.playClick); setActiveTab('reverser'); }} className={`flex items-center justify-center gap-2 flex-1 py-2 px-1 text-xs font-press-start border-2 transition-colors ${activeTab === 'reverser' ? 'bg-brand-yellow text-black border-black' : 'bg-surface-primary border-transparent text-text-primary hover:bg-brand-cyan/20'}`}>
+                   <ReverseIcon className="w-5 h-5" /> {t('offlineAiPage.tabReverser')}
+                </button>
+                 <button onClick={() => { playSound(audioService.playClick); setActiveTab('midi'); }} className={`flex items-center justify-center gap-2 flex-1 py-2 px-1 text-xs font-press-start border-2 transition-colors ${activeTab === 'midi' ? 'bg-brand-yellow text-black border-black' : 'bg-surface-primary border-transparent text-text-primary hover:bg-brand-cyan/20'}`}>
+                   <MusicKeyboardIcon className="w-5 h-5" /> {t('offlineAiPage.tabMidi')}
+                </button>
+            </div>
+
+            <div className="w-full max-w-lg flex flex-col items-center gap-6 font-sans">
+                {activeTab === 'audio' && (
+                    <ChiptuneCreator playSound={playSound} t={t} />
+                )}
+                {activeTab === 'image' && (
+                    <ImageTransformerTool playSound={playSound} t={t} />
+                )}
+                 {activeTab === 'reverser' && (
+                    <AudioReverserTool playSound={playSound} t={t} />
+                )}
+                {activeTab === 'midi' && (
+                    <AudioToMidiTool playSound={playSound} t={t} />
+                )}
+            </div>
+        </div>
+    );
+};
+// --- End Helper Functions ---
 
 const ChiptuneCreator = ({ playSound, t }: { playSound: (player: () => void) => void; t: (key: string) => string; }) => {
     const [uploadedFile, setUploadedFile] = useState<File | null>(null);
@@ -854,7 +901,7 @@ const ImageTransformerTool = ({ playSound, t }: { playSound: (player: () => void
                 case 'videoCode':
                     const video = document.createElement('video');
                     const canvas = document.createElement('canvas');
-                    // FIX: Removed second argument from getContext to resolve "Expected 1 arguments, but got 2" error.
+                    // FIX: Removed the second argument from `getContext` to match the expected signature and resolve the "Expected 1 arguments, but got 2" error.
                     const ctx = canvas.getContext('2d');
                     if (!ctx) throw new Error("Could not get canvas context");
                     
