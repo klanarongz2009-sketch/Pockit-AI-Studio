@@ -1,10 +1,10 @@
+
 import React, { useState, useCallback, useEffect } from 'react';
 import * as geminiService from '../services/geminiService';
 import * as audioService from '../services/audioService';
 import { PageWrapper, PageHeader } from './PageComponents';
 import { LoadingSpinner } from './LoadingSpinner';
 import { SparklesIcon } from './icons/SparklesIcon';
-import { useCredits, CREDIT_COSTS } from '../contexts/CreditContext';
 import { useLanguage } from '../contexts/LanguageContext';
 import { CopyIcon } from './icons/CopyIcon';
 
@@ -21,16 +21,9 @@ export const AppPublisherPage: React.FC<AppPublisherPageProps> = ({ onClose, pla
     const [error, setError] = useState<string | null>(null);
     const [result, setResult] = useState<geminiService.AppProfile | null>(null);
     const [copiedItem, setCopiedItem] = useState<string | null>(null);
-    const { credits, spendCredits, addCredits } = useCredits();
 
     const handleGenerate = useCallback(async () => {
         if (!appIdea.trim() || isLoading || !isOnline) return;
-
-        if (!spendCredits(CREDIT_COSTS.APP_PUBLISHER)) {
-            setError(`Not enough credits! This action requires ${CREDIT_COSTS.APP_PUBLISHER} credits.`);
-            playSound(audioService.playError);
-            return;
-        }
 
         playSound(audioService.playGenerate);
         setIsLoading(true);
@@ -42,14 +35,13 @@ export const AppPublisherPage: React.FC<AppPublisherPageProps> = ({ onClose, pla
             setResult(profile);
             playSound(audioService.playSuccess);
         } catch (err) {
-            addCredits(CREDIT_COSTS.APP_PUBLISHER); // Refund on error
             playSound(audioService.playError);
             const errorMessage = err instanceof Error ? err.message : 'Failed to generate app profile.';
             setError(errorMessage);
         } finally {
             setIsLoading(false);
         }
-    }, [appIdea, isLoading, isOnline, playSound, spendCredits, addCredits, credits]);
+    }, [appIdea, isLoading, isOnline, playSound]);
 
     const handleCopy = (text: string, itemName: string) => {
         navigator.clipboard.writeText(text);
@@ -95,7 +87,7 @@ export const AppPublisherPage: React.FC<AppPublisherPageProps> = ({ onClose, pla
                         className="w-full flex items-center justify-center gap-3 p-3 bg-brand-magenta text-white border-4 border-brand-light shadow-pixel text-base transition-all hover:bg-brand-yellow hover:text-black disabled:bg-gray-500"
                     >
                         <SparklesIcon className="w-5 h-5"/>
-                        {isLoading ? t('appPublisher.loadingText') : `${t('appPublisher.generateButton')} (${CREDIT_COSTS.APP_PUBLISHER} ${t('appPublisher.credits')})`}
+                        {isLoading ? t('appPublisher.loadingText') : t('appPublisher.generateButton')}
                     </button>
                 </div>
 

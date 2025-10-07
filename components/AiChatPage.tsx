@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { GoogleGenAI, LiveServerMessage, Modality, Blob } from '@google/genai';
 import * as geminiService from '../services/geminiService';
@@ -22,8 +23,6 @@ import { MicrophoneIcon } from './icons/MicrophoneIcon';
 import { StopIcon } from './icons/StopIcon';
 import { SpeakerOnIcon } from './icons/SpeakerOnIcon';
 import type { Message } from '../services/preferenceService';
-// FIX: Added missing import for the useCredits hook.
-import { useCredits } from '../contexts/CreditContext';
 
 // --- Gemini Live API Helper Functions ---
 function encode(bytes: Uint8Array) {
@@ -216,7 +215,6 @@ export const AiChatPage: React.FC<AiChatPageProps> = ({ isOnline, playSound }) =
     
     const messagesEndRef = useRef<HTMLDivElement>(null);
     const fileInputRef = useRef<HTMLInputElement>(null);
-    const { spendCredits } = useCredits();
 
     useEffect(() => {
         messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -260,11 +258,6 @@ export const AiChatPage: React.FC<AiChatPageProps> = ({ isOnline, playSound }) =
     const handleSendMessage = useCallback(async (messageText?: string) => {
         const textToSend = (messageText || userInput).trim();
         if ((!textToSend && !fileData) || isLoading || !isOnline) return;
-
-        if (!spendCredits(1)) {
-            setError("Not enough credits to send a message.");
-            return;
-        }
 
         playSound(audioService.playClick);
         setError(null);
@@ -310,7 +303,7 @@ export const AiChatPage: React.FC<AiChatPageProps> = ({ isOnline, playSound }) =
         } finally {
             setIsLoading(false);
         }
-    }, [userInput, isLoading, isOnline, playSound, spendCredits, selectedModel, webSearchEnabled, fileData, messages]);
+    }, [userInput, isLoading, isOnline, playSound, selectedModel, webSearchEnabled, fileData, messages]);
 
     const handleRegenerate = useCallback(async () => {
         const lastUserMessage = messages.filter(m => m.role === 'user').pop();

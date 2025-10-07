@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { SparklesIcon } from './icons/SparklesIcon';
 import { GamepadIcon } from './icons/GamepadIcon';
@@ -7,7 +8,6 @@ import { SendIcon } from './icons/SendIcon';
 import { LoadingSpinner } from './LoadingSpinner';
 import * as audioService from '../services/audioService';
 import { analyzeFeedback } from '../services/geminiService';
-import { useCredits, CREDIT_COSTS } from '../contexts/CreditContext';
 import { PageHeader, PageWrapper } from './PageComponents';
 
 interface AboutPageProps {
@@ -47,16 +47,9 @@ const FeedbackSection: React.FC<{ playSound: (player: () => void) => void; isOnl
     const [summary, setSummary] = useState<string | null>(null);
     const [isSubmitted, setIsSubmitted] = useState(false);
     const [wasAnalyzed, setWasAnalyzed] = useState(false);
-    const { spendCredits, credits } = useCredits();
 
     const handleAnalyze = async () => {
         if (!feedback.trim() || !isOnline) return;
-
-        if (!spendCredits(CREDIT_COSTS.FEEDBACK_ANALYSIS)) {
-            setError(`Not enough credits! This action requires ${CREDIT_COSTS.FEEDBACK_ANALYSIS} credits, but you have ${Math.floor(credits)}.`);
-            playSound(audioService.playError);
-            return;
-        }
 
         playSound(audioService.playClick);
         setIsSummaryLoading(true);
@@ -125,7 +118,7 @@ const FeedbackSection: React.FC<{ playSound: (player: () => void) => void; isOnl
                         className="w-full flex items-center justify-center gap-2 p-3 bg-brand-cyan text-black border-2 border-border-primary shadow-sm transition-all hover:bg-brand-yellow disabled:bg-gray-500 disabled:cursor-not-allowed"
                     >
                         <SparklesIcon className="w-5 h-5" />
-                        {isSummaryLoading ? 'Analyzing...' : `Analyze with AI (${CREDIT_COSTS.FEEDBACK_ANALYSIS} Credits)`}
+                        {isSummaryLoading ? 'Analyzing...' : 'Analyze with AI'}
                     </button>
                     <button
                         onClick={handleSubmit}

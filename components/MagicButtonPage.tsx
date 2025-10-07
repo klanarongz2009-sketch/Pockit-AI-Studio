@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useCallback } from 'react';
 import { PageHeader, PageWrapper } from './PageComponents';
 import * as audioService from '../services/audioService';
@@ -5,16 +6,15 @@ import * as audioService from '../services/audioService';
 interface MagicButtonPageProps {
     onClose: () => void;
     playSound: (player: () => void) => void;
-    addCredits: (amount: number) => void;
 }
 
-export const MagicButtonPage: React.FC<MagicButtonPageProps> = ({ onClose, playSound, addCredits }) => {
+export const MagicButtonPage: React.FC<MagicButtonPageProps> = ({ onClose, playSound }) => {
     const [pressCount, setPressCount] = useState(0);
 
     const handlePress = useCallback(() => {
-        addCredits(1);
+        playSound(audioService.playClick);
         setPressCount(prevCount => prevCount + 1);
-    }, [addCredits]);
+    }, [playSound]);
 
     return (
         <PageWrapper className="justify-start">
@@ -40,9 +40,6 @@ export const MagicButtonPage: React.FC<MagicButtonPageProps> = ({ onClose, playS
                         <span className="text-4xl text-brand-yellow">{pressCount.toLocaleString('th-TH')}</span>
                         <br />
                         ครั้ง
-                    </p>
-                    <p className="font-sans text-sm text-brand-light/80 mt-2">
-                        และได้รับ <strong className="text-brand-yellow">{pressCount.toLocaleString('th-TH')}</strong> เครดิต!
                     </p>
                 </div>
             </main>

@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { PageWrapper } from './PageComponents';
 import * as audioService from '../services/audioService';
@@ -5,7 +6,6 @@ import * as audioService from '../services/audioService';
 interface JumpingGameProps {
     onClose: () => void;
     playSound: (player: () => void) => void;
-    addCredits: (amount: number) => void;
 }
 
 const GAME_WIDTH = 640;
@@ -26,7 +26,7 @@ interface GameObject {
     type: 'obstacle' | 'credit';
 }
 
-export const JumpingGame: React.FC<JumpingGameProps> = ({ onClose, playSound, addCredits }) => {
+export const JumpingGame: React.FC<JumpingGameProps> = ({ onClose, playSound }) => {
     const canvasRef = useRef<HTMLCanvasElement>(null);
     const gameLoopRef = useRef<number | null>(null);
     const playerY = useRef(GROUND_Y - PLAYER_HEIGHT);
@@ -122,7 +122,6 @@ export const JumpingGame: React.FC<JumpingGameProps> = ({ onClose, playSound, ad
                     return;
                 }
                 if (obj.type === 'credit') {
-                    addCredits(300);
                     playSound(audioService.playCreditAdd);
                     objects.current = objects.current.filter(o => o !== obj);
                 }
@@ -149,7 +148,7 @@ export const JumpingGame: React.FC<JumpingGameProps> = ({ onClose, playSound, ad
         ctx.fillRect(0, GROUND_Y, GAME_WIDTH, GAME_HEIGHT - GROUND_Y);
 
         gameLoopRef.current = requestAnimationFrame(gameLoop);
-    }, [gameState, playSound, addCredits, score]);
+    }, [gameState, playSound, score]);
     
     useEffect(() => {
         gameLoopRef.current = requestAnimationFrame(gameLoop);

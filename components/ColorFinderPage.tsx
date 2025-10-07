@@ -1,3 +1,4 @@
+
 import React, { useState, useRef, useCallback } from 'react';
 import * as geminiService from '../services/geminiService';
 import * as audioService from '../services/audioService';
@@ -5,7 +6,6 @@ import { PageHeader, PageWrapper } from './PageComponents';
 import { UploadIcon } from './icons/UploadIcon';
 import { LoadingSpinner } from './LoadingSpinner';
 import { SparklesIcon } from './icons/SparklesIcon';
-import { useCredits } from '../contexts/CreditContext';
 import { CopyIcon } from './icons/CopyIcon';
 import { useLanguage } from '../contexts/LanguageContext';
 
@@ -14,8 +14,6 @@ interface ColorFinderPageProps {
     playSound: (player: () => void) => void;
     isOnline: boolean;
 }
-
-const CREDIT_COST = 5;
 
 export const ColorFinderPage: React.FC<ColorFinderPageProps> = ({ onClose, playSound, isOnline }) => {
     const { t } = useLanguage();
@@ -27,7 +25,6 @@ export const ColorFinderPage: React.FC<ColorFinderPageProps> = ({ onClose, playS
     const [copiedHex, setCopiedHex] = useState<string | null>(null);
 
     const fileInputRef = useRef<HTMLInputElement>(null);
-    const { credits, spendCredits } = useCredits();
 
     const resetState = (clearFile: boolean = false) => {
         setIsLoading(false);
@@ -69,11 +66,6 @@ export const ColorFinderPage: React.FC<ColorFinderPageProps> = ({ onClose, playS
         if (!uploadedFile || isLoading || !isOnline) return;
 
         resetState();
-        if (!spendCredits(CREDIT_COST)) {
-            setError(`Not enough credits! This action requires ${CREDIT_COST} credits.`);
-            playSound(audioService.playError);
-            return;
-        }
         
         playSound(audioService.playGenerate);
         setIsLoading(true);
@@ -88,7 +80,7 @@ export const ColorFinderPage: React.FC<ColorFinderPageProps> = ({ onClose, playS
         } finally {
             setIsLoading(false);
         }
-    }, [uploadedFile, isLoading, isOnline, playSound, spendCredits, credits]);
+    }, [uploadedFile, isLoading, isOnline, playSound]);
 
     const handleCopy = (hex: string) => {
         navigator.clipboard.writeText(hex);
@@ -127,7 +119,7 @@ export const ColorFinderPage: React.FC<ColorFinderPageProps> = ({ onClose, playS
                             className="w-full flex items-center justify-center gap-3 p-4 bg-brand-magenta text-white border-4 border-brand-light shadow-pixel text-base transition-all hover:bg-brand-yellow hover:text-black active:shadow-pixel-active active:translate-y-[2px] active:translate-x-[2px] disabled:bg-gray-500 disabled:cursor-not-allowed"
                         >
                             <SparklesIcon className="w-6 h-6" />
-                            {isLoading ? t('colorFinder.loading') : `${t('colorFinder.button')} (${CREDIT_COST} เครดิต)`}
+                            {isLoading ? t('colorFinder.loading') : t('colorFinder.button')}
                         </button>
                     </div>
                 )}

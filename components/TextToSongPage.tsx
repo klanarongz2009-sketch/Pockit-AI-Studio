@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { Song } from '../services/geminiService';
 import { generateSongFromText } from '../services/geminiService';
@@ -10,7 +11,6 @@ import { PlayIcon } from './icons/PlayIcon';
 import { StopIcon } from './icons/StopIcon';
 import { DownloadIcon } from './icons/DownloadIcon';
 import { TrashIcon } from './icons/TrashIcon';
-import { useCredits } from '../contexts/CreditContext';
 import { showNotification } from '../services/notificationService';
 import { AudioVisualizer } from './icons/AudioVisualizer';
 import type { HistoryItem, ModelVersion } from '../services/preferenceService';
@@ -51,7 +51,6 @@ export const TextToSongPage: React.FC<TextToSongPageProps> = ({
     
     const [history, setHistory] = useState<HistoryItem[]>(() => preferenceService.getPreference('songHistory', []));
     const [currentlyPlayingId, setCurrentlyPlayingId] = useState<string | null>(null);
-    const { credits, spendCredits } = useCredits();
     const cancellationRequested = useRef(false);
 
     useEffect(() => {
@@ -82,14 +81,6 @@ export const TextToSongPage: React.FC<TextToSongPageProps> = ({
     const handleGenerateSong = useCallback(async () => {
         if (!inputText.trim() || isLoading || !isOnline) return;
 
-        if (modelVersion === 'v2.0-beta') {
-            if (!spendCredits(10)) {
-                setError(`เครดิตไม่เพียงพอ! ต้องการ 10 เครดิต แต่คุณมี ${credits.toFixed(2)} เครดิต`);
-                playSound(audioService.playError);
-                return;
-            }
-        }
-
         cancellationRequested.current = false;
         playSound(audioService.playGenerate);
         setIsLoading(true);
@@ -101,14 +92,6 @@ export const TextToSongPage: React.FC<TextToSongPageProps> = ({
             const song = await generateSongFromText(inputText, modelVersion);
             
             if (cancellationRequested.current) return;
-
-            if (modelVersion === 'v1.5') {
-                const cost = song.flat().length;
-                if (!spendCredits(cost)) {
-                    setError(`เครดิตไม่เพียงพอสำหรับเพลงนี้! ต้องการ ${cost} เครดิต (1 ต่อโน้ต) แต่คุณมีไม่พอ เครดิตของคุณอาจติดลบ`);
-                    playSound(audioService.playError);
-                }
-            }
 
             setGeneratedSong(song);
             
@@ -139,7 +122,7 @@ export const TextToSongPage: React.FC<TextToSongPageProps> = ({
         } finally {
             setIsLoading(false);
         }
-    }, [inputText, isLoading, playSound, isOnline, modelVersion, credits, spendCredits]);
+    }, [inputText, isLoading, playSound, isOnline, modelVersion]);
 
     const handlePlaybackToggle = useCallback((song: Song | null, songId: string) => {
         if (currentlyPlayingId === songId) {
@@ -254,7 +237,7 @@ export const TextToSongPage: React.FC<TextToSongPageProps> = ({
                                     disabled={isLoading}
                                 />
                                 <div className="font-sans">
-                                    <span className="text-sm">V1 (มาตรฐาน) - <span className="text-brand-lime">ฟรี</span></span>
+                                    <span className="text-sm">V1 (มาตรฐาน)</span>
                                     <p className="text-xs text-brand-light/70">คุณภาพดี, สร้างเร็ว, เหมาะสำหรับเพลงสั้นๆ</p>
                                 </div>
                             </label>
@@ -269,7 +252,7 @@ export const TextToSongPage: React.FC<TextToSongPageProps> = ({
                                     disabled={isLoading}
                                 />
                                 <div className="font-sans">
-                                    <span className="text-sm">V1.5 (ขั้นสูง) - <span className="text-brand-yellow">1 เครดิต/โน้ต</span></span>
+                                    <span className="text-sm">V1.5 (ขั้นสูง)</span>
                                     <p className="text-xs text-brand-light/70">เพลงยาวขึ้น, มีเครื่องดนตรี 5 ชิ้น</p>
                                 </div>
                             </label>
@@ -284,7 +267,7 @@ export const TextToSongPage: React.FC<TextToSongPageProps> = ({
                                     disabled={isLoading}
                                 />
                                 <div className="font-sans">
-                                    <span className="text-sm">V2.0 Beta - <span className="text-brand-yellow">10 เครดิต</span></span>
+                                    <span className="text-sm">V2.0 Beta</span>
                                     <p className="text-xs text-brand-light/70">สร้างเร็วพิเศษ, ความยาวประมาณ 3 นาที, 6 แทร็ก</p>
                                 </div>
                                 <div className="absolute top-0 right-0 bg-brand-magenta text-white text-[8px] font-press-start px-1 border border-black" aria-hidden="true">ทดลอง</div>

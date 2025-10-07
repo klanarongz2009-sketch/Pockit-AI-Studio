@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { PageWrapper } from './PageComponents';
 import * as audioService from '../services/audioService';
@@ -6,7 +7,6 @@ import * as preferenceService from '../services/preferenceService';
 interface SnakeGameProps {
     onClose: () => void;
     playSound: (player: () => void) => void;
-    addCredits: (amount: number) => void;
 }
 
 const GAME_WIDTH = 640;
@@ -17,7 +17,7 @@ const COLS = GAME_WIDTH / GRID_SIZE;
 
 type Direction = 'UP' | 'DOWN' | 'LEFT' | 'RIGHT';
 
-export const SnakeGame: React.FC<SnakeGameProps> = ({ onClose, playSound, addCredits }) => {
+export const SnakeGame: React.FC<SnakeGameProps> = ({ onClose, playSound }) => {
     const canvasRef = useRef<HTMLCanvasElement>(null);
     const gameLoopRef = useRef<number | null>(null);
     
@@ -219,7 +219,6 @@ export const SnakeGame: React.FC<SnakeGameProps> = ({ onClose, playSound, addCre
         if (head.x === food.x && head.y === food.y) {
             setScore(s => s + 10);
             playSound(audioService.playScore);
-            addCredits(1);
             generateFood(newSnake);
         } else {
             newSnake.pop();
@@ -227,7 +226,7 @@ export const SnakeGame: React.FC<SnakeGameProps> = ({ onClose, playSound, addCre
 
         setSnake(newSnake);
         draw();
-    }, [snake, food, isGameOver, gameStarted, playSound, generateFood, draw, addCredits]);
+    }, [snake, food, isGameOver, gameStarted, playSound, generateFood, draw]);
     
     useEffect(() => {
         if (gameStarted && !isGameOver) {

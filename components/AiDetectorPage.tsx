@@ -1,3 +1,4 @@
+
 import React, { useState, useRef, useCallback, useEffect } from 'react';
 import * as geminiService from '../services/geminiService';
 import * as audioService from '../services/audioService';
@@ -5,7 +6,6 @@ import { PageHeader, PageWrapper } from './PageComponents';
 import { UploadIcon } from './icons/UploadIcon';
 import { LoadingSpinner } from './LoadingSpinner';
 import { SparklesIcon } from './icons/SparklesIcon';
-import { useCredits } from '../contexts/CreditContext';
 import { AiDetectorIcon } from './icons/AiDetectorIcon';
 
 interface AiDetectorPageProps {
@@ -27,7 +27,6 @@ export const AiDetectorPage: React.FC<AiDetectorPageProps> = ({ onClose, playSou
     const [error, setError] = useState<string | null>(null);
     const [result, setResult] = useState<geminiService.AiDetectionResult | null>(null);
     const [isDragging, setIsDragging] = useState<boolean>(false);
-    const { addCredits } = useCredits();
     
     const fileInputRef = useRef<HTMLInputElement>(null);
     const videoRef = useRef<HTMLVideoElement>(null);
@@ -81,17 +80,8 @@ export const AiDetectorPage: React.FC<AiDetectorPageProps> = ({ onClose, playSou
             const contentToAnalyze: { text?: string; file?: { base64: string; mimeType: string } } = {};
             if (inputText.trim()) {
                 contentToAnalyze.text = inputText;
-                addCredits(inputText.length);
             } else if (fileData) {
                 contentToAnalyze.file = { base64: fileData.base64, mimeType: fileData.file.type };
-                if(fileData.file.type.startsWith('video/')) {
-                    if (videoRef.current && videoRef.current.duration) {
-                        const duration = Math.floor(videoRef.current.duration);
-                        addCredits(duration);
-                    }
-                } else {
-                     addCredits(1000);
-                }
             }
             
             const analysisResult = await geminiService.detectAiContent(contentToAnalyze);
@@ -103,7 +93,7 @@ export const AiDetectorPage: React.FC<AiDetectorPageProps> = ({ onClose, playSou
         } finally {
             setIsLoading(false);
         }
-    }, [inputText, fileData, isLoading, isOnline, playSound, addCredits]);
+    }, [inputText, fileData, isLoading, isOnline, playSound]);
     
     const handleDragEnter = (e: React.DragEvent<HTMLElement>) => { e.preventDefault(); e.stopPropagation(); setIsDragging(true); };
     const handleDragLeave = (e: React.DragEvent<HTMLElement>) => { e.preventDefault(); e.stopPropagation(); setIsDragging(false); };
@@ -133,8 +123,6 @@ export const AiDetectorPage: React.FC<AiDetectorPageProps> = ({ onClose, playSou
 
                 <p className="text-sm text-center text-brand-light/80">
                     Paste text or upload a file (image, audio, video) to check if it's human or AI-generated.
-                    <br />
-                    <strong className="text-brand-yellow">Earn credits for every analysis!</strong>
                 </p>
 
                 <div className="w-full flex flex-col gap-4 bg-black/40 p-4 border-4 border-brand-light shadow-pixel">

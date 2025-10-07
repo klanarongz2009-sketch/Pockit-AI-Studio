@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { PageWrapper } from './PageComponents';
 import * as audioService from '../services/audioService';
@@ -5,7 +6,6 @@ import * as audioService from '../services/audioService';
 interface BrickBreakerGameProps {
     onClose: () => void;
     playSound: (player: () => void) => void;
-    addCredits: (amount: number) => void;
 }
 
 const GAME_WIDTH = 640;
@@ -19,7 +19,7 @@ const BRICK_WIDTH = GAME_WIDTH / BRICK_COLS;
 const BRICK_HEIGHT = 20;
 const BRICK_GAP = 2;
 
-export const BrickBreakerGame: React.FC<BrickBreakerGameProps> = ({ onClose, playSound, addCredits }) => {
+export const BrickBreakerGame: React.FC<BrickBreakerGameProps> = ({ onClose, playSound }) => {
     const canvasRef = useRef<HTMLCanvasElement>(null);
     const gameLoopRef = useRef<number | null>(null);
 
@@ -200,7 +200,6 @@ export const BrickBreakerGame: React.FC<BrickBreakerGameProps> = ({ onClose, pla
                     newBall.dy *= -1;
                     playSound(audioService.playBrickHit);
                     setScore(s => s + 10);
-                    addCredits(1);
                     return { ...brick, visible: false };
                 }
             }
@@ -230,7 +229,7 @@ export const BrickBreakerGame: React.FC<BrickBreakerGameProps> = ({ onClose, pla
 
         draw();
         gameLoopRef.current = requestAnimationFrame(gameLoop);
-    }, [ball, bricks, lives, paddleX, gameState, playSound, resetBall, draw, addCredits]);
+    }, [ball, bricks, lives, paddleX, gameState, playSound, resetBall, draw]);
 
     useEffect(() => {
         gameLoopRef.current = requestAnimationFrame(gameLoop);

@@ -1,10 +1,10 @@
+
 import React, { useState, useEffect, useCallback } from 'react';
 import * as audioService from '../services/audioService';
 import * as geminiService from '../services/geminiService';
 import { PageWrapper, PageHeader } from './PageComponents';
 import { LoadingSpinner } from './LoadingSpinner';
 import { SparklesIcon } from './icons/SparklesIcon';
-import { useCredits } from '../contexts/CreditContext';
 
 interface GuessThePromptPageProps {
     onClose: () => void;
@@ -25,8 +25,6 @@ const prompts = [
     "a serene cherry blossom tree by a river"
 ];
 
-const START_COST = 5;
-const GUESS_COST = 1;
 const MAX_GUESSES = 3;
 
 type GameState = 'loading' | 'playing' | 'evaluating' | 'result';
@@ -39,17 +37,10 @@ export const GuessThePromptPage: React.FC<GuessThePromptPageProps> = ({ onClose,
     const [guessesLeft, setGuessesLeft] = useState(MAX_GUESSES);
     const [evaluation, setEvaluation] = useState<geminiService.PromptEvaluation | null>(null);
     const [error, setError] = useState<string | null>(null);
-    const { credits, spendCredits, addCredits } = useCredits();
 
     const startNewGame = useCallback(async () => {
         if (!isOnline) {
             setError("You must be online to play this game.");
-            return;
-        }
-
-        if (!spendCredits(START_COST)) {
-            setError(`Not enough credits! You need ${START_COST} credits to start a game.`);
-            playSound(audioService.playError);
             return;
         }
 
@@ -71,9 +62,8 @@ export const GuessThePromptPage: React.FC<GuessThePromptPageProps> = ({ onClose,
             const errorMessage = err instanceof Error ? err.message : 'Could not generate an image.';
             setError(errorMessage);
             playSound(audioService.playError);
-            addCredits(START_COST); // Refund
         }
-    }, [isOnline, playSound, spendCredits, addCredits]);
+    }, [isOnline, playSound]);
 
     useEffect(() => {
         startNewGame();
@@ -82,12 +72,6 @@ export const GuessThePromptPage: React.FC<GuessThePromptPageProps> = ({ onClose,
     const handleGuessSubmit = useCallback(async () => {
         if (!userGuess.trim() || gameState !== 'playing' || !isOnline) return;
 
-        if (!spendCredits(GUESS_COST)) {
-            setError(`Not enough credits! You need ${GUESS_COST} credits to make a guess.`);
-            playSound(audioService.playError);
-            return;
-        }
-        
         setGameState('evaluating');
         setError(null);
         playSound(audioService.playGenerate);
@@ -95,22 +79,17 @@ export const GuessThePromptPage: React.FC<GuessThePromptPageProps> = ({ onClose,
         try {
             const result = await geminiService.evaluatePromptGuess(secretPrompt, userGuess);
             setEvaluation(result);
-            const creditsWon = Math.floor(result.similarity * 2);
-            if (creditsWon > 0) {
-                addCredits(creditsWon);
-            }
             setGameState('result');
             playSound(audioService.playSuccess);
         } catch (err) {
             const errorMessage = err instanceof Error ? err.message : 'Could not evaluate guess.';
             setError(errorMessage);
             setGameState('playing'); // Allow user to try again
-            addCredits(GUESS_COST); // Refund
             playSound(audioService.playError);
         } finally {
             setGuessesLeft(prev => prev - 1);
         }
-    }, [userGuess, gameState, isOnline, secretPrompt, playSound, spendCredits, addCredits]);
+    }, [userGuess, gameState, isOnline, secretPrompt, playSound]);
 
     const renderContent = () => {
         if (error) {
@@ -147,7 +126,6 @@ export const GuessThePromptPage: React.FC<GuessThePromptPageProps> = ({ onClose,
                             <p className="text-brand-cyan">The secret prompt was:</p>
                             <p>"{secretPrompt}"</p>
                         </div>
-                         <p className="font-press-start text-brand-lime">You earned {Math.floor(evaluation.similarity * 2)} credits!</p>
                         <button onClick={startNewGame} className="w-full p-3 bg-brand-cyan text-black border-4 border-brand-light shadow-pixel font-press-start text-lg hover:bg-brand-yellow">Play Again</button>
                     </div>
                 )}

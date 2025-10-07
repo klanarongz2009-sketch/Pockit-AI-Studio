@@ -1,8 +1,8 @@
+
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import * as audioService from './services/audioService';
 import { preloadAllAssets } from './services/assetLoader';
 import * as preferenceService from './services/preferenceService';
-import { CreditProvider } from './contexts/CreditContext';
 import { ThemeProvider } from './contexts/ThemeContext';
 import { LanguageProvider } from './contexts/LanguageContext';
 
@@ -141,7 +141,6 @@ export const App: React.FC = () => {
     return (
       <LanguageProvider>
         <ThemeProvider>
-          <CreditProvider>
             <div className="h-screen w-screen flex flex-col bg-background text-text-primary">
               {isSettingsOpen && (
                 <SettingsPage 
@@ -198,7 +197,6 @@ export const App: React.FC = () => {
                 </GlobalLayout>
               )}
             </div>
-          </CreditProvider>
         </ThemeProvider>
       </LanguageProvider>
     );

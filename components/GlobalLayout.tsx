@@ -1,6 +1,5 @@
+
 import React, { useState } from 'react';
-import { useCredits } from '../contexts/CreditContext';
-import { CoinsIcon } from './icons/CoinsIcon';
 import * as audioService from '../services/audioService';
 import { CurrentPage } from '../App';
 import { PaletteIcon } from './icons/PaletteIcon';
@@ -13,7 +12,6 @@ import { MenuIcon } from './icons/MenuIcon';
 import { useLanguage } from '../contexts/LanguageContext';
 import { UpdateIcon } from './icons/UpdateIcon';
 import { UpdateInfoPage } from './UpdateInfoPage';
-import { EarnCreditsModal } from './icons/EarnCreditsModal';
 import { OfflineAiIcon } from './icons/OfflineAiIcon';
 
 interface GlobalLayoutProps {
@@ -55,19 +53,12 @@ const LayoutComponent: React.FC<GlobalLayoutProps> = ({
     isSidebarOpen,
     onToggleSidebar
 }) => {
-    const { credits, loading: creditsLoading } = useCredits();
     const { t } = useLanguage();
     const [isUpdateInfoOpen, setIsUpdateInfoOpen] = useState(false);
-    const [isEarnCreditsModalOpen, setIsEarnCreditsModalOpen] = useState(false);
 
     return (
         <>
             {isUpdateInfoOpen && <UpdateInfoPage onClose={() => setIsUpdateInfoOpen(false)} />}
-            
-            {isEarnCreditsModalOpen && <EarnCreditsModal isOpen={isEarnCreditsModalOpen} onClose={() => {
-                playSound(audioService.playCloseModal);
-                setIsEarnCreditsModalOpen(false);
-            }} />}
             
             {/* Sidebar Overlay */}
             <div 
@@ -154,27 +145,6 @@ const LayoutComponent: React.FC<GlobalLayoutProps> = ({
                 </div>
 
                 <div className="flex items-center gap-1 sm:gap-2">
-                    <div className="flex items-stretch h-10 bg-surface-primary border-2 border-border-primary">
-                        <div
-                            aria-label={`${t('header.credits')}: ${creditsLoading ? '...' : credits.toFixed(0)}`}
-                            className="flex items-center justify-center gap-2 px-2 sm:px-3 text-text-primary"
-                        >
-                            <CoinsIcon className="w-5 h-5 text-brand-yellow" />
-                            <span className="font-press-start text-xs sm:text-sm">{creditsLoading ? '...' : credits.toFixed(0)}</span>
-                        </div>
-                        <button
-                            onClick={() => {
-                                playSound(audioService.playClick);
-                                setIsEarnCreditsModalOpen(true);
-                            }}
-                            onMouseEnter={() => playSound(audioService.playHover)}
-                            aria-label="Add Credits"
-                            className="w-10 flex-shrink-0 flex items-center justify-center border-l-2 border-border-primary text-text-primary hover:bg-brand-lime hover:text-text-inverted transition-colors"
-                        >
-                            <span className="font-press-start text-lg">+</span>
-                        </button>
-                    </div>
-                    
                      <button
                         onClick={onOpenSettings}
                         onMouseEnter={() => playSound(audioService.playHover)}

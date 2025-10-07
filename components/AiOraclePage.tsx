@@ -1,10 +1,10 @@
+
 import React, { useState, useEffect, useCallback } from 'react';
 import * as audioService from '../services/audioService';
 import { generateSecret } from '../services/geminiService';
 import { PageWrapper, PageHeader } from './PageComponents';
 import { LoadingSpinner } from './LoadingSpinner';
 import { OracleIcon } from './icons/OracleIcon';
-import { useCredits, CREDIT_COSTS } from '../contexts/CreditContext';
 
 interface AiOraclePageProps {
     onClose: () => void;
@@ -18,7 +18,6 @@ export const AiOraclePage: React.FC<AiOraclePageProps> = ({ onClose, playSound, 
     const [displayedSecret, setDisplayedSecret] = useState('');
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
-    const { credits, spendCredits } = useCredits();
 
     // Typewriter effect
     useEffect(() => {
@@ -39,12 +38,6 @@ export const AiOraclePage: React.FC<AiOraclePageProps> = ({ onClose, playSound, 
     const handleRevealSecret = useCallback(async () => {
         if (!topic.trim() || isLoading || !isOnline) return;
 
-        if (!spendCredits(CREDIT_COSTS.AI_ORACLE)) {
-            setError(`เครดิตไม่เพียงพอ! ต้องการ ${CREDIT_COSTS.AI_ORACLE} เครดิต แต่คุณมี ${Math.floor(credits)} เครดิต`);
-            playSound(audioService.playError);
-            return;
-        }
-
         playSound(audioService.playGenerate);
         setIsLoading(true);
         setError(null);
@@ -62,7 +55,7 @@ export const AiOraclePage: React.FC<AiOraclePageProps> = ({ onClose, playSound, 
         } finally {
             setIsLoading(false);
         }
-    }, [topic, isLoading, isOnline, playSound, spendCredits, credits]);
+    }, [topic, isLoading, isOnline, playSound]);
 
     return (
         <PageWrapper>
@@ -92,7 +85,7 @@ export const AiOraclePage: React.FC<AiOraclePageProps> = ({ onClose, playSound, 
                         title={!isOnline ? 'ฟีเจอร์นี้ต้องใช้การเชื่อมต่ออินเทอร์เน็ต' : 'ปุ่มลัด: Ctrl+Enter'}
                     >
                         <OracleIcon className="w-5 h-5"/>
-                        {isLoading ? 'กำลังทำนาย...' : `เปิดเผยความลับ (${CREDIT_COSTS.AI_ORACLE} เครดิต)`}
+                        {isLoading ? 'กำลังทำนาย...' : 'เปิดเผยความลับ'}
                     </button>
                 </div>
 

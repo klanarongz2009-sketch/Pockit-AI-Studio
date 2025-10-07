@@ -1,3 +1,4 @@
+
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import * as geminiService from '../services/geminiService';
 import * as audioService from '../services/audioService';
@@ -9,13 +10,11 @@ import { DownloadIcon } from './icons/DownloadIcon';
 import { TrashIcon } from './icons/TrashIcon';
 import { Minigame } from './Minigame';
 import { PlusSquareIcon } from './icons/PlusSquareIcon';
-import { useCredits } from '../contexts/CreditContext';
 import { LinkIcon } from './icons/LinkIcon';
 import { ShareIcon } from './icons/ShareIcon';
 import * as galleryService from '../services/galleryService';
 import { GalleryIcon } from './icons/GalleryIcon';
 import { useLanguage } from '../contexts/LanguageContext';
-import { AdPlayer } from './AdPlayer';
 
 type GenerationMode = 'image' | 'gif' | 'video' | 'spritesheet';
 type GameAssetState = { player: string | null; obstacle: string | null; };
@@ -48,7 +47,6 @@ export const ImageGeneratorPage: React.FC<{
     const [loadingText, setLoadingText] = useState('กำลังสร้าง...');
     const [currentFrame, setCurrentFrame] = useState(0);
     const [isSaved, setIsSaved] = useState(false);
-    const [showAd, setShowAd] = useState(false);
 
     const [isGameMode, setIsGameMode] = useState(false);
     const [gameAssets, setGameAssets] = useState<GameAssetState>({ player: null, obstacle: null });
@@ -56,7 +54,6 @@ export const ImageGeneratorPage: React.FC<{
 
     const fileInputRef = useRef<HTMLInputElement>(null);
     const frameIntervalRef = useRef<number | null>(null);
-    const { credits, spendCredits, addCredits } = useCredits();
     const { t } = useLanguage();
 
     // Save preferences when they change
@@ -272,34 +269,8 @@ export const ImageGeneratorPage: React.FC<{
         }
     }, [generatedImage, prompt]);
 
-    const getGenerationCost = useCallback(() => {
-        switch(generationMode) {
-            case 'gif': return frameCount * 5;
-            case 'video': return 100;
-            case 'spritesheet': return 300;
-            case 'image':
-            default:
-                return 10;
-        }
-    }, [generationMode, frameCount]);
-
     const handleGenerate = useCallback(async () => {
         if (!prompt.trim() || isLoading || !isOnline) return;
-
-        const AD_REWARD = 50;
-        const cost = getGenerationCost();
-
-        const shouldShowAd = Math.random() < 0.25 && credits < cost;
-        if (shouldShowAd) {
-            setShowAd(true);
-            return;
-        }
-
-        if (!spendCredits(cost)) {
-            setError(`Not enough credits! You need ${cost} credits.`);
-            playSound(audioService.playError);
-            return;
-        }
 
         playSound(audioService.playGenerate);
         setIsLoading(true);
@@ -342,21 +313,14 @@ export const ImageGeneratorPage: React.FC<{
             playSound(audioService.playSuccess);
         } catch (err) {
             playSound(audioService.playError);
-            addCredits(cost); // Refund credits on error
             setError(geminiService.parseApiError(err));
         } finally {
             setIsLoading(false);
         }
-    }, [prompt, isLoading, isOnline, playSound, spendCredits, addCredits, credits, generationMode, frameCount, getGenerationCost]);
+    }, [prompt, isLoading, isOnline, playSound, generationMode, frameCount]);
     
     const handleGameAssetGeneration = useCallback(async () => {
         if (isLoading || !isOnline) return;
-        const cost = 20; // 10 per asset
-        if (!spendCredits(cost)) {
-            setError(`Not enough credits! You need ${cost} credits.`);
-            playSound(audioService.playError);
-            return;
-        }
         playSound(audioService.playGenerate);
         setIsLoading(true);
         setLoadingText('Generating game assets...');
@@ -372,22 +336,15 @@ export const ImageGeneratorPage: React.FC<{
             setIsGameMode(true);
             playSound(audioService.playSuccess);
         } catch (err) {
-            addCredits(cost);
             setError(geminiService.parseApiError(err));
             playSound(audioService.playError);
         } finally {
             setIsLoading(false);
         }
-    }, [isLoading, isOnline, playSound, spendCredits, addCredits]);
+    }, [isLoading, isOnline, playSound]);
 
     const handleGetSuggestions = useCallback(async () => {
         if (!prompt.trim() || isLoading || !isOnline) return;
-        const cost = 2;
-        if (!spendCredits(cost)) {
-            setError(`Not enough credits! You need ${cost} credits.`);
-            playSound(audioService.playError);
-            return;
-        }
         playSound(audioService.playClick);
         setLoadingText('Getting suggestions...');
         setIsLoading(true);
@@ -396,13 +353,12 @@ export const ImageGeneratorPage: React.FC<{
             setSuggestions(result);
             playSound(audioService.playSuccess);
         } catch (err) {
-            addCredits(cost);
             setError(geminiService.parseApiError(err));
             playSound(audioService.playError);
         } finally {
             setIsLoading(false);
         }
-    }, [prompt, isLoading, isOnline, playSound, spendCredits, addCredits]);
+    }, [prompt, isLoading, isOnline, playSound]);
 
     if (isGameMode && gameAssets.player && gameAssets.obstacle) {
         return (
@@ -413,14 +369,6 @@ export const ImageGeneratorPage: React.FC<{
                 playSound={playSound}
             />
         );
-    }
-    
-    if (showAd) {
-        return <AdPlayer onComplete={() => {
-            setShowAd(false);
-            const AD_REWARD = 50;
-            addCredits(AD_REWARD);
-        }} />;
     }
 
     return (

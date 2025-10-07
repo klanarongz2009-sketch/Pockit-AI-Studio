@@ -1,3 +1,4 @@
+
 import React, { useState, useMemo, useEffect } from 'react';
 import { LoadingSpinner } from './LoadingSpinner';
 import * as audioService from '../services/audioService';
@@ -7,7 +8,6 @@ import { SnakeIcon } from './icons/SnakeIcon';
 import { SnakeGame } from './SnakeGame';
 import { PlatformerIcon } from './icons/PlatformerIcon';
 import { PlatformerGame } from './PlatformerGame';
-import { useCredits } from '../contexts/CreditContext';
 import { BrickBreakerIcon } from './icons/BrickBreakerIcon';
 import { BrickBreakerGame } from './BrickBreakerGame';
 import { CalculatorIcon } from './icons/CalculatorIcon';
@@ -108,7 +108,6 @@ const GameButton: React.FC<{ icon: React.ReactNode; title: string; description: 
 export const MinigameHubPage: React.FC<MinigameHubPageProps> = ({ playSound, isOnline }) => {
     const [activeGame, setActiveGame] = useState<ActiveGame>('hub');
     const [error, setError] = useState<string | null>(null);
-    const { addCredits } = useCredits();
     const [searchQuery, setSearchQuery] = useState('');
     const { t } = useLanguage();
     
@@ -144,9 +143,9 @@ export const MinigameHubPage: React.FC<MinigameHubPageProps> = ({ playSound, isO
             items: [
                 { icon: <PublishIcon className="w-16 h-16" />, title: "App Publisher", description: "Get AI-generated names, descriptions, and a manifest.json for your web app idea.", onClick: () => handleLaunchGame('appPublisher'), disabled: !isOnline, beta: true },
                 { icon: <FileChatIcon className="w-16 h-16" />, title: "File Q&A", description: "Upload a file (image, audio, text) and start chatting with an AI about its content.", onClick: () => handleLaunchGame('fileChat'), disabled: !isOnline, beta: true },
-                { icon: <AiDetectorIcon className="w-16 h-16" />, title: "AI Content Detector", description: "Check if text or media is human-made or AI-generated. Earn credits for each analysis!", onClick: () => handleLaunchGame('aiDetector'), disabled: !isOnline, beta: true },
+                { icon: <AiDetectorIcon className="w-16 h-16" />, title: "AI Content Detector", description: "Check if text or media is human-made or AI-generated.", onClick: () => handleLaunchGame('aiDetector'), disabled: !isOnline, beta: true },
                 { icon: <TranslateIcon className="w-16 h-16" />, title: "AI Translator", description: "Translate text between languages like Thai, English, and Japanese using AI.", onClick: () => handleLaunchGame('translator'), disabled: !isOnline, beta: true },
-                { icon: <BugIcon className="w-16 h-16" />, title: "AI Text Corrector", description: "Let an AI act as your personal proofreader for Thai text (cost is based on text length).", onClick: () => handleLaunchGame('aiBugSquasher'), disabled: !isOnline },
+                { icon: <BugIcon className="w-16 h-16" />, title: "AI Text Corrector", description: "Let an AI act as your personal proofreader for Thai text.", onClick: () => handleLaunchGame('aiBugSquasher'), disabled: !isOnline },
                 { icon: <OracleIcon className="w-16 h-16" />, title: "AI Oracle", description: "Ask the AI Oracle a question, and it will reveal a mysterious 'secret' or story for you.", onClick: () => handleLaunchGame('aiOracle'), disabled: !isOnline },
                 { icon: <DeviceIcon className="w-16 h-16" />, title: "Device Spy", description: "View detailed information about your current device, including hardware, software, and storage.", onClick: () => handleLaunchGame('deviceDetails') }
             ]
@@ -155,9 +154,9 @@ export const MinigameHubPage: React.FC<MinigameHubPageProps> = ({ playSound, isO
             title: "Classic Arcade",
             items: [
                 { icon: <AsteroidShooterIcon className="w-16 h-16" />, title: "Asteroid Shooter", description: "A classic vector-style arcade game. Blast asteroids and survive the onslaught!", onClick: () => handleLaunchGame('asteroidShooter') },
-                { icon: <JumpingIcon className="w-16 h-16" />, title: "Pixel Jumper", description: "A fast-paced endless runner. Tap to jump over obstacles and grab coins for credits!", onClick: () => handleLaunchGame('jumpingGame') },
-                { icon: <BrickBreakerIcon className="w-16 h-16" />, title: "Brick Breaker", description: "The timeless classic block-breaking game! The more bricks you smash, the more credits you earn!", onClick: () => handleLaunchGame('brickBreaker') },
-                { icon: <SnakeIcon className="w-16 h-16" />, title: "Snake Game", description: "Control the little snake to eat food, grow, and score points. Earn credits for every bite!", onClick: () => handleLaunchGame('snake') },
+                { icon: <JumpingIcon className="w-16 h-16" />, title: "Pixel Jumper", description: "A fast-paced endless runner. Tap to jump over obstacles and grab coins!", onClick: () => handleLaunchGame('jumpingGame') },
+                { icon: <BrickBreakerIcon className="w-16 h-16" />, title: "Brick Breaker", description: "The timeless classic block-breaking game!", onClick: () => handleLaunchGame('brickBreaker') },
+                { icon: <SnakeIcon className="w-16 h-16" />, title: "Snake Game", description: "Control the little snake to eat food, grow, and score points.", onClick: () => handleLaunchGame('snake') },
                 { icon: <PlatformerIcon className="w-16 h-16" />, title: "Platformer", description: "A challenging platforming adventure. Guide your character through the level to reach the goal.", onClick: () => handleLaunchGame('platformer') }
             ]
         },
@@ -166,7 +165,7 @@ export const MinigameHubPage: React.FC<MinigameHubPageProps> = ({ playSound, isO
             items: [
                 { icon: <GuessThePromptIcon className="w-16 h-16" />, title: "Guess The Prompt", description: "See an AI-generated image and try to guess what prompt was used to create it! Test your AI intuition.", onClick: () => handleLaunchGame('guessThePrompt'), disabled: !isOnline, beta: true },
                 { icon: <MusicInspectIcon className="w-16 h-16" />, title: "Music Inspector", description: "Test your musical memory! Listen to the AI's sequence and play it back correctly.", onClick: () => handleLaunchGame('musicMemory'), beta: true },
-                { icon: <WordMatchIcon className="w-16 h-16" />, title: "AI Word Match", description: "Enter any topic and have the AI generate creative associations. Earn 10,000 free credits every time!", onClick: () => handleLaunchGame('wordMatch'), disabled: !isOnline },
+                { icon: <WordMatchIcon className="w-16 h-16" />, title: "AI Word Match", description: "Enter any topic and have the AI generate creative associations.", onClick: () => handleLaunchGame('wordMatch'), disabled: !isOnline },
                 { icon: <TicTacToeIcon className="w-16 h-16" />, title: "Smart Tic-Tac-Toe", description: "Challenge a surprisingly smart AI in the classic game of Tic-Tac-Toe, or play with a friend.", onClick: () => handleLaunchGame('ticTacToe'), disabled: !isOnline }
             ]
         },
@@ -176,9 +175,9 @@ export const MinigameHubPage: React.FC<MinigameHubPageProps> = ({ playSound, isO
                 { icon: <MusicAndSoundIcon className="w-16 h-16" />, title: "Music & Sound", description: "Browse a library of pre-made 8-bit sound effects and music loops to use in your projects.", onClick: () => handleLaunchGame('musicAndSound') },
                 { icon: <SequencerIcon className="w-16 h-16" />, title: "Pixel Sequencer", description: "Compose your own 8-bit chiptune melodies on a step sequencer grid. A powerful tool for music creation!", onClick: () => handleLaunchGame('pixelSequencer') },
                 { icon: <RecordIcon className="w-16 h-16" />, title: "Media Recorder", description: "Record audio from your microphone or video from your camera directly in the app.", onClick: () => handleLaunchGame('mediaRecorder') },
-                { icon: <TextToSpeechIcon className="w-16 h-16" />, title: "AI Text-to-Speech", description: "Convert text to speech with various voices. Earn 1 credit for every character the AI reads!", onClick: () => handleLaunchGame('textToSpeech') },
-                { icon: <MagicButtonIcon className="w-16 h-16" />, title: "The Magic Button", description: "A simple yet powerful button! Every press instantly grants you 1 free credit!", onClick: () => handleLaunchGame('magicButton') },
-                { icon: <CalculatorIcon className="w-16 h-16" />, title: "Credit Calculator", description: "Turn simple calculations into credit generation! Earn credits equal to the calculated result.", onClick: () => handleLaunchGame('calculator') }
+                { icon: <TextToSpeechIcon className="w-16 h-16" />, title: "AI Text-to-Speech", description: "Convert text to speech with various voices.", onClick: () => handleLaunchGame('textToSpeech') },
+                { icon: <MagicButtonIcon className="w-16 h-16" />, title: "The Magic Button", description: "A simple yet powerful button! How many times can you press it?", onClick: () => handleLaunchGame('magicButton') },
+                { icon: <CalculatorIcon className="w-16 h-16" />, title: "Credit Calculator", description: "A simple calculator utility with a retro design.", onClick: () => handleLaunchGame('calculator') }
             ]
         }
     ], [isOnline, t]);
@@ -204,16 +203,16 @@ export const MinigameHubPage: React.FC<MinigameHubPageProps> = ({ playSound, isO
         return <TicTacToePage onClose={() => setActiveGame('hub')} playSound={playSound} isOnline={isOnline} />;
     }
     if (activeGame === 'snake') {
-        return <SnakeGame onClose={() => setActiveGame('hub')} playSound={playSound} addCredits={addCredits} />;
+        return <SnakeGame onClose={() => setActiveGame('hub')} playSound={playSound} />;
     }
     if (activeGame === 'platformer') {
         return <PlatformerGame onClose={() => setActiveGame('hub')} playSound={playSound} />;
     }
     if (activeGame === 'asteroidShooter') {
-        return <AsteroidShooterPage onClose={() => setActiveGame('hub')} addCredits={addCredits} />;
+        return <AsteroidShooterPage onClose={() => setActiveGame('hub')} addCredits={() => {}} />;
     }
     if (activeGame === 'brickBreaker') {
-        return <BrickBreakerGame onClose={() => setActiveGame('hub')} playSound={playSound} addCredits={addCredits} />;
+        return <BrickBreakerGame onClose={() => setActiveGame('hub')} playSound={playSound} />;
     }
     if (activeGame === 'calculator') {
         return <CalculatorPage onClose={() => setActiveGame('hub')} playSound={playSound} />;
@@ -231,7 +230,7 @@ export const MinigameHubPage: React.FC<MinigameHubPageProps> = ({ playSound, isO
         return <SongSearchPage onClose={() => setActiveGame('hub')} playSound={playSound} isOnline={isOnline} />;
     }
     if (activeGame === 'magicButton') {
-        return <MagicButtonPage onClose={() => setActiveGame('hub')} playSound={playSound} addCredits={addCredits} />;
+        return <MagicButtonPage onClose={() => setActiveGame('hub')} playSound={playSound} />;
     }
     if (activeGame === 'videoEditor') {
         return <VideoEditorPage onClose={() => handleLaunchGame('hub')} playSound={playSound} isOnline={isOnline} />;
@@ -264,7 +263,7 @@ export const MinigameHubPage: React.FC<MinigameHubPageProps> = ({ playSound, isO
         return <PixelSequencerPage onClose={() => setActiveGame('hub')} playSound={playSound} />;
     }
     if (activeGame === 'jumpingGame') {
-        return <JumpingGame onClose={() => setActiveGame('hub')} playSound={playSound} addCredits={addCredits} />;
+        return <JumpingGame onClose={() => setActiveGame('hub')} playSound={playSound} />;
     }
     if (activeGame === 'deviceDetails') {
         return <DeviceDetailsPage onClose={() => setActiveGame('hub')} />;
