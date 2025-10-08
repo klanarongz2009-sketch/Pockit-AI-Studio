@@ -645,6 +645,7 @@ const AudioToMidiTool = ({ playSound, t }: { playSound: (player: () => void) => 
             const arrayBuffer = await uploadedFile.arrayBuffer();
             const audioCtx = new (window.AudioContext || (window as any).webkitAudioContext)();
             const audioBuffer = await audioCtx.decodeAudioData(arrayBuffer);
+            // FIX: Removed the extra `audioCtx` argument, as `analyzeAudioBufferToMidi` only expects one argument.
             const midiNotes = await audioService.analyzeAudioBufferToMidi(audioBuffer);
             if (midiNotes.length === 0) {
                 throw new Error("Could not detect any distinct notes in the audio.");
