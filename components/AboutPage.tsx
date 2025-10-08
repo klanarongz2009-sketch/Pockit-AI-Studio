@@ -1,7 +1,5 @@
-
 import React, { useState } from 'react';
 import { SparklesIcon } from './icons/SparklesIcon';
-import { GamepadIcon } from './icons/GamepadIcon';
 import { ShareIcon } from './icons/ShareIcon';
 import { InstallIcon } from './icons/InstallIcon';
 import { SendIcon } from './icons/SendIcon';
@@ -9,6 +7,8 @@ import { LoadingSpinner } from './LoadingSpinner';
 import * as audioService from '../services/audioService';
 import { analyzeFeedback } from '../services/geminiService';
 import { PageHeader, PageWrapper } from './PageComponents';
+import { DownloadIcon } from './icons/DownloadIcon';
+import { useLanguage } from '../contexts/LanguageContext';
 
 interface AboutPageProps {
     onClose: () => void;
@@ -39,7 +39,7 @@ const ThreeDotsIcon = ({ className }: { className?: string }) => (
 );
 
 const FeedbackSection: React.FC<{ playSound: (player: () => void) => void; isOnline: boolean; }> = ({ playSound, isOnline }) => {
-    // FIX: Imported useState from React.
+    const { t } = useLanguage();
     const [feedback, setFeedback] = useState('');
     const [isLoading, setIsLoading] = useState(false);
     const [isSummaryLoading, setIsSummaryLoading] = useState(false);
@@ -86,12 +86,8 @@ const FeedbackSection: React.FC<{ playSound: (player: () => void) => void; isOnl
     if (isSubmitted) {
         return (
             <div className="text-center space-y-4 p-4 bg-surface-primary border-4 border-brand-lime shadow-pixel">
-                <h3 className="font-press-start text-xl text-brand-lime">Thank you!</h3>
-                {wasAnalyzed ? (
-                    <p>Thanks for the feedback! In a full version of this application, this analyzed summary would be automatically sent to an AI Code Assistant to aid in future development.</p>
-                ) : (
-                    <p>We've received your feedback and will use it to improve the application!</p>
-                )}
+                <h3 className="font-press-start text-xl text-brand-lime">{t('about.feedback.success.title')}</h3>
+                <p>{wasAnalyzed ? t('about.feedback.success.analyzedMessage') : t('about.feedback.success.message')}</p>
             </div>
         );
     }
@@ -99,13 +95,13 @@ const FeedbackSection: React.FC<{ playSound: (player: () => void) => void; isOnl
     return (
         <>
             <p className="text-sm text-center text-text-secondary">
-                We value your input! Please let us know what you think of this app or if you have any ideas for new features.
+                {t('about.feedback.description')}
             </p>
             <div className="w-full flex flex-col gap-4 bg-surface-primary p-4 border-2 border-border-secondary shadow-pixel">
                 <textarea
                     value={feedback}
                     onChange={(e) => setFeedback(e.target.value)}
-                    placeholder="Type your feedback here..."
+                    placeholder={t('about.feedback.placeholder')}
                     className="w-full h-40 p-2 bg-text-primary text-background rounded-none border-2 border-border-primary focus:outline-none focus:ring-2 focus:ring-brand-yellow resize-y"
                     disabled={isLoading || !isOnline}
                     aria-label="Feedback input box"
@@ -118,7 +114,7 @@ const FeedbackSection: React.FC<{ playSound: (player: () => void) => void; isOnl
                         className="w-full flex items-center justify-center gap-2 p-3 bg-brand-cyan text-black border-2 border-border-primary shadow-sm transition-all hover:bg-brand-yellow disabled:bg-gray-500 disabled:cursor-not-allowed"
                     >
                         <SparklesIcon className="w-5 h-5" />
-                        {isSummaryLoading ? 'Analyzing...' : 'Analyze with AI'}
+                        {isSummaryLoading ? t('about.feedback.analyzing') : t('about.feedback.analyze')}
                     </button>
                     <button
                         onClick={handleSubmit}
@@ -127,7 +123,7 @@ const FeedbackSection: React.FC<{ playSound: (player: () => void) => void; isOnl
                         className="w-full flex items-center justify-center gap-2 p-3 bg-brand-magenta text-white border-2 border-border-primary shadow-sm transition-all hover:bg-brand-yellow hover:text-black disabled:bg-gray-500 disabled:cursor-not-allowed"
                     >
                         <SendIcon className="w-5 h-5" />
-                        {isLoading ? 'Submitting...' : (summary ? 'Submit to AI Code Assistant' : 'Submit Feedback')}
+                        {isLoading ? t('about.feedback.submitting') : (summary ? t('about.feedback.submitToAi') : t('about.feedback.submit'))}
                     </button>
                 </div>
             </div>
@@ -142,7 +138,7 @@ const FeedbackSection: React.FC<{ playSound: (player: () => void) => void; isOnl
 
             {summary && (
                 <div aria-live="polite" className="w-full p-4 bg-black/30 border-2 border-brand-cyan/50 space-y-2">
-                    <h4 className="font-press-start text-brand-cyan">AI Summary:</h4>
+                    <h4 className="font-press-start text-brand-cyan">{t('about.feedback.summaryTitle')}</h4>
                     <p className="text-sm">"{summary}"</p>
                 </div>
             )}
@@ -152,74 +148,87 @@ const FeedbackSection: React.FC<{ playSound: (player: () => void) => void; isOnl
 
 
 export const AboutPage: React.FC<AboutPageProps> = ({ onClose, playSound, isOnline }) => {
+    const { t } = useLanguage();
 
     return (
         <PageWrapper>
-            <PageHeader title="About The Application" onBack={onClose} />
+            <PageHeader title={t('about.title')} onBack={onClose} />
             <main id="main-content" className="w-full max-w-2xl flex-grow overflow-y-auto font-sans px-2 pb-8 space-y-6">
-                <Section title="Welcome!" id="welcome">
-                    <p>
-                        Welcome to the Portable AI Studio, your digital playground! This studio is packed with creative AI tools and technical resources to assist you. Our mission is to turn your brilliant ideas into reality with AI. Powered by Google AI, let's create something amazing together!
-                    </p>
+                <Section title={t('about.welcome.title')} id="welcome">
+                    <p>{t('about.welcome.content')}</p>
                 </Section>
 
-                <Section title="AI Tips & Secrets" id="tips">
-                    <h4 className="font-press-start text-base text-brand-yellow">Keyboard Shortcuts</h4>
-                    <p className="text-xs text-text-secondary">Use these shortcuts to work like a pro! (Ctrl for Windows/Linux, Cmd for Mac)</p>
+                <Section title={t('about.tips.title')} id="tips">
+                    <h4 className="font-press-start text-base text-brand-yellow">{t('about.tips.shortcuts.title')}</h4>
+                    <p className="text-xs text-text-secondary">{t('about.tips.shortcuts.description')}</p>
                     <ul className="list-disc list-inside text-xs space-y-1 pl-2">
-                        <li><strong className="text-brand-cyan">Ctrl + Enter:</strong> Generate content on various pages (Image, Song, Sound FX, Video, Feedback Analysis).</li>
-                        <li><strong className="text-brand-cyan">Alt + U:</strong> Open the file upload dialog (in Voice Changer, Video Editor).</li>
-                        <li><strong className="text-brand-cyan">Alt + P:</strong> Play/Stop the generated audio or song.</li>
-                        <li><strong className="text-brand-cyan">Alt + D:</strong> Download your creation.</li>
-                        <li><strong className="text-brand-cyan">Alt + S:</strong> Get prompt suggestions from AI (in Image Generator).</li>
-                        <li><strong className="text-brand-cyan">Alt + C:</strong> Clear all data on the Image Generator page.</li>
+                        <li><strong className="text-brand-cyan">Ctrl + Enter:</strong> {t('about.tips.shortcuts.ctrlEnter')}</li>
+                        <li><strong className="text-brand-cyan">Alt + U:</strong> {t('about.tips.shortcuts.altU')}</li>
+                        <li><strong className="text-brand-cyan">Alt + P:</strong> {t('about.tips.shortcuts.altP')}</li>
+                        <li><strong className="text-brand-cyan">Alt + D:</strong> {t('about.tips.shortcuts.altD')}</li>
+                        <li><strong className="text-brand-cyan">Alt + S:</strong> {t('about.tips.shortcuts.altS')}</li>
+                        <li><strong className="text-brand-cyan">Alt + C:</strong> {t('about.tips.shortcuts.altC')}</li>
+                        <li><strong className="text-brand-cyan">Alt + M:</strong> {t('about.tips.shortcuts.altM')}</li>
+                        <li><strong className="text-brand-cyan">Alt + N:</strong> {t('about.tips.shortcuts.altN')}</li>
+                        <li><strong className="text-brand-cyan">Escape (Esc):</strong> {t('about.tips.shortcuts.esc')}</li>
                     </ul>
-                     <h4 className="font-press-start text-base text-brand-yellow pt-4">Pro-Tips</h4>
+                     <h4 className="font-press-start text-base text-brand-yellow pt-4">{t('about.tips.proTips.title')}</h4>
                      <ul className="list-disc list-inside text-xs space-y-1 pl-2">
-                        <li><strong>Specificity is Key:</strong> When generating images, try adding details about "style" (e.g., photograph, oil painting, 8-bit) or "perspective" (e.g., wide shot, close-up) for more accurate results.</li>
-                        <li><strong>Combine Powers:</strong> Create a character image -> generate a theme song from that image -> create sound effects -> you now have the core assets for a multimedia project!</li>
+                        <li>{t('about.tips.proTips.specificity')}</li>
+                        <li>{t('about.tips.proTips.combine')}</li>
                      </ul>
                 </Section>
                 
-                <Section title="Installation Guide" id="install-guide">
-                    <p>
-                        The 'Portable AI Studio' is a Progressive Web App (PWA), which means you can "install" it to your device's home screen like a native app! This provides quick access, a full-screen experience, and some offline capabilities.
-                    </p>
-                    <h4 className="font-press-start text-sm text-brand-yellow pt-2">For iPhone & iPad (Safari)</h4>
+                <Section title={t('about.install.title')} id="install-guide">
+                    <p>{t('about.install.description')}</p>
+                    <h4 className="font-press-start text-sm text-brand-yellow pt-2">{t('about.install.ios.title')}</h4>
                     <ol className="list-decimal list-inside text-xs space-y-1 pl-2">
                          <InstructionStep icon={<ShareIcon className="w-6 h-6" />}>
-                            Tap the <strong>"Share"</strong> button, then select <strong>"Add to Home Screen"</strong>.
+                            {t('about.install.ios.step1')}
                         </InstructionStep>
                     </ol>
-                    <h4 className="font-press-start text-sm text-brand-yellow pt-2">For Android (Chrome)</h4>
+                    <h4 className="font-press-start text-sm text-brand-yellow pt-2">{t('about.install.android.title')}</h4>
                     <ol className="list-decimal list-inside text-xs space-y-1 pl-2">
                         <InstructionStep icon={<ThreeDotsIcon className="w-6 h-6" />}>
-                            Tap the <strong>menu (three dots)</strong> and select <strong>"Install app"</strong>.
+                            {t('about.install.android.step1')}
                         </InstructionStep>
                     </ol>
-                     <h4 className="font-press-start text-sm text-brand-yellow pt-2">For Desktop (Chrome, Edge)</h4>
+                     <h4 className="font-press-start text-sm text-brand-yellow pt-2">{t('about.install.desktop.title')}</h4>
                     <ol className="list-decimal list-inside text-xs space-y-1 pl-2">
                         <InstructionStep icon={<InstallIcon className="w-6 h-6" />}>
-                            Look for the <strong>Install icon</strong> in the address bar and click <strong>"Install"</strong>.
+                            {t('about.install.desktop.step1')}
                         </InstructionStep>
                     </ol>
+                    <h4 className="font-press-start text-sm text-brand-yellow pt-2">{t('about.install.rom.title')}</h4>
+                    <p className="text-xs">{t('about.install.rom.description')}</p>
+                     <a href="/app-source.zip" download="ai-apps-source.zip" className="inline-block mt-2 p-2 bg-brand-yellow text-black border-2 border-black font-press-start text-xs hover:bg-brand-lime">
+                        <InstructionStep icon={<DownloadIcon className="w-6 h-6" />}>
+                            {t('about.install.rom.button')}
+                        </InstructionStep>
+                    </a>
                 </Section>
 
-                <Section title="Feedback" id="feedback">
+                <Section title={t('about.feedback.title')} id="feedback">
                     <FeedbackSection playSound={playSound} isOnline={isOnline} />
                 </Section>
 
-                <Section title="Frequently Asked Questions (FAQ)" id="faq">
-                    <h4 className="font-bold">What technology powers this app?</h4>
-                    <p className="text-xs text-text-secondary mb-2">The heart of this app is the Gemini API, an advanced AI model from Google. We use it to analyze, interpret, and generate creative content from your prompts, from static images to videos and sounds.</p>
-                     <h4 className="font-bold">Is my data safe?</h4>
-                    <p className="text-xs text-text-secondary mb-2">Absolutely. This is a demo application. No personal data, uploaded files, or generated creations are stored on any server. Everything is processed on the fly and is gone when you close the tab.</p>
+                <Section title={t('about.faq.title')} id="faq">
+                    <h4 className="font-bold">{t('about.faq.q1.question')}</h4>
+                    <p className="text-xs text-text-secondary mb-2">{t('about.faq.q1.answer')}</p>
+                     <h4 className="font-bold">{t('about.faq.q2.question')}</h4>
+                    <p className="text-xs text-text-secondary mb-2">{t('about.faq.q2.answer')}</p>
+                     <h4 className="font-bold">{t('about.faq.q3.question')}</h4>
+                    <p className="text-xs text-text-secondary mb-2">{t('about.faq.q3.answer')}</p>
+                     <h4 className="font-bold">{t('about.faq.q4.question')}</h4>
+                    <p className="text-xs text-text-secondary mb-2">{t('about.faq.q4.answer')}</p>
+                    <h4 className="font-bold">{t('about.faq.q5.question')}</h4>
+                    <p className="text-xs text-text-secondary mb-2">{t('about.faq.q5.answer')}</p>
+                    <h4 className="font-bold">{t('about.faq.q6.question')}</h4>
+                    <p className="text-xs text-text-secondary mb-2">{t('about.faq.q6.answer')}</p>
                 </Section>
 
-                <Section title="Disclaimer" id="disclaimer">
-                    <p>
-                        AI does its best, but sometimes the generated results can be unexpected or not entirely accurate. Please use your judgment when using and sharing your creations. Have fun creating!
-                    </p>
+                <Section title={t('about.disclaimer.title')} id="disclaimer">
+                    <p>{t('about.disclaimer.content')}</p>
                 </Section>
             </main>
         </PageWrapper>

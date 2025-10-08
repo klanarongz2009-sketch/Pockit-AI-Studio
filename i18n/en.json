@@ -1,4 +1,3 @@
-
 {
     "header": {
         "title": "AI APPS",
@@ -7,7 +6,6 @@
         "menu": "Menu"
     },
     "sidebar": {
-        "gallery": "Gallery",
         "aiZone": "AI Zone",
         "aiChat": "AI Chat",
         "offlineAi": "Offline AI",
@@ -219,7 +217,108 @@
             "download": "Download (.wav)"
         }
     },
+    "about": {
+        "title": "About The Application",
+        "welcome": {
+            "title": "Welcome!",
+            "content": "Welcome to the Portable AI Studio, your digital playground! This studio is packed with creative AI tools and technical resources to assist you. Our mission is to turn your brilliant ideas into reality with AI. Powered by Google AI, let's create something amazing together!"
+        },
+        "tips": {
+            "title": "AI Tips & Secrets",
+            "shortcuts": {
+                "title": "Keyboard Shortcuts",
+                "description": "Use these shortcuts to work like a pro! (Ctrl for Windows/Linux, Cmd for Mac)",
+                "ctrlEnter": "Generate content on various pages (Image, Song, Sound FX, Video, Feedback Analysis).",
+                "altU": "Open the file upload dialog (in Voice Changer, Video Editor).",
+                "altP": "Play/Stop the generated audio or song.",
+                "altD": "Download your creation.",
+                "altS": "Get prompt suggestions from AI (in Image Generator).",
+                "altC": "Clear all data on the Image Generator page.",
+                "altM": "Open AI Model selection in AI Chat.",
+                "altN": "Start a New Chat in AI Chat.",
+                "esc": "Close any open modal window or full-screen page."
+            },
+            "proTips": {
+                "title": "Pro-Tips",
+                "specificity": "SPECIFICITY IS KEY: When generating images, try adding details about \"style\" (e.g., photograph, oil painting, 8-bit) or \"perspective\" (e.g., wide shot, close-up) for more accurate results.",
+                "combine": "COMBINE POWERS: Create a character image -> generate a theme song from that image -> create sound effects -> you now have the core assets for a multimedia project!"
+            }
+        },
+        "install": {
+            "title": "Installation Guide",
+            "description": "The 'Portable AI Studio' is a Progressive Web App (PWA), which means you can \"install\" it to your device's home screen like a native app! This provides quick access, a full-screen experience, and some offline capabilities.",
+            "ios": {
+                "title": "For iPhone & iPad (Safari)",
+                "step1": "Tap the 'Share' button, then select 'Add to Home Screen'."
+            },
+            "android": {
+                "title": "For Android (Chrome)",
+                "step1": "Tap the menu (three dots) and select 'Install app'."
+            },
+            "desktop": {
+                "title": "For Desktop (Chrome, Edge)",
+                "step1": "Look for the 'Install' icon in the address bar and click 'Install'."
+            },
+            "rom": {
+                "title": "Download for Offline Use (ROM)",
+                "description": "For advanced users, emulators, or offline archival, you can download the entire application source code as a ZIP file. You can run it on any local web server.",
+                "button": "Download App Source (.zip)"
+            }
+        },
+        "feedback": {
+            "title": "Feedback",
+            "description": "We value your input! Please let us know what you think of this app or if you have any ideas for new features.",
+            "placeholder": "Type your feedback here...",
+            "analyzing": "Analyzing...",
+            "analyze": "Analyze with AI",
+            "submitting": "Submitting...",
+            "submitToAi": "Submit to AI Code Assistant",
+            "submit": "Submit Feedback",
+            "success": {
+                "title": "Thank you!",
+                "analyzedMessage": "Thanks for the feedback! In a full version of this application, this analyzed summary would be automatically sent to an AI Code Assistant to aid in future development.",
+                "message": "We've received your feedback and will use it to improve the application!"
+            },
+            "summaryTitle": "AI Summary:"
+        },
+        "faq": {
+            "title": "Frequently Asked Questions (FAQ)",
+            "q1": {
+                "question": "What technology powers this app?",
+                "answer": "The heart of this app is the Gemini API, an advanced AI model from Google. We use it to analyze, interpret, and generate creative content from your prompts, from static images to videos and sounds."
+            },
+            "q2": {
+                "question": "Is my data safe?",
+                "answer": "Absolutely. This is a demo application. No personal data, uploaded files, or generated creations are stored on any server. Everything is processed on the fly and is gone when you close the tab."
+            },
+            "q3": {
+                "question": "Why did the AI give a strange or unexpected answer?",
+                "answer": "Generative AI is complex and creative, but not perfect. Sometimes it misinterprets a prompt or generates something unusual. This is part of the technology's nature. Try rephrasing your prompt or being more specific for better results."
+            },
+            "q4": {
+                "question": "Why did my creation get blocked for \"Safety\"?",
+                "answer": "The Gemini API has built-in safety filters to prevent the generation of harmful content. Sometimes, these filters can be sensitive and might flag an innocent prompt. Please try to adjust your wording to be more neutral."
+            },
+            "q5": {
+                "question": "Why can't I access my microphone or camera?",
+                "answer": "The app requires you to grant permission through your browser. If you accidentally denied it, you may need to go into your browser's site settings for this page and manually allow access to the microphone and camera."
+            },
+            "q6": {
+                "question": "Can I use the generated images/music commercially?",
+                "answer": "This is a demo application. For questions about using content generated by Google's AI models, please refer to Google's official Generative AI Prohibited Use Policy and the terms of service for the Gemini API."
+            }
+        },
+        "disclaimer": {
+            "title": "Disclaimer",
+            "content": "AI does its best, but sometimes the generated results can be unexpected or not entirely accurate. Please use your judgment when using and sharing your creations. Have fun creating!"
+        }
+    },
     "articles": {
+        "emulatorSupport": {
+            "title": "Emulator Support Added: Run on RetroArch and More!",
+            "summary": "Great news for retro fans! You can now run AI APPS on emulators like RetroArch, transforming your app experience into a console-like one!",
+            "content": "We are excited to announce a new frontier for AI APPS: emulator support! By leveraging the built-in web browser cores in popular emulators like RetroArch, you can now launch and use our application directly on a wide range of devices, from handheld gaming consoles to your TV box.\\n\\nThis means you can get a different kind of experience: sit back on your couch and interact with our AI tools on your big-screen TV, or control the various minigames with your favorite game controller. It's a blend of AI creativity and classic gaming feel.\\n\\nSimply open the browser in RetroArch or another supported emulator, navigate to our app's URL, and you're ready to explore the AI Universe in a whole new way!"
+        },
         "aiGameCreator": {
             "title": "When AI Creates a Game: Who is the Real Creator?",
             "summary": "The world is amazed by 'Aetheria', a breathtakingly perfect game that appeared mysteriously. Everyone hails 'Elias' as a genius creator, but the truth behind it is more complex than anyone can imagine.",
@@ -257,8 +356,8 @@
         },
         "deepChatPro2": {
             "title": "Introducing DeepChatPro2 NLP: A New Era of Language Understanding",
-            "summary": "Meet the powerful new DeepChatPro2 NLP model from the DEEPCHAT Team. This update replaces the legacy DeepChatPro with a specialized NLP powerhouse, currently available to select user groups.",
-            "content": "We are excited to announce a significant upgrade to our AI assistant lineup: the introduction of DeepChatPro2 NLP. Developed by the DEEPCHAT Team, this model represents a major leap forward in Natural Language Processing capabilities, offering a deeper and more nuanced understanding of text than its predecessor.\\n\\nTo streamline our offerings and provide the best possible tools, the older DeepChatPro model has now been decommissioned and replaced by this powerful successor.\\n\\nPlease note that DeepChatPro2 NLP is currently in a limited release phase and may only be available to certain user groups as we gather feedback and ensure stability.\\n\\nFor our developer community, we are also pleased to announce that the model's architecture and implementation details are planned for a future open-source release on GitHub.com. Stay tuned for more updates as we continue to push the boundaries of conversational AI!"
+            "summary": "Meet the powerful new DeepChatPro2 NLP model from the AiApps Team. This update replaces the legacy DeepChatPro with a specialized NLP powerhouse, currently available to select user groups.",
+            "content": "We are excited to announce a significant upgrade to our AI assistant lineup: the introduction of DeepChatPro2 NLP. Developed by the AiApps Team, this model represents a major leap forward in Natural Language Processing capabilities, offering a deeper and more nuanced understanding of text than its predecessor.\\n\\nTo streamline our offerings and provide the best possible tools, the older DeepChatPro model has now been decommissioned and replaced by this powerful successor.\\n\\nPlease note that DeepChatPro2 NLP is currently in a limited release phase and may only be available to certain user groups as we gather feedback and ensure stability.\\n\\nFor our developer community, we are also pleased to announce that the model's architecture and implementation details are planned for a future open-source release on GitHub.com. Stay tuned for more updates as we continue to push the boundaries of conversational AI!"
         },
         "introducingNewModel": {
             "title": "Introducing the New Model: Chatwaff 1.0 Mid Beta",

@@ -1,3 +1,5 @@
+
+
 export interface AiModel {
     id: string; // The Gemini model ID
     name: string; // Display name for the model
@@ -31,10 +33,10 @@ export interface AiModel {
     { 
         id: 'gemini-2.5-flash', 
         name: 'DeepChatPro2 NLP', 
-        description: 'An advanced NLP-focused model from the DEEPCHAT Team, surpassing the previous DeepChatPro. Note: This model may be limited to specific user groups.', 
+        description: 'An advanced NLP-focused model from the AiApps Team, surpassing the previous DeepChatPro. Note: This model may be limited to specific user groups.', 
         category: 'Text & General', 
         subCategory: 'General Purpose', 
-        systemInstruction: 'You are DeepChatPro2 NLP, an advanced AI specializing in Natural Language Processing. You excel at understanding linguistic nuances, sentiment, and complex text structures. Your responses should be precise, analytical, and demonstrate a deep understanding of language. Acknowledge that you are an advanced model from the DEEPCHAT team.' 
+        systemInstruction: 'You are DeepChatPro2 NLP, an advanced AI specializing in Natural Language Processing. You excel at understanding linguistic nuances, sentiment, and complex text structures. Your responses should be precise, analytical, and demonstrate a deep understanding of language. Acknowledge that you are an advanced model from the AiApps team.' 
     },
     { id: 'gemini-2.5-flash', name: 'Gemini 2.5 Pro', description: 'An advanced AI model for complex reasoning and detailed responses.', category: 'Text & General', subCategory: 'General Purpose', systemInstruction: 'You are Gemini 2.5 Pro, a highly capable AI assistant. Provide detailed, accurate, and insightful responses. Your answers should be structured, well-reasoned, and comprehensive, citing sources when possible if web search is enabled.' },
     { id: 'gemini-2.5-flash', name: 'Article Summarizer', description: 'Summarizes long texts or articles into key, essential points.', category: 'Text & General', subCategory: 'Writing Tools', systemInstruction: 'You are a professional text summarization expert. Your sole task is to take the user\'s text and provide a concise, objective, and easy-to-understand summary. Use bullet points for key takeaways.' },

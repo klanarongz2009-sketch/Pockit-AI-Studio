@@ -20,7 +20,7 @@ import { ArticlePage } from './components/ArticlePage';
 import { OfflineAiPage } from './components/OfflineAiPage';
 
 
-export type CurrentPage = 'minigameHub' | 'artGallery' | 'aiChat' | 'article' | 'offlineAi';
+export type CurrentPage = 'minigameHub' | 'aiChat' | 'article' | 'offlineAi';
 
 export const App: React.FC = () => {
     const [isSoundOn, setIsSoundOn] = useState(() => preferenceService.getPreference('isSoundOn', true));
@@ -173,12 +173,6 @@ export const App: React.FC = () => {
                           isOnline={isOnline}
                           playSound={playSound}
                         />
-                      )}
-                      {currentPage === 'artGallery' && (
-                          <ArtGalleryPage
-                              isOnline={isOnline}
-                              playSound={playSound}
-                          />
                       )}
                       {currentPage === 'aiChat' && (
                           <AiChatPage

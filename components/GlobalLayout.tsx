@@ -1,4 +1,5 @@
 
+
 import React, { useState } from 'react';
 import * as audioService from '../services/audioService';
 import { CurrentPage } from '../App';
@@ -80,13 +81,6 @@ const LayoutComponent: React.FC<GlobalLayoutProps> = ({
                         icon={<GamepadIcon className="w-6 h-6" />}
                         isActive={currentPage === 'minigameHub'}
                         onClick={() => onSetPage('minigameHub')}
-                        playSound={() => playSound(audioService.playHover)}
-                    />
-                    <SidebarNavButton
-                        label={t('sidebar.gallery')}
-                        icon={<GalleryIcon className="w-6 h-6" />}
-                        isActive={currentPage === 'artGallery'}
-                        onClick={() => onSetPage('artGallery')}
                         playSound={() => playSound(audioService.playHover)}
                     />
                      <SidebarNavButton

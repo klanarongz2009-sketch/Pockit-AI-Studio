@@ -4,6 +4,23 @@ Welcome to AI APPS, a creative suite and digital playground packed with AI-power
 
 This project is designed as a Progressive Web App (PWA), offering a fast, installable, and reliable experience with offline capabilities for non-AI features.
 
+## 🌐 Access the App
+
+You can access the latest version of this application directly through the following link:
+
+**[Open AI APPS](https://ai.studio/apps/drive/1yBGwvk27fvwS483MKKu4Ixd7xYXaWIhQ)**
+
+This link provides direct access in case the application is moved or archived from its original location on Google AI Studio.
+
+## 🚀 Add to Your AI Studio
+
+You can add this application to your own Google AI Studio workspace to experiment with and modify the code.
+
+1.  **[Click here to create a new Web App in AI Studio](https://aistudio.google.com/new/webapp)**.
+2.  Once your new project is created, you will need to copy the code for each file into the corresponding file in your AI Studio project.
+3.  If you have this project running locally or on GitHub, you can copy the contents of `index.html`, `index.tsx`, `metadata.json`, etc., into the editor in AI Studio.
+4.  Save the files, and the app will be running in your own workspace!
+
 ## ✨ Features
 
 The application is divided into several creative zones:
@@ -73,6 +90,12 @@ This project is set up as a static web application with no build step required.
     ```
     This will start a server, and you can open the provided `localhost` URL in your browser.
 
+## 📦 Offline Installation (Download Source)
+
+For advanced users, developers, or for use in environments like emulators (e.g., RetroArch), you can download the entire application source code. This allows you to run the app from a local web server for offline archival and use.
+
+*   **[Download Application Source (.zip)](/app-source.zip)**
+
 ## PWA Installation
 
 This app is a Progressive Web App (PWA) and can be installed on your device for a native-like experience.
@@ -81,4 +104,12 @@ This app is a Progressive Web App (PWA) and can be installed on your device for 
 *   **iOS (Safari)**: Tap the "Share" button, then select "Add to Home Screen".
 *   **Android (Chrome)**: Tap the menu (three dots) and select "Install app".
 
-This provides quick access from your home screen and enables offline access for non-AI features.
+This provides direct access from your home screen and enables offline access for non-AI features.
+
+## 📚 Resources and Further Reading
+
+*   **[Google AI Studio](https://aistudio.google.com/)**: The home of the Gemini API. Get your API key and explore other models.
+*   **[Gemini API Documentation](https://ai.google.dev/docs)**: Official documentation for the Gemini API, including guides and API references.
+*   **[Google for Developers on YouTube](https://www.youtube.com/c/GoogleDevelopers)**: Find tutorials and showcases for Google's developer tools, including AI.
+*   **[Web Audio API (MDN)](https://developer.mozilla.org/en-US/docs/Web/API/Web_Audio_API)**: Learn more about the browser technology used for sound synthesis in this app.
+*   **[Progressive Web Apps (MDN)](https://developer.mozilla.org/en-US/docs/Web/Progressive_web_apps)**: Understand the technology that allows this web app to be "installed".

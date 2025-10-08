@@ -4,6 +4,8 @@
 
 
 
+
+
 import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { GoogleGenAI, LiveServerMessage, Modality, Blob } from '@google/genai';
 import * as geminiService from '../services/geminiService';
@@ -85,8 +87,7 @@ const ModelSelectionModal: React.FC<{
     const [searchQuery, setSearchQuery] = useState('');
     const { t } = useLanguage();
     const categories = useMemo(() => {
-        // FIX: Added type guard. Although the prop `models` is typed as AiModel[], TypeScript can fail to infer it inside `useMemo`, treating it as `unknown`.
-        // This `Array.isArray` check ensures `models` is an array before `.map` is called, preventing the error.
+        // FIX: Add type guard to prevent calling .map on unknown.
         if (!Array.isArray(models)) {
             return ['All'];
         }
@@ -95,7 +96,7 @@ const ModelSelectionModal: React.FC<{
     const [activeCategory, setActiveCategory] = useState<'All' | AiModel['category']>('All');
 
     const filteredModels = useMemo(() => {
-        // FIX: Added a type guard to ensure `models` is an array before calling array methods like `.filter`.
+        // FIX: Add type guard to prevent calling .filter on unknown.
         if (!Array.isArray(models)) {
             return [];
         }
@@ -259,6 +260,27 @@ export const AiChatPage: React.FC<AiChatPageProps> = ({ isOnline, playSound }) =
             preferenceService.setPreference('chatHistory', allHistory);
         }
     }, [playSound, saveChatHistory, selectedModel.id]);
+    
+    // Keyboard shortcuts
+    useEffect(() => {
+        const handleKeyDown = (event: KeyboardEvent) => {
+            if (!event.altKey) return;
+            
+            switch(event.key.toLowerCase()) {
+                case 'm':
+                    event.preventDefault();
+                    setIsModelModalOpen(true);
+                    break;
+                case 'n':
+                    event.preventDefault();
+                    handleNewChat();
+                    break;
+            }
+        };
+        window.addEventListener('keydown', handleKeyDown);
+        return () => window.removeEventListener('keydown', handleKeyDown);
+    }, [handleNewChat]);
+
 
     const handleSendMessage = useCallback(async (messageText?: string) => {
         const textToSend = (messageText || userInput).trim();
@@ -544,7 +566,7 @@ export const AiChatPage: React.FC<AiChatPageProps> = ({ isOnline, playSound }) =
                     </div>
                 )}
                 <div className="flex items-center gap-2">
-                    <button onClick={handleNewChat} onMouseEnter={() => playSound(audioService.playHover)} className="p-3 border-2 border-border-primary text-text-primary hover:bg-brand-magenta/80" title={t('aiChat.newChat')}>
+                    <button onClick={handleNewChat} onMouseEnter={() => playSound(audioService.playHover)} className="p-3 border-2 border-border-primary text-text-primary hover:bg-brand-magenta/80" title={`${t('aiChat.newChat')} (Alt+N)`}>
                         <TrashIcon className="w-5 h-5"/>
                     </button>
                     <div className="relative flex-grow">
@@ -584,7 +606,7 @@ export const AiChatPage: React.FC<AiChatPageProps> = ({ isOnline, playSound }) =
                             {t('aiChat.webSearch')}
                         </label>
                     ) : <div/>}
-                    <button onClick={() => setIsModelModalOpen(true)} className="text-brand-light/70 hover:text-brand-yellow truncate max-w-[50%]">{selectedModel.name}</button>
+                    <button onClick={() => setIsModelModalOpen(true)} title="Select AI Model (Alt+M)" className="text-brand-light/70 hover:text-brand-yellow truncate max-w-[50%]">{selectedModel.name}</button>
                 </div>
             </footer>
         </div>

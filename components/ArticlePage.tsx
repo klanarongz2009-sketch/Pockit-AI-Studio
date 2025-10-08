@@ -1,4 +1,3 @@
-
 import React, { useState, useMemo } from 'react';
 import { useLanguage } from '../contexts/LanguageContext';
 import * as audioService from '../services/audioService';
@@ -19,6 +18,15 @@ export interface Article {
 }
 
 const articlesData: Article[] = [
+    {
+        id: 'emulator-support',
+        titleKey: 'articles.emulatorSupport.title',
+        summaryKey: 'articles.emulatorSupport.summary',
+        contentKey: 'articles.emulatorSupport.content',
+        author: 'AI APPS Team',
+        category: 'article',
+        voice: 'Zephyr',
+    },
     {
         id: 'ai-game-creator',
         titleKey: 'articles.aiGameCreator.title',
@@ -87,7 +95,7 @@ const articlesData: Article[] = [
         titleKey: 'articles.deepChatPro2.title',
         summaryKey: 'articles.deepChatPro2.summary',
         contentKey: 'articles.deepChatPro2.content',
-        author: 'DEEPCHAT Team',
+        author: 'AiApps team',
         category: 'article',
         voice: 'Fenrir',
     },
