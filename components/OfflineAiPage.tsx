@@ -1,11 +1,4 @@
 
-
-
-
-
-
-
-
 import React, { useState, useRef, useCallback, useEffect } from 'react';
 import * as audioService from '../services/audioService';
 import * as preferenceService from '../services/preferenceService';
@@ -23,6 +16,11 @@ import { AudioTransformIcon } from './icons/AudioTransformIcon';
 import { ImageSoundIcon } from './icons/ImageSoundIcon';
 import { ReverseIcon } from './icons/ReverseIcon';
 import { MusicKeyboardIcon } from './icons/MusicKeyboardIcon';
+import { SoundWaveIcon } from './icons/SoundWaveIcon';
+import type { LocalAnalysisResult } from '../services/audioService';
+// FIX: Added PageWrapper and PageHeader to structure tool pages
+import { PageWrapper, PageHeader } from './PageComponents';
+
 
 // --- Helper Functions from ImageToSoundPage ---
 function rgbToHsl(r: number, g: number, b: number): [number, number, number] {
@@ -81,6 +79,7 @@ const analyzeImageToSound = (imageUrl: string): Promise<SoundEffectParameters> =
     });
 };
 
+// --- Enhanced Image to Song Logic ---
 const MELODY_SCALE = ['C', 'D', 'E', 'F', 'G', 'A', 'B'];
 const BASS_SCALE = ['C', 'F', 'G'];
 
@@ -290,7 +289,13 @@ const analyzeImageLocally = (imageUrl: string): Promise<LocalColorResult[]> => {
     });
 };
 
-const ChiptuneCreator = ({ playSound, t }: { playSound: (player: () => void) => void; t: (key: string) => string; }) => {
+interface OfflineToolProps {
+    playSound: (player: () => void) => void;
+    t: (key: string) => string;
+    onClose: () => void;
+}
+
+const ChiptuneCreator = ({ playSound, t, onClose }: OfflineToolProps) => {
     const [uploadedFile, setUploadedFile] = useState<File | null>(null);
     const [previewUrl, setPreviewUrl] = useState<string | null>(null);
     const [isLoading, setIsLoading] = useState(false);
@@ -328,7 +333,7 @@ const ChiptuneCreator = ({ playSound, t }: { playSound: (player: () => void) => 
     const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
         const file = event.target.files?.[0];
         if (!file || (!file.type.startsWith('audio/') && !file.type.startsWith('video/'))) {
-            setError(t('offlineAiPage.chiptuneCreator.errorSelectMedia'));
+            setError(t('chiptuneCreator.errorSelectMedia'));
             playSound(audioService.playError);
             return;
         }
@@ -394,69 +399,74 @@ const ChiptuneCreator = ({ playSound, t }: { playSound: (player: () => void) => 
     }, [processedAudio, isDownloading, playSound, uploadedFile?.name]);
     
     return (
-        <>
-            <input type="file" ref={fileInputRef} onChange={handleFileChange} accept="audio/*,video/*" className="hidden" />
-            <p className="text-sm text-center text-brand-light/80">{t('offlineAiPage.chiptuneCreator.description')}</p>
-            {!uploadedFile ? (
-                <button onClick={() => fileInputRef.current?.click()} className="w-full flex items-center justify-center gap-3 p-4 bg-brand-magenta text-white border-4 border-brand-light shadow-pixel">
-                    <UploadIcon className="w-6 h-6" /> {t('offlineAiPage.chiptuneCreator.uploadMedia')}
-                </button>
-            ) : (
-                <div className="w-full space-y-4">
-                    <div className="bg-black/40 p-4 border-2 border-brand-light/50">
-                        <h3 className="font-press-start text-brand-cyan">{t('offlineAiPage.chiptuneCreator.sourceMedia')}:</h3>
-                        {uploadedFile.type.startsWith('video/') ? (
-                            <video src={previewUrl!} controls className="w-full max-h-60 border-2 border-brand-light object-contain bg-black mt-2" />
-                        ) : (
-                            <audio src={previewUrl!} controls className="w-full mt-2" />
-                        )}
-                        <button onClick={() => fileInputRef.current?.click()} className="text-sm underline hover:text-brand-yellow mt-2">{t('offlineAiPage.chiptuneCreator.changeFile')}</button>
-                    </div>
-                    
-                    <div className="bg-black/40 p-4 border-2 border-brand-light/50 space-y-4">
-                        <h3 className="font-press-start text-brand-cyan">Chiptune Controls</h3>
-                        <div>
-                            <label htmlFor="bit-depth" className="text-xs font-press-start text-brand-light/80 flex justify-between">
-                                <span>Bit Depth</span><span>{bitDepth}-bit</span>
-                            </label>
-                            <input id="bit-depth" type="range" min="1" max="16" value={bitDepth} onChange={e => setBitDepth(Number(e.target.value))} className="w-full" disabled={isLoading} />
-                        </div>
-                        <div>
-                            <label htmlFor="sample-rate" className="text-xs font-press-start text-brand-light/80 flex justify-between">
-                                <span>Sample Rate</span><span>{sampleRate} Hz</span>
-                            </label>
-                            <input id="sample-rate" type="range" min="2000" max="16000" step="1000" value={sampleRate} onChange={e => setSampleRate(Number(e.target.value))} className="w-full" disabled={isLoading} />
-                        </div>
-                    </div>
-
-                    <button onClick={handleTransform} disabled={isLoading} className="w-full flex items-center justify-center gap-3 p-4 bg-brand-magenta text-white border-4 border-brand-light shadow-pixel disabled:bg-gray-500">
-                        <SparklesIcon className="w-6 h-6" /> {isLoading ? 'Transforming...' : 'Transform to Chiptune'}
+        <PageWrapper>
+            <PageHeader title={t('chiptuneCreator.title')} onBack={onClose} />
+            <main id="main-content" className="w-full max-w-lg flex flex-col items-center gap-6 font-sans">
+                <input type="file" ref={fileInputRef} onChange={handleFileChange} accept="audio/*,video/*" className="hidden" />
+                <p className="text-sm text-center text-brand-light/80">
+                    {t('chiptuneCreator.description')}
+                </p>
+                {!uploadedFile ? (
+                    <button onClick={() => fileInputRef.current?.click()} className="w-full flex items-center justify-center gap-3 p-4 bg-brand-magenta text-white border-4 border-brand-light shadow-pixel">
+                        <UploadIcon className="w-6 h-6" /> {t('chiptuneCreator.uploadMedia')}
                     </button>
-                </div>
-            )}
-
-            <div className="w-full min-h-[8rem] p-4 bg-black/50 border-4 border-brand-light flex flex-col items-center justify-center">
-                {isLoading && <LoadingSpinner text="Crunching bits..." />}
-                {error && <div role="alert" className="text-center text-brand-magenta"><p className="font-press-start">Error</p><p className="text-sm mt-2">{error}</p></div>}
-                {processedAudio && !isLoading && (
+                ) : (
                     <div className="w-full space-y-4">
-                        <h3 className="font-press-start text-lg text-brand-cyan text-center">Result:</h3>
-                        <div className="flex gap-4">
-                            <button onClick={handlePlaybackToggle} className="w-full flex items-center justify-center gap-2 p-3 bg-brand-cyan text-black border-2 border-brand-light shadow-sm">
-                                {isPlaying ? <StopIcon className="w-5 h-5"/> : <PlayIcon className="w-5 h-5"/>} {isPlaying ? 'Stop' : 'Play'}
-                            </button>
-                            <button onClick={handleDownload} disabled={isDownloading} className="w-full flex items-center justify-center gap-2 p-3 bg-brand-yellow text-black border-2 border-brand-light shadow-sm disabled:bg-gray-500">
-                                <DownloadIcon className="w-5 h-5"/> {isDownloading ? '...' : 'Download'}
-                            </button>
+                        <div className="bg-black/40 p-4 border-2 border-brand-light/50">
+                            <h3 className="font-press-start text-brand-cyan">{t('chiptuneCreator.sourceMedia')}:</h3>
+                            {uploadedFile.type.startsWith('video/') ? (
+                                <video src={previewUrl!} controls className="w-full max-h-60 border-2 border-brand-light object-contain bg-black mt-2" />
+                            ) : (
+                                <audio src={previewUrl!} controls className="w-full mt-2" />
+                            )}
+                            <button onClick={() => fileInputRef.current?.click()} className="text-sm underline hover:text-brand-yellow mt-2">{t('chiptuneCreator.changeFile')}</button>
                         </div>
+                        
+                        <div className="bg-black/40 p-4 border-2 border-brand-light/50 space-y-4">
+                            <h3 className="font-press-start text-brand-cyan">Chiptune Controls</h3>
+                            <div>
+                                <label htmlFor="bit-depth" className="text-xs font-press-start text-brand-light/80 flex justify-between">
+                                    <span>Bit Depth</span><span>{bitDepth}-bit</span>
+                                </label>
+                                <input id="bit-depth" type="range" min="1" max="16" value={bitDepth} onChange={e => setBitDepth(Number(e.target.value))} className="w-full" disabled={isLoading} />
+                            </div>
+                            <div>
+                                <label htmlFor="sample-rate" className="text-xs font-press-start text-brand-light/80 flex justify-between">
+                                    <span>Sample Rate</span><span>{sampleRate} Hz</span>
+                                </label>
+                                <input id="sample-rate" type="range" min="2000" max="16000" step="1000" value={sampleRate} onChange={e => setSampleRate(Number(e.target.value))} className="w-full" disabled={isLoading} />
+                            </div>
+                        </div>
+
+                        <button onClick={handleTransform} disabled={isLoading} className="w-full flex items-center justify-center gap-3 p-4 bg-brand-magenta text-white border-4 border-brand-light shadow-pixel disabled:bg-gray-500">
+                            <SparklesIcon className="w-6 h-6" /> {isLoading ? 'Transforming...' : 'Transform to Chiptune'}
+                        </button>
                     </div>
                 )}
-            </div>
-        </>
+
+                <div className="w-full min-h-[8rem] p-4 bg-black/50 border-4 border-brand-light flex flex-col items-center justify-center">
+                    {isLoading && <LoadingSpinner text="Crunching bits..." />}
+                    {error && <div role="alert" className="text-center text-brand-magenta"><p className="font-press-start">Error</p><p className="text-sm mt-2">{error}</p></div>}
+                    {processedAudio && !isLoading && (
+                        <div className="w-full space-y-4">
+                            <h3 className="font-press-start text-lg text-brand-cyan text-center">Result:</h3>
+                            <div className="flex gap-4">
+                                <button onClick={handlePlaybackToggle} className="w-full flex items-center justify-center gap-2 p-3 bg-brand-cyan text-black border-2 border-brand-light shadow-sm">
+                                    {isPlaying ? <StopIcon className="w-5 h-5"/> : <PlayIcon className="w-5 h-5"/>} {isPlaying ? 'Stop' : 'Play'}
+                                </button>
+                                <button onClick={handleDownload} disabled={isDownloading} className="w-full flex items-center justify-center gap-2 p-3 bg-brand-yellow text-black border-2 border-brand-light shadow-sm disabled:bg-gray-500">
+                                    <DownloadIcon className="w-5 h-5"/> {isDownloading ? '...' : 'Download'}
+                                </button>
+                            </div>
+                        </div>
+                    )}
+                </div>
+            </main>
+        </PageWrapper>
     );
 };
 
-const AudioReverserTool = ({ playSound, t }: { playSound: (player: () => void) => void; t: (key: string) => string; }) => {
+const AudioReverserTool = ({ playSound, t, onClose }: OfflineToolProps) => {
     const [uploadedFile, setUploadedFile] = useState<File | null>(null);
     const [previewUrl, setPreviewUrl] = useState<string | null>(null);
     const [isLoading, setIsLoading] = useState(false);
@@ -559,52 +569,55 @@ const AudioReverserTool = ({ playSound, t }: { playSound: (player: () => void) =
     }, [reversedAudio, isDownloading, playSound, uploadedFile?.name]);
 
     return (
-        <>
-            <input type="file" ref={fileInputRef} onChange={handleFileChange} accept="audio/*,video/*" className="hidden" />
-            <p className="text-sm text-center text-brand-light/80">{t('offlineAiPage.audioReverser.description')}</p>
-            {!uploadedFile ? (
-                <button onClick={() => fileInputRef.current?.click()} className="w-full flex items-center justify-center gap-3 p-4 bg-brand-magenta text-white border-4 border-brand-light shadow-pixel">
-                    <UploadIcon className="w-6 h-6" /> {t('offlineAiPage.audioReverser.uploadVideo')}
-                </button>
-            ) : (
-                <div className="w-full space-y-4">
-                    <div className="bg-black/40 p-4 border-2 border-brand-light/50">
-                        <h3 className="font-press-start text-brand-cyan">{t('offlineAiPage.audioReverser.sourceVideo')}:</h3>
-                        {uploadedFile.type.startsWith('video/') ? (
-                            <video src={previewUrl!} controls className="w-full max-h-60 border-2 border-brand-light object-contain bg-black mt-2" />
-                        ) : (
-                            <audio src={previewUrl!} controls className="w-full mt-2" />
-                        )}
-                        <button onClick={() => fileInputRef.current?.click()} className="text-sm underline hover:text-brand-yellow mt-2">{t('offlineAiPage.audioReverser.changeFile')}</button>
-                    </div>
-                    <button onClick={handleReverse} disabled={isLoading} className="w-full flex items-center justify-center gap-3 p-4 bg-brand-magenta text-white border-4 border-brand-light shadow-pixel disabled:bg-gray-500">
-                        <ReverseIcon className="w-6 h-6" /> {isLoading ? t('offlineAiPage.audioReverser.transforming') : t('offlineAiPage.audioReverser.reverseAudio')}
+        <PageWrapper>
+            <PageHeader title={t('offlineAiPage.audioReverser.title')} onBack={onClose} />
+            <main id="main-content" className="w-full max-w-lg flex flex-col items-center gap-6 font-sans">
+                <input type="file" ref={fileInputRef} onChange={handleFileChange} accept="audio/*,video/*" className="hidden" />
+                <p className="text-sm text-center text-brand-light/80">{t('offlineAiPage.audioReverser.description')}</p>
+                {!uploadedFile ? (
+                    <button onClick={() => fileInputRef.current?.click()} className="w-full flex items-center justify-center gap-3 p-4 bg-brand-magenta text-white border-4 border-brand-light shadow-pixel">
+                        <UploadIcon className="w-6 h-6" /> {t('offlineAiPage.audioReverser.uploadVideo')}
                     </button>
-                </div>
-            )}
-            <div className="w-full min-h-[8rem] p-4 bg-black/50 border-4 border-brand-light flex flex-col items-center justify-center">
-                {isLoading && <LoadingSpinner text={t('offlineAiPage.audioReverser.transforming')} />}
-                {error && <div role="alert" className="text-center text-brand-magenta"><p className="font-press-start">Error</p><p className="text-sm mt-2">{error}</p></div>}
-                {reversedAudio && !isLoading && (
+                ) : (
                     <div className="w-full space-y-4">
-                        <h3 className="font-press-start text-lg text-brand-cyan text-center">{t('offlineAiPage.audioReverser.resultTitle')}</h3>
-                        <div className="flex gap-4">
-                            <button onClick={handlePlaybackToggle} className="w-full flex items-center justify-center gap-2 p-3 bg-brand-cyan text-black border-2 border-brand-light shadow-sm">
-                                {isPlaying ? <StopIcon className="w-5 h-5"/> : <PlayIcon className="w-5 h-5"/>} {isPlaying ? t('offlineAiPage.audioReverser.stop') : t('offlineAiPage.audioReverser.playReversed')}
-                            </button>
-                            <button onClick={handleDownload} disabled={isDownloading} className="w-full flex items-center justify-center gap-2 p-3 bg-brand-yellow text-black border-2 border-brand-light shadow-sm disabled:bg-gray-500">
-                                <DownloadIcon className="w-5 h-5"/> {isDownloading ? '...' : t('offlineAiPage.audioReverser.download')}
-                            </button>
+                        <div className="bg-black/40 p-4 border-2 border-brand-light/50">
+                            <h3 className="font-press-start text-brand-cyan">{t('offlineAiPage.audioReverser.sourceVideo')}:</h3>
+                            {uploadedFile.type.startsWith('video/') ? (
+                                <video src={previewUrl!} controls className="w-full max-h-60 border-2 border-brand-light object-contain bg-black mt-2" />
+                            ) : (
+                                <audio src={previewUrl!} controls className="w-full mt-2" />
+                            )}
+                            <button onClick={() => fileInputRef.current?.click()} className="text-sm underline hover:text-brand-yellow mt-2">{t('offlineAiPage.audioReverser.changeFile')}</button>
                         </div>
+                        <button onClick={handleReverse} disabled={isLoading} className="w-full flex items-center justify-center gap-3 p-4 bg-brand-magenta text-white border-4 border-brand-light shadow-pixel disabled:bg-gray-500">
+                            <ReverseIcon className="w-6 h-6" /> {isLoading ? t('offlineAiPage.audioReverser.transforming') : t('offlineAiPage.audioReverser.reverseAudio')}
+                        </button>
                     </div>
                 )}
-            </div>
-        </>
+                <div className="w-full min-h-[8rem] p-4 bg-black/50 border-4 border-brand-light flex flex-col items-center justify-center">
+                    {isLoading && <LoadingSpinner text={t('offlineAiPage.audioReverser.transforming')} />}
+                    {error && <div role="alert" className="text-center text-brand-magenta"><p className="font-press-start">Error</p><p className="text-sm mt-2">{error}</p></div>}
+                    {reversedAudio && !isLoading && (
+                        <div className="w-full space-y-4">
+                            <h3 className="font-press-start text-lg text-brand-cyan text-center">{t('offlineAiPage.audioReverser.resultTitle')}</h3>
+                            <div className="flex gap-4">
+                                <button onClick={handlePlaybackToggle} className="w-full flex items-center justify-center gap-2 p-3 bg-brand-cyan text-black border-2 border-brand-light shadow-sm">
+                                    {isPlaying ? <StopIcon className="w-5 h-5"/> : <PlayIcon className="w-5 h-5"/>} {isPlaying ? t('offlineAiPage.audioReverser.stop') : t('offlineAiPage.audioReverser.playReversed')}
+                                </button>
+                                <button onClick={handleDownload} disabled={isDownloading} className="w-full flex items-center justify-center gap-2 p-3 bg-brand-yellow text-black border-2 border-brand-light shadow-sm disabled:bg-gray-500">
+                                    <DownloadIcon className="w-5 h-5"/> {isDownloading ? '...' : t('offlineAiPage.audioReverser.download')}
+                                </button>
+                            </div>
+                        </div>
+                    )}
+                </div>
+            </main>
+        </PageWrapper>
     );
 };
 
 // --- New Audio to MIDI Tool ---
-const AudioToMidiTool = ({ playSound, t }: { playSound: (player: () => void) => void; t: (key: string) => string; }) => {
+const AudioToMidiTool = ({ playSound, t, onClose }: OfflineToolProps) => {
     const [uploadedFile, setUploadedFile] = useState<File | null>(null);
     const [previewUrl, setPreviewUrl] = useState<string | null>(null);
     const [isLoading, setIsLoading] = useState(false);
@@ -653,7 +666,6 @@ const AudioToMidiTool = ({ playSound, t }: { playSound: (player: () => void) => 
             const arrayBuffer = await uploadedFile.arrayBuffer();
             const audioCtx = new (window.AudioContext || (window as any).webkitAudioContext)();
             const audioBuffer = await audioCtx.decodeAudioData(arrayBuffer);
-            // FIX: The `analyzeAudioBufferToMidi` function only accepts one argument. The extra `audioCtx` argument has been removed to fix the error.
             const midiNotes = await audioService.analyzeAudioBufferToMidi(audioBuffer);
             if (midiNotes.length === 0) {
                 throw new Error("Could not detect any distinct notes in the audio.");
@@ -704,55 +716,159 @@ const AudioToMidiTool = ({ playSound, t }: { playSound: (player: () => void) => 
     }, [processedMidi, isDownloading, playSound, uploadedFile?.name]);
     
     return (
-         <>
-            <input type="file" ref={fileInputRef} onChange={handleFileChange} accept="audio/*,video/*" className="hidden" />
-            <p className="text-sm text-center text-brand-light/80">{t('offlineAiPage.audioToMidi.description')}</p>
-            {!uploadedFile ? (
-                <button onClick={() => fileInputRef.current?.click()} className="w-full flex items-center justify-center gap-3 p-4 bg-brand-magenta text-white border-4 border-brand-light shadow-pixel">
-                    <UploadIcon className="w-6 h-6" /> {t('offlineAiPage.audioToMidi.uploadMedia')}
-                </button>
-            ) : (
-                <div className="w-full space-y-4">
-                    <div className="bg-black/40 p-4 border-2 border-brand-light/50">
-                        <h3 className="font-press-start text-brand-cyan">{t('offlineAiPage.audioToMidi.sourceMedia')}:</h3>
-                        {uploadedFile.type.startsWith('video/') ? (
-                            <video src={previewUrl!} controls className="w-full max-h-60 border-2 border-brand-light object-contain bg-black mt-2" />
-                        ) : (
-                            <audio src={previewUrl!} controls className="w-full mt-2" />
-                        )}
-                        <button onClick={() => fileInputRef.current?.click()} className="text-sm underline hover:text-brand-yellow mt-2">{t('offlineAiPage.audioToMidi.changeFile')}</button>
-                    </div>
-                    <button onClick={handleTransform} disabled={isLoading} className="w-full flex items-center justify-center gap-3 p-4 bg-brand-magenta text-white border-4 border-brand-light shadow-pixel disabled:bg-gray-500">
-                        <SparklesIcon className="w-6 h-6" /> {isLoading ? t('offlineAiPage.audioToMidi.transforming') : t('offlineAiPage.audioToMidi.transform')}
+        <PageWrapper>
+            <PageHeader title={t('offlineAiPage.audioToMidi.title')} onBack={onClose} />
+            <main id="main-content" className="w-full max-w-lg flex flex-col items-center gap-6 font-sans">
+                <input type="file" ref={fileInputRef} onChange={handleFileChange} accept="audio/*,video/*" className="hidden" />
+                <p className="text-sm text-center text-brand-light/80">{t('offlineAiPage.audioToMidi.description')}</p>
+                {!uploadedFile ? (
+                    <button onClick={() => fileInputRef.current?.click()} className="w-full flex items-center justify-center gap-3 p-4 bg-brand-magenta text-white border-4 border-brand-light shadow-pixel">
+                        <UploadIcon className="w-6 h-6" /> {t('offlineAiPage.audioToMidi.uploadMedia')}
                     </button>
-                </div>
-            )}
-             <div className="w-full min-h-[8rem] p-4 bg-black/50 border-4 border-brand-light flex flex-col items-center justify-center">
-                {isLoading && <LoadingSpinner text={t('offlineAiPage.audioToMidi.transforming')} />}
-                {error && <div role="alert" className="text-center text-brand-magenta"><p className="font-press-start">Error</p><p className="text-sm mt-2">{error}</p></div>}
-                {processedMidi && !isLoading && (
+                ) : (
                     <div className="w-full space-y-4">
-                        <h3 className="font-press-start text-lg text-brand-cyan text-center">{t('offlineAiPage.audioToMidi.resultTitle')}</h3>
-                        <p className="text-center">{t('offlineAiPage.audioToMidi.notesFound', { count: processedMidi.length })}</p>
-                        <div className="flex gap-4">
-                            <button onClick={handlePlaybackToggle} className="w-full flex items-center justify-center gap-2 p-3 bg-brand-cyan text-black border-2 border-brand-light shadow-sm">
-                                {isPlaying ? <StopIcon className="w-5 h-5"/> : <PlayIcon className="w-5 h-5"/>} {isPlaying ? t('offlineAiPage.audioToMidi.stop') : t('offlineAiPage.audioToMidi.playMidi')}
-                            </button>
-                            <button onClick={handleDownload} disabled={isDownloading} className="w-full flex items-center justify-center gap-2 p-3 bg-brand-yellow text-black border-2 border-brand-light shadow-sm disabled:bg-gray-500">
-                                <DownloadIcon className="w-5 h-5"/> {isDownloading ? '...' : t('offlineAiPage.audioToMidi.download')}
-                            </button>
+                        <div className="bg-black/40 p-4 border-2 border-brand-light/50">
+                            <h3 className="font-press-start text-brand-cyan">{t('offlineAiPage.audioToMidi.sourceMedia')}:</h3>
+                            {uploadedFile.type.startsWith('video/') ? (
+                                <video src={previewUrl!} controls className="w-full max-h-60 border-2 border-brand-light object-contain bg-black mt-2" />
+                            ) : (
+                                <audio src={previewUrl!} controls className="w-full mt-2" />
+                            )}
+                            <button onClick={() => fileInputRef.current?.click()} className="text-sm underline hover:text-brand-yellow mt-2">{t('offlineAiPage.audioToMidi.changeFile')}</button>
                         </div>
+                        <button onClick={handleTransform} disabled={isLoading} className="w-full flex items-center justify-center gap-3 p-4 bg-brand-magenta text-white border-4 border-brand-light shadow-pixel disabled:bg-gray-500">
+                            <SparklesIcon className="w-6 h-6" /> {isLoading ? t('offlineAiPage.audioToMidi.transforming') : t('offlineAiPage.audioToMidi.transform')}
+                        </button>
                     </div>
                 )}
-            </div>
-        </>
+                <div className="w-full min-h-[8rem] p-4 bg-black/50 border-4 border-brand-light flex flex-col items-center justify-center">
+                    {isLoading && <LoadingSpinner text={t('offlineAiPage.audioToMidi.transforming')} />}
+                    {error && <div role="alert" className="text-center text-brand-magenta"><p className="font-press-start">Error</p><p className="text-sm mt-2">{error}</p></div>}
+                    {processedMidi && !isLoading && (
+                        <div className="w-full space-y-4">
+                            <h3 className="font-press-start text-lg text-brand-cyan text-center">{t('offlineAiPage.audioToMidi.resultTitle')}</h3>
+                            <p className="text-center">{t('offlineAiPage.audioToMidi.notesFound').replace('{count}', String(processedMidi.length))}</p>
+                            <div className="flex gap-4">
+                                <button onClick={handlePlaybackToggle} className="w-full flex items-center justify-center gap-2 p-3 bg-brand-cyan text-black border-2 border-brand-light shadow-sm">
+                                    {isPlaying ? <StopIcon className="w-5 h-5"/> : <PlayIcon className="w-5 h-5"/>} {isPlaying ? t('offlineAiPage.audioToMidi.stop') : t('offlineAiPage.audioToMidi.playMidi')}
+                                </button>
+                                <button onClick={handleDownload} disabled={isDownloading} className="w-full flex items-center justify-center gap-2 p-3 bg-brand-yellow text-black border-2 border-brand-light shadow-sm disabled:bg-gray-500">
+                                    <DownloadIcon className="w-5 h-5"/> {isDownloading ? '...' : t('offlineAiPage.audioToMidi.download')}
+                                </button>
+                            </div>
+                        </div>
+                    )}
+                </div>
+            </main>
+        </PageWrapper>
     );
 };
 
+const AudioAnalyzerTool = ({ playSound, t, onClose }: OfflineToolProps) => {
+    const [uploadedFile, setUploadedFile] = useState<File | null>(null);
+    const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+    const [isLoading, setIsLoading] = useState(false);
+    const [error, setError] = useState<string | null>(null);
+    const [analysisResult, setAnalysisResult] = useState<LocalAnalysisResult | null>(null);
+    const fileInputRef = useRef<HTMLInputElement>(null);
 
-// Component for Image Transformation Tools
-const ImageTransformerTool = ({ playSound, t }: { playSound: (player: () => void) => void; t: (key: string) => string; }) => {
-    const [mode, setMode] = useState<ImageMode>('sound');
+     const resetState = useCallback((clearFile: boolean = false) => {
+        setError(null);
+        setAnalysisResult(null);
+        if (clearFile) {
+            setUploadedFile(null);
+            if (previewUrl) URL.revokeObjectURL(previewUrl);
+            setPreviewUrl(null);
+            if (fileInputRef.current) fileInputRef.current.value = "";
+        }
+    }, [previewUrl]);
+
+    const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+        const file = event.target.files?.[0];
+        if (!file || (!file.type.startsWith('audio/') && !file.type.startsWith('video/'))) {
+            setError(t('offlineAiPage.analyzer.errorSelectMedia'));
+            playSound(audioService.playError);
+            return;
+        }
+        resetState(true);
+        setUploadedFile(file);
+        setPreviewUrl(URL.createObjectURL(file));
+        playSound(audioService.playSelection);
+    };
+
+     const handleAnalyze = useCallback(async () => {
+        if (!uploadedFile || isLoading) return;
+        resetState();
+        playSound(audioService.playGenerate);
+        setIsLoading(true);
+        try {
+            const arrayBuffer = await uploadedFile.arrayBuffer();
+            const audioCtx = new (window.AudioContext || (window as any).webkitAudioContext)();
+            const audioBuffer = await audioCtx.decodeAudioData(arrayBuffer);
+            const result = await audioService.analyzeAudioLocally(audioBuffer);
+            setAnalysisResult(result);
+            playSound(audioService.playSuccess);
+        } catch (err) {
+            setError(err instanceof Error ? err.message : "Failed to analyze audio.");
+            playSound(audioService.playError);
+        } finally {
+            setIsLoading(false);
+        }
+    }, [uploadedFile, isLoading, playSound, resetState]);
+    
+    return (
+        <PageWrapper>
+            <PageHeader title={t('offlineAiPage.analyzer.title')} onBack={onClose} />
+            <main id="main-content" className="w-full max-w-lg flex flex-col items-center gap-6 font-sans">
+                <input type="file" ref={fileInputRef} onChange={handleFileChange} accept="audio/*,video/*" className="hidden" />
+                <p className="text-sm text-center text-brand-light/80">{t('offlineAiPage.analyzer.description')}</p>
+                {!uploadedFile ? (
+                    <button onClick={() => fileInputRef.current?.click()} className="w-full flex items-center justify-center gap-3 p-4 bg-brand-magenta text-white border-4 border-brand-light shadow-pixel">
+                        <UploadIcon className="w-6 h-6" /> {t('offlineAiPage.analyzer.uploadMedia')}
+                    </button>
+                ) : (
+                    <div className="w-full space-y-4">
+                        <div className="bg-black/40 p-4 border-2 border-brand-light/50">
+                            <h3 className="font-press-start text-brand-cyan">{t('offlineAiPage.analyzer.sourceMedia')}:</h3>
+                            {uploadedFile.type.startsWith('video/') ? (
+                                <video src={previewUrl!} controls className="w-full max-h-60 border-2 border-brand-light object-contain bg-black mt-2" />
+                            ) : (
+                                <audio src={previewUrl!} controls className="w-full mt-2" />
+                            )}
+                            <button onClick={() => fileInputRef.current?.click()} className="text-sm underline hover:text-brand-yellow mt-2">{t('offlineAiPage.analyzer.changeFile')}</button>
+                        </div>
+                        <button onClick={handleAnalyze} disabled={isLoading} className="w-full flex items-center justify-center gap-3 p-4 bg-brand-magenta text-white border-4 border-brand-light shadow-pixel disabled:bg-gray-500">
+                            <SparklesIcon className="w-6 h-6" /> {isLoading ? t('offlineAiPage.analyzer.transforming') : t('offlineAiPage.analyzer.transform')}
+                        </button>
+                    </div>
+                )}
+                <div className="w-full min-h-[8rem] p-4 bg-black/50 border-4 border-brand-light flex flex-col items-center justify-center">
+                    {isLoading && <LoadingSpinner text={t('offlineAiPage.analyzer.transforming')} />}
+                    {error && <div role="alert" className="text-center text-brand-magenta"><p className="font-press-start">Error</p><p className="text-sm mt-2">{error}</p></div>}
+                    {analysisResult && !isLoading && (
+                        <div className="w-full space-y-2">
+                            <h3 className="font-press-start text-lg text-brand-cyan text-center">{t('offlineAiPage.analyzer.resultTitle')}</h3>
+                            <div className="text-xs font-mono">
+                                <div className="flex border-b border-brand-light/20 py-1"><span className="w-1/2 text-brand-light/70">{t('offlineAiPage.analyzer.duration')}:</span><span>{analysisResult.duration.toFixed(2)}s</span></div>
+                                <div className="flex border-b border-brand-light/20 py-1"><span className="w-1/2 text-brand-light/70">{t('offlineAiPage.analyzer.avgLoudness')}:</span><span>{analysisResult.averageLoudness.toFixed(2)} dB</span></div>
+                                <div className="flex border-b border-brand-light/20 py-1"><span className="w-1/2 text-brand-light/70">{t('offlineAiPage.analyzer.peakLoudness')}:</span><span>{analysisResult.peakLoudness.toFixed(2)} dB</span></div>
+                                <div className="flex border-b border-brand-light/20 py-1"><span className="w-1/2 text-brand-light/70">{t('offlineAiPage.analyzer.dominantFreq')}:</span><span>{analysisResult.dominantFrequency.toFixed(2)} Hz</span></div>
+                                <div className="flex border-b border-brand-light/20 py-1"><span className="w-1/2 text-brand-light/70">{t('offlineAiPage.analyzer.estimatedPitch')}:</span><span>{analysisResult.estimatedPitch}</span></div>
+                                <div className="flex border-b border-brand-light/20 py-1"><span className="w-1/2 text-brand-light/70">{t('offlineAiPage.analyzer.estimatedBpm')}:</span><span>{analysisResult.estimatedBpm > 0 ? `${analysisResult.estimatedBpm} BPM` : 'N/A'}</span></div>
+                                <div className="flex py-1"><span className="w-1/2 text-brand-light/70">{t('offlineAiPage.analyzer.harmonicRichness')}:</span><span>{analysisResult.harmonicRichness.toFixed(1)}% ({analysisResult.harmonicRichness > 60 ? 'Rich' : analysisResult.harmonicRichness > 30 ? 'Moderate' : 'Simple'})</span></div>
+                            </div>
+                        </div>
+                    )}
+                </div>
+            </main>
+        </PageWrapper>
+    );
+};
+
+const ImageTransformer = ({ playSound, t, onClose }: OfflineToolProps) => {
+    // This is a copy of ImageToSoundPage
+    type Mode = 'sound' | 'song' | 'glyph' | 'color' | 'emoji' | 'videoCode';
+    const [mode, setMode] = useState<Mode>('sound');
     const [uploadedFile, setUploadedFile] = useState<File | null>(null);
     const [previewUrl, setPreviewUrl] = useState<string | null>(null);
     const [isLoading, setIsLoading] = useState(false);
@@ -807,11 +923,11 @@ const ImageTransformerTool = ({ playSound, t }: { playSound: (player: () => void
 
         const isVideoMode = mode === 'videoCode';
         if (isVideoMode && !file.type.startsWith('video/')) {
-            setError("กรุณาเลือกไฟล์วิดีโอสำหรับโหมดนี้");
+            setError("Please select a video file for this mode.");
             return;
         }
         if (!isVideoMode && !file.type.startsWith('image/')) {
-            setError("กรุณาเลือกไฟล์รูปภาพสำหรับโหมดนี้");
+            setError("Please select an image file for this mode.");
             return;
         }
 
@@ -950,8 +1066,7 @@ const ImageTransformerTool = ({ playSound, t }: { playSound: (player: () => void
             }
         }
     }, [uploadedFile, isLoading, previewUrl, mode, playSound]);
-    
-    // ... all the handlers and JSX from ImageToSoundPage ...
+
     const handleVideoCodePlaybackToggle = useCallback(() => {
         if (isPlayingVideoFrames) {
             setIsPlayingVideoFrames(false);
@@ -966,7 +1081,7 @@ const ImageTransformerTool = ({ playSound, t }: { playSound: (player: () => void
                 setIsPlayingSong(false);
             });
         }
-    }, [isPlayingVideoFrames, generatedVideoFrames, generatedVideoSong, playSound]);
+    }, [isPlayingVideoFrames, generatedVideoFrames, generatedVideoSong, playSound, setIsPlayingSong]);
     
     useEffect(() => {
         if (isPlayingVideoFrames && generatedVideoFrames && generatedVideoFrames.length > 0) {
@@ -1046,181 +1161,187 @@ const ImageTransformerTool = ({ playSound, t }: { playSound: (player: () => void
         }
     };
     
+    const handleClose = () => {
+        if (isPlayingSong) audioService.stopSong();
+        onClose();
+    };
+
     return (
-        <>
-            <input 
-                key={mode}
-                type="file" 
-                ref={fileInputRef} 
-                onChange={handleFileChange} 
-                accept={mode === 'videoCode' ? 'video/*' : 'image/*'} 
-                className="hidden" 
-                aria-hidden="true" 
-            />
-             <p className="text-sm text-center text-brand-light/80">{t('offlineAiPage.imageTransformer.description')}</p>
-            
-            <div className="w-full flex justify-center gap-1 p-1 bg-black/50 flex-wrap">
-                {(['sound', 'song', 'glyph', 'color', 'emoji', 'videoCode'] as ImageMode[]).map(m => (
-                    <button
-                        key={m}
-                        onClick={() => { playSound(audioService.playToggle); setMode(m); resetState(true); }}
-                        className={`flex-1 min-w-[90px] py-2 px-1 text-xs font-press-start border-2 transition-colors ${mode === m ? 'bg-brand-yellow text-black border-black' : 'bg-surface-primary border-transparent text-text-primary hover:bg-brand-cyan/20'}`}
-                    >
-                        {t(`offlineAiPage.imageTransformer.mode${m.charAt(0).toUpperCase() + m.slice(1)}`)}
-                    </button>
-                ))}
-            </div>
-
-            <div className="w-full h-auto aspect-square bg-black/50 border-4 border-brand-light flex items-center justify-center shadow-pixel p-2">
-                {!uploadedFile ? (
-                     <button onClick={handleUploadClick} className="flex flex-col items-center justify-center gap-3 p-4 text-white transition-opacity hover:opacity-80">
-                        <UploadIcon className="w-12 h-12" />
-                        <span className="font-press-start">{mode === 'videoCode' ? 'อัปโหลดวิดีโอ' : 'อัปโหลดรูปภาพ'}</span>
-                    </button>
-                ) : mode === 'videoCode' ? (
-                    <video src={previewUrl!} controls className="w-full h-full object-contain" />
-                ) : (
-                    <img src={previewUrl!} alt="Preview" className="w-full h-full object-contain" style={{ imageRendering: 'pixelated' }} />
-                )}
-            </div>
-
-            {uploadedFile && (
-                <div className="w-full space-y-4">
-                    <button onClick={handleUploadClick} onMouseEnter={() => playSound(audioService.playHover)} className="text-sm underline hover:text-brand-yellow transition-colors">{mode === 'videoCode' ? 'เปลี่ยนวิดีโอ' : 'เปลี่ยนรูปภาพ'}</button>
-                    <button 
-                        onClick={handleGenerate} 
-                        disabled={isLoading}
-                        className="w-full flex items-center justify-center gap-3 p-4 bg-brand-magenta text-white border-4 border-brand-light shadow-pixel text-base transition-all hover:bg-brand-yellow hover:text-black active:shadow-pixel-active active:translate-y-[2px] active:translate-x-[2px] disabled:bg-gray-500 disabled:cursor-not-allowed"
-                    >
-                        <SparklesIcon className="w-6 h-6" />
-                        {isLoading ? 'กำลังสร้าง...' : 'สร้างสรรค์'}
-                    </button>
-                </div>
-            )}
-            
-            <div className="w-full min-h-[8rem] p-4 bg-black/50 border-4 border-brand-light flex flex-col items-center justify-center">
-                {isLoading && <LoadingSpinner text={mode === 'videoCode' ? 'กำลังประมวลผลวิดีโอ...' : 'กำลังวิเคราะห์ภาพ...'} />}
-                {error && <div role="alert" className="w-full p-4 text-center"><h3 className="font-press-start text-lg text-brand-magenta">เกิดข้อผิดพลาด</h3><p className="font-sans text-xs mt-2 break-words text-brand-light/70">{error}</p></div>}
+        <PageWrapper>
+            <PageHeader title={t('nonAiCreativePage.title')} onBack={handleClose} />
+            <main id="main-content" className="w-full max-w-lg flex flex-col items-center gap-6 font-sans">
+                <p className="text-sm text-center text-brand-light/80">{t('nonAiCreativePage.description')}</p>
                 
-                {/* Result Displays */}
-                {generatedSound && !isLoading && mode === 'sound' && (
-                    <div className="w-full space-y-4 text-center">
-                        <h3 className="font-press-start text-lg text-brand-cyan">สร้างเสียงสำเร็จ!</h3>
-                         <div className="flex gap-4">
-                             <button onClick={() => audioService.playSoundFromParams(generatedSound)} className="w-full flex items-center justify-center gap-2 p-3 bg-brand-cyan text-black border-2 border-brand-light shadow-sm hover:bg-brand-yellow"><PlayIcon className="w-5 h-5"/> เล่นอีกครั้ง</button>
-                             <button onClick={handleDownload} disabled={isDownloading} className="w-full flex items-center justify-center gap-2 p-3 bg-brand-yellow text-black border-2 border-brand-light shadow-sm hover:bg-brand-magenta hover:text-white disabled:bg-gray-500"><DownloadIcon className="w-5 h-5"/>{isDownloading ? '...' : 'ดาวน์โหลด'}</button>
-                         </div>
+                <div className="w-full flex justify-center gap-1 p-1 bg-black/50 flex-wrap">
+                    {(['sound', 'song', 'glyph', 'color', 'emoji', 'videoCode'] as Mode[]).map(m => (
+                        <button
+                            key={m}
+                            onClick={() => { playSound(audioService.playToggle); setMode(m); resetState(true); }}
+                            className={`flex-1 min-w-[90px] py-2 px-1 text-xs font-press-start border-2 transition-colors ${mode === m ? 'bg-brand-yellow text-black border-black' : 'bg-surface-primary border-transparent text-text-primary hover:bg-brand-cyan/20'}`}
+                        >
+                            {t(`nonAiCreativePage.mode${m.charAt(0).toUpperCase() + m.slice(1)}`)}
+                        </button>
+                    ))}
+                </div>
+
+                <div className="w-full h-auto aspect-square bg-black/50 border-4 border-brand-light flex items-center justify-center shadow-pixel p-2">
+                    {!uploadedFile ? (
+                         <button onClick={handleUploadClick} className="flex flex-col items-center justify-center gap-3 p-4 text-white transition-opacity hover:opacity-80">
+                            <UploadIcon className="w-12 h-12" />
+                            <span className="font-press-start">{mode === 'videoCode' ? 'อัปโหลดวิดีโอ' : 'อัปโหลดรูปภาพ'}</span>
+                        </button>
+                    ) : mode === 'videoCode' ? (
+                        <video src={previewUrl!} controls className="w-full h-full object-contain" />
+                    ) : (
+                        <img src={previewUrl!} alt="Preview" className="w-full h-full object-contain" style={{ imageRendering: 'pixelated' }} />
+                    )}
+                </div>
+
+                {uploadedFile && (
+                    <div className="w-full space-y-4">
+                        <button onClick={handleUploadClick} onMouseEnter={() => playSound(audioService.playHover)} className="text-sm underline hover:text-brand-yellow transition-colors">{mode === 'videoCode' ? 'เปลี่ยนวิดีโอ' : 'เปลี่ยนรูปภาพ'}</button>
+                        <button 
+                            onClick={handleGenerate} 
+                            disabled={isLoading}
+                            className="w-full flex items-center justify-center gap-3 p-4 bg-brand-magenta text-white border-4 border-brand-light shadow-pixel text-base transition-all hover:bg-brand-yellow hover:text-black active:shadow-pixel-active active:translate-y-[2px] active:translate-x-[2px] disabled:bg-gray-500 disabled:cursor-not-allowed"
+                        >
+                            <SparklesIcon className="w-6 h-6" />
+                            {isLoading ? 'กำลังสร้าง...' : 'สร้างสรรค์'}
+                        </button>
                     </div>
                 )}
-                {generatedSong && !isLoading && mode === 'song' && (
-                    <div className="w-full space-y-4 text-center">
-                        <h3 className="font-press-start text-lg text-brand-cyan">สร้างเพลงสำเร็จ!</h3>
-                        <AudioVisualizer />
-                        <div className="flex gap-4">
-                            <button onClick={handlePlaybackToggle} className="w-full flex items-center justify-center gap-2 p-3 bg-brand-cyan text-black border-2 border-brand-light shadow-sm hover:bg-brand-yellow">{isPlayingSong ? <StopIcon className="w-5 h-5"/> : <PlayIcon className="w-5 h-5"/>}{isPlayingSong ? 'หยุด' : 'เล่นเพลง'}</button>
-                            <button onClick={handleDownload} disabled={isDownloading} className="w-full flex items-center justify-center gap-2 p-3 bg-brand-yellow text-black border-2 border-brand-light shadow-sm hover:bg-brand-magenta hover:text-white disabled:bg-gray-500"><DownloadIcon className="w-5 h-5"/>{isDownloading ? '...' : 'ดาวน์โหลด'}</button>
+                
+                <div className="w-full min-h-[8rem] p-4 bg-black/50 border-4 border-brand-light flex flex-col items-center justify-center">
+                    {isLoading && <LoadingSpinner text={mode === 'videoCode' ? 'กำลังประมวลผลวิดีโอ...' : 'กำลังวิเคราะห์ภาพ...'} />}
+                    {error && <div role="alert" className="w-full p-4 text-center"><h3 className="font-press-start text-lg text-brand-magenta">เกิดข้อผิดพลาด</h3><p className="font-sans text-xs mt-2 break-words text-brand-light/70">{error}</p></div>}
+                    
+                    {/* Result Displays */}
+                    {generatedSound && !isLoading && mode === 'sound' && (
+                        <div className="w-full space-y-4 text-center">
+                            <h3 className="font-press-start text-lg text-brand-cyan">สร้างเสียงสำเร็จ!</h3>
+                             <div className="flex gap-4">
+                                 <button onClick={() => audioService.playSoundFromParams(generatedSound)} className="w-full flex items-center justify-center gap-2 p-3 bg-brand-cyan text-black border-2 border-brand-light shadow-sm hover:bg-brand-yellow"><PlayIcon className="w-5 h-5"/> เล่นอีกครั้ง</button>
+                                 <button onClick={handleDownload} disabled={isDownloading} className="w-full flex items-center justify-center gap-2 p-3 bg-brand-yellow text-black border-2 border-brand-light shadow-sm hover:bg-brand-magenta hover:text-white disabled:bg-gray-500"><DownloadIcon className="w-5 h-5"/>{isDownloading ? '...' : 'ดาวน์โหลด'}</button>
+                             </div>
                         </div>
-                    </div>
-                )}
-                {generatedCode && !isLoading && mode === 'glyph' && (
-                    <div className="w-full relative">
-                        <h3 className="text-center font-press-start text-lg text-brand-cyan mb-3">Glyph Code ที่สร้างขึ้น</h3>
-                        <pre className="bg-black text-brand-lime font-mono text-[10px] leading-tight p-2 border border-brand-light/50 overflow-x-auto whitespace-pre"><code>{generatedCode}</code></pre>
-                         <div className="flex gap-2 mt-2">
-                            <button onClick={() => handleCopy(generatedCode)} className="flex-1 flex items-center justify-center gap-2 p-2 bg-brand-cyan text-black border-2 border-black">{isCopied ? 'คัดลอกแล้ว!' : 'คัดลอก'}</button>
-                            <button onClick={handleDownload} disabled={isDownloading} className="flex-1 flex items-center justify-center gap-2 p-2 bg-brand-yellow text-black border-2 border-black">{isDownloading ? '...' : 'ดาวน์โหลด'}</button>
+                    )}
+                    {generatedSong && !isLoading && mode === 'song' && (
+                        <div className="w-full space-y-4 text-center">
+                            <h3 className="font-press-start text-lg text-brand-cyan">สร้างเพลงสำเร็จ!</h3>
+                            <AudioVisualizer />
+                            <div className="flex gap-4">
+                                <button onClick={handlePlaybackToggle} className="w-full flex items-center justify-center gap-2 p-3 bg-brand-cyan text-black border-2 border-brand-light shadow-sm hover:bg-brand-yellow">{isPlayingSong ? <StopIcon className="w-5 h-5"/> : <PlayIcon className="w-5 h-5"/>}{isPlayingSong ? 'หยุด' : 'เล่นเพลง'}</button>
+                                <button onClick={handleDownload} disabled={isDownloading} className="w-full flex items-center justify-center gap-2 p-3 bg-brand-yellow text-black border-2 border-brand-light shadow-sm hover:bg-brand-magenta hover:text-white disabled:bg-gray-500"><DownloadIcon className="w-5 h-5"/>{isDownloading ? '...' : 'ดาวน์โหลด'}</button>
+                            </div>
                         </div>
-                    </div>
-                )}
-                 {generatedEmojiArt && !isLoading && mode === 'emoji' && (
-                    <div className="w-full relative">
-                        <h3 className="text-center font-press-start text-lg text-brand-cyan mb-3">Emoji Art ที่สร้างขึ้น</h3>
-                        <pre className="bg-black text-lg p-2 border border-brand-light/50 overflow-x-auto whitespace-pre leading-tight"><code>{generatedEmojiArt}</code></pre>
-                         <div className="flex gap-2 mt-2">
-                            <button onClick={() => handleCopy(generatedEmojiArt)} className="flex-1 flex items-center justify-center gap-2 p-2 bg-brand-cyan text-black border-2 border-black">{isCopied ? 'คัดลอกแล้ว!' : 'คัดลอก'}</button>
-                            <button onClick={handleDownload} disabled={isDownloading} className="flex-1 flex items-center justify-center gap-2 p-2 bg-brand-yellow text-black border-2 border-black">{isDownloading ? '...' : 'ดาวน์โหลด'}</button>
+                    )}
+                    {generatedCode && !isLoading && mode === 'glyph' && (
+                        <div className="w-full relative">
+                            <h3 className="text-center font-press-start text-lg text-brand-cyan mb-3">Glyph Code ที่สร้างขึ้น</h3>
+                            <pre className="bg-black text-brand-lime font-mono text-[10px] leading-tight p-2 border border-brand-light/50 overflow-x-auto whitespace-pre"><code>{generatedCode}</code></pre>
+                             <div className="flex gap-2 mt-2">
+                                <button onClick={() => handleCopy(generatedCode)} className="flex-1 flex items-center justify-center gap-2 p-2 bg-brand-cyan text-black border-2 border-black">{isCopied ? 'คัดลอกแล้ว!' : 'คัดลอก'}</button>
+                                <button onClick={handleDownload} disabled={isDownloading} className="flex-1 flex items-center justify-center gap-2 p-2 bg-brand-yellow text-black border-2 border-black">{isDownloading ? '...' : 'ดาวน์โหลด'}</button>
+                            </div>
                         </div>
-                    </div>
-                )}
-                 {generatedVideoFrames && !isLoading && mode === 'videoCode' && (
-                    <div className="w-full relative">
-                        <h3 className="text-center font-press-start text-lg text-brand-cyan mb-3">Video Code Animation</h3>
-                         {isPlayingSong && <AudioVisualizer />}
-                        <pre className="bg-black text-brand-lime font-mono text-[10px] leading-tight p-2 border border-brand-light/50 overflow-hidden whitespace-pre"><code>{generatedVideoFrames[currentVideoFrame]}</code></pre>
-                         <div className="flex gap-2 mt-2">
-                            <button onClick={handleVideoCodePlaybackToggle} className="flex-1 flex items-center justify-center gap-2 p-2 bg-brand-cyan text-black border-2 border-black">
-                                {isPlayingVideoFrames ? <StopIcon className="w-5 h-5"/> : <PlayIcon className="w-5 h-5"/>}
-                                {isPlayingVideoFrames ? 'หยุด' : 'เล่น'}
-                            </button>
-                            <button onClick={handleDownload} disabled={isDownloading} className="flex-1 flex items-center justify-center gap-2 p-2 bg-brand-yellow text-black border-2 border-black">{isDownloading ? '...' : 'ดาวน์โหลด'}</button>
+                    )}
+                     {generatedEmojiArt && !isLoading && mode === 'emoji' && (
+                        <div className="w-full relative">
+                            <h3 className="text-center font-press-start text-lg text-brand-cyan mb-3">Emoji Art ที่สร้างขึ้น</h3>
+                            <pre className="bg-black text-lg p-2 border border-brand-light/50 overflow-x-auto whitespace-pre leading-tight"><code>{generatedEmojiArt}</code></pre>
+                             <div className="flex gap-2 mt-2">
+                                <button onClick={() => handleCopy(generatedEmojiArt)} className="flex-1 flex items-center justify-center gap-2 p-2 bg-brand-cyan text-black border-2 border-black">{isCopied ? 'คัดลอกแล้ว!' : 'คัดลอก'}</button>
+                                <button onClick={handleDownload} disabled={isDownloading} className="flex-1 flex items-center justify-center gap-2 p-2 bg-brand-yellow text-black border-2 border-black">{isDownloading ? '...' : 'ดาวน์โหลด'}</button>
+                            </div>
                         </div>
-                    </div>
-                )}
-                {localPalette && !isLoading && mode === 'color' && (
-                     <div className="w-full">
-                        <h3 className="text-center font-press-start text-lg text-brand-cyan mb-3">สีที่พบในภาพ</h3>
-                        <div className="grid grid-cols-5 sm:grid-cols-8 gap-2 max-h-80 overflow-y-auto pr-2">
-                            {(localPalette as LocalColorResult[]).map((color) => (
-                                <div key={color.hex} className="flex flex-col items-center gap-1 group">
-                                    <div className="w-full aspect-square border-2 border-brand-light/50" style={{ backgroundColor: color.hex }}></div>
-                                    <button onClick={() => handleCopyColor(color.hex)} className="w-full text-center group-hover:text-brand-yellow" title={`Copy ${color.hex}`}>
-                                        <p className="font-mono text-[10px] truncate">{copiedHex === color.hex ? 'คัดลอกแล้ว!' : color.hex}</p>
-                                    </button>
-                                </div>
-                            ))}
+                    )}
+                     {generatedVideoFrames && !isLoading && mode === 'videoCode' && (
+                        <div className="w-full relative">
+                            <h3 className="text-center font-press-start text-lg text-brand-cyan mb-3">Video Code Animation</h3>
+                             {isPlayingSong && <AudioVisualizer />}
+                            <pre className="bg-black text-brand-lime font-mono text-[10px] leading-tight p-2 border border-brand-light/50 overflow-hidden whitespace-pre"><code>{generatedVideoFrames[currentVideoFrame]}</code></pre>
+                             <div className="flex gap-2 mt-2">
+                                <button onClick={handleVideoCodePlaybackToggle} className="flex-1 flex items-center justify-center gap-2 p-2 bg-brand-cyan text-black border-2 border-black">
+                                    {isPlayingVideoFrames ? <StopIcon className="w-5 h-5"/> : <PlayIcon className="w-5 h-5"/>}
+                                    {isPlayingVideoFrames ? 'หยุด' : 'เล่น'}
+                                </button>
+                                <button onClick={handleDownload} disabled={isDownloading} className="flex-1 flex items-center justify-center gap-2 p-2 bg-brand-yellow text-black border-2 border-black">{isDownloading ? '...' : 'ดาวน์โหลด'}</button>
+                            </div>
                         </div>
-                    </div>
-                )}
-            </div>
-        </>
+                    )}
+                    {localPalette && !isLoading && mode === 'color' && (
+                         <div className="w-full">
+                            <h3 className="text-center font-press-start text-lg text-brand-cyan mb-3">สีที่พบในภาพ</h3>
+                            <div className="grid grid-cols-5 sm:grid-cols-8 gap-2 max-h-80 overflow-y-auto pr-2">
+                                {(localPalette as LocalColorResult[]).map((color) => (
+                                    <div key={color.hex} className="flex flex-col items-center gap-1 group">
+                                        <div className="w-full aspect-square border-2 border-brand-light/50" style={{ backgroundColor: color.hex }}></div>
+                                        <button onClick={() => handleCopyColor(color.hex)} className="w-full text-center group-hover:text-brand-yellow" title={`Copy ${color.hex}`}>
+                                            <p className="font-mono text-[10px] truncate">{copiedHex === color.hex ? 'คัดลอกแล้ว!' : color.hex}</p>
+                                        </button>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    )}
+                </div>
+            </main>
+        </PageWrapper>
     );
 };
 
-
+// --- Main Exported Component ---
 interface OfflineAiPageProps {
     playSound: (player: () => void) => void;
 }
 
-type ActiveTab = 'audio' | 'image' | 'reverser' | 'midi';
-type ImageMode = 'sound' | 'song' | 'glyph' | 'color' | 'emoji' | 'videoCode';
+const offlineTools = [
+    { id: 'chiptune', name: 'Chiptune Creator', description: 'Transform audio into 8-bit chiptune music.', icon: <AudioTransformIcon className="w-16 h-16" />, component: ChiptuneCreator },
+    { id: 'reverser', name: 'Audio Reverser', description: 'Play audio backwards for cool effects.', icon: <ReverseIcon className="w-16 h-16" />, component: AudioReverserTool },
+    { id: 'midi', name: 'Audio to MIDI', description: 'Convert melodies from audio to MIDI notes.', icon: <MusicKeyboardIcon className="w-16 h-16" />, component: AudioToMidiTool },
+    { id: 'analyzer', name: 'Audio Analyzer', description: 'Get technical details about your audio.', icon: <SoundWaveIcon className="w-16 h-16" />, component: AudioAnalyzerTool },
+    { id: 'image', name: 'Image Transformer', description: 'Generate sounds and art from images.', icon: <ImageSoundIcon className="w-16 h-16" />, component: ImageTransformer },
+];
 
 export const OfflineAiPage: React.FC<OfflineAiPageProps> = ({ playSound }) => {
     const { t } = useLanguage();
-    const [activeTab, setActiveTab] = useState<ActiveTab>('audio');
+    const [activeToolId, setActiveToolId] = useState<string | null>(null);
+
+    const handleSelectTool = (toolId: string) => {
+        playSound(audioService.playClick);
+        setActiveToolId(toolId);
+    };
+
+    const handleCloseTool = () => {
+        playSound(audioService.playCloseModal);
+        setActiveToolId(null);
+    };
+    
+    const activeTool = offlineTools.find(tool => tool.id === activeToolId);
+
+    if (activeTool) {
+        const ToolComponent = activeTool.component;
+        return <ToolComponent onClose={handleCloseTool} playSound={playSound} t={t} />;
+    }
 
     return (
         <div className="w-full h-full flex flex-col items-center px-4">
-             <h1 className="text-3xl sm:text-4xl text-brand-yellow text-center drop-shadow-[3px_3px_0_#000] mb-2">{t('offlineAiPage.title')}</h1>
-             <p className="text-sm text-center text-brand-light/80 mb-6">{t('offlineAiPage.description')}</p>
-            
-            <div className="w-full max-w-2xl mb-4 flex justify-center gap-1 p-1 bg-black/50">
-                <button onClick={() => { playSound(audioService.playClick); setActiveTab('audio'); }} className={`flex items-center justify-center gap-2 flex-1 py-2 px-1 text-xs font-press-start border-2 transition-colors ${activeTab === 'audio' ? 'bg-brand-yellow text-black border-black' : 'bg-surface-primary border-transparent text-text-primary hover:bg-brand-cyan/20'}`}>
-                   <AudioTransformIcon className="w-5 h-5" /> {t('offlineAiPage.tabAudio')}
-                </button>
-                <button onClick={() => { playSound(audioService.playClick); setActiveTab('image'); }} className={`flex items-center justify-center gap-2 flex-1 py-2 px-1 text-xs font-press-start border-2 transition-colors ${activeTab === 'image' ? 'bg-brand-yellow text-black border-black' : 'bg-surface-primary border-transparent text-text-primary hover:bg-brand-cyan/20'}`}>
-                   <ImageSoundIcon className="w-5 h-5" /> {t('offlineAiPage.tabImage')}
-                </button>
-                 <button onClick={() => { playSound(audioService.playClick); setActiveTab('reverser'); }} className={`flex items-center justify-center gap-2 flex-1 py-2 px-1 text-xs font-press-start border-2 transition-colors ${activeTab === 'reverser' ? 'bg-brand-yellow text-black border-black' : 'bg-surface-primary border-transparent text-text-primary hover:bg-brand-cyan/20'}`}>
-                   <ReverseIcon className="w-5 h-5" /> {t('offlineAiPage.tabReverser')}
-                </button>
-                 <button onClick={() => { playSound(audioService.playClick); setActiveTab('midi'); }} className={`flex items-center justify-center gap-2 flex-1 py-2 px-1 text-xs font-press-start border-2 transition-colors ${activeTab === 'midi' ? 'bg-brand-yellow text-black border-black' : 'bg-surface-primary border-transparent text-text-primary hover:bg-brand-cyan/20'}`}>
-                   <MusicKeyboardIcon className="w-5 h-5" /> {t('offlineAiPage.tabMidi')}
-                </button>
-            </div>
-
-            <div className="w-full max-w-lg flex flex-col items-center gap-6 font-sans">
-                {activeTab === 'audio' && (
-                    <ChiptuneCreator playSound={playSound} t={t} />
-                )}
-                {activeTab === 'image' && (
-                    <ImageTransformerTool playSound={playSound} t={t} />
-                )}
-                 {activeTab === 'reverser' && (
-                    <AudioReverserTool playSound={playSound} t={t} />
-                )}
-                {activeTab === 'midi' && (
-                    <AudioToMidiTool playSound={playSound} t={t} />
-                )}
+            <h1 className="text-3xl sm:text-4xl text-brand-yellow text-center drop-shadow-[3px_3px_0_#000] mb-2">{t('offlineAiPage.title')}</h1>
+            <p className="text-sm text-center text-brand-light/80 mb-6">{t('offlineAiPage.description')}</p>
+            <div className="w-full max-w-4xl grid grid-cols-1 md:grid-cols-2 gap-6">
+                {offlineTools.map(tool => (
+                    <button 
+                        key={tool.id} 
+                        onClick={() => handleSelectTool(tool.id)}
+                        className="w-full h-full flex items-start text-left gap-4 p-4 bg-black/40 border-4 border-brand-light shadow-pixel transition-all hover:bg-brand-cyan/20 hover:border-brand-yellow hover:-translate-y-1"
+                    >
+                        <div className="flex-shrink-0 w-16 h-16 text-brand-cyan">{tool.icon}</div>
+                        <div className="font-sans">
+                            <h3 className="font-press-start text-base md:text-lg text-brand-yellow">{tool.name}</h3>
+                            <p className="text-xs text-brand-light/80 mt-1">{tool.description}</p>
+                        </div>
+                    </button>
+                ))}
             </div>
         </div>
     );

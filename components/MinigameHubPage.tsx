@@ -1,9 +1,3 @@
-
-
-
-
-
-
 import React, { useState, useMemo, useEffect } from 'react';
 import { LoadingSpinner } from './LoadingSpinner';
 import * as audioService from '../services/audioService';
@@ -298,7 +292,7 @@ export const MinigameHubPage: React.FC<MinigameHubPageProps> = ({ playSound, isO
 
     return (
         <div className="w-full h-full flex flex-col items-center px-4">
-            <h1 className="text-3xl sm:text-4xl text-brand-yellow text-center drop-shadow-[3px_3px_0_#000] mb-6">AI Zone</h1>
+            <h1 className="text-3xl sm:text-4xl text-brand-yellow text-center mb-6">AI Zone</h1>
             
             <div className="w-full max-w-4xl mb-6">
                 <div className="relative">

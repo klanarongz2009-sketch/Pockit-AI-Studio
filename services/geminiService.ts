@@ -1,5 +1,3 @@
-
-
 import { GoogleGenAI, Type, Chat, Modality, Content, GenerateContentResponse } from "@google/genai";
 import * as preferenceService from './preferenceService';
 import { AiModel } from './aiModels';
@@ -668,7 +666,12 @@ export async function correctText(text: string): Promise<string> {
 // FIX: Implemented missing function identifyAndSearchMusic
 export async function identifyAndSearchMusic(base64Data: string, mimeType: string): Promise<SearchResult> {
     const ai = checkApi();
-    const prompt = `Analyze the audio in this media. Identify the song if possible (direct identification). If not, describe its characteristics and suggest similar artists (similarity identification). Provide a general overview and suggest some Google search terms. Please provide the response as a JSON object with this structure: { "identificationType": "direct" | "similarity", "title": string | null, "artist": string | null, "album": string | null, "year": string | null, "genre": string | null, "overview": string, "searchSuggestions": string[] }. Do not include a "sources" field in your JSON.`;
+    const prompt = `Act as an expert musicologist. Analyze the provided audio in detail. Your primary goal is to identify the song if possible (direct identification). If direct identification is not possible, provide a deep musicological analysis for a similarity search. Your analysis in the 'overview' field must cover:
+1.  **Instrumentation**: Identify all audible instruments (e.g., "acoustic guitar", "distorted electric guitar", "string section", "synthesizer pad", "percussion like shakers or tambourine"). Be as specific as possible.
+2.  **Vocal Characteristics**: Describe the vocals if present (e.g., male/female, solo/choir, singing style like 'breathy' or 'powerful', harmonies).
+3.  **Recording Environment**: Determine if it sounds like a studio recording or a live performance (e.g., "sounds like a concert due to crowd noise and reverb").
+4.  **Overall Mood and Genre**: Give your best assessment of the mood and potential genre.
+Please provide the response ONLY as a JSON object with this structure: { "identificationType": "direct" | "similarity", "title": string | null, "artist": string | null, "album": string | null, "year": string | null, "genre": string | null, "overview": string, "searchSuggestions": string[] }. The 'overview' field MUST contain your detailed musicological analysis as described above. Do not include a "sources" field in your JSON.`;
     try {
         const response = await ai.models.generateContent({
             model: 'gemini-2.5-flash',

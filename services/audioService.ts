@@ -46,6 +46,16 @@ export interface ComposedSong {
     bpm: number;
 }
 
+export interface LocalAnalysisResult {
+    duration: number;
+    peakLoudness: number; // dB
+    averageLoudness: number; // dB
+    dominantFrequency: number; // Hz
+    estimatedBpm: number;
+    estimatedPitch: string;
+    harmonicRichness: number; // Percentage
+}
+
 
 export const NOTE_FREQUENCIES: { [key: string]: number } = {
   'C0': 16.35, 'C#0': 17.32, 'D0': 18.35, 'D#0': 19.45, 'E0': 20.60, 'F0': 21.83, 'F#0': 23.12, 'G0': 24.50, 'G#0': 25.96, 'A0': 27.50, 'A#0': 29.14, 'B0': 30.87,
@@ -961,4 +971,173 @@ export async function analyzeAudioBufferToMidi(buffer: AudioBuffer): Promise<Mid
     finishedNotes.sort((a, b) => a.startTime - b.startTime);
 
     return finishedNotes;
+}
+
+
+// --- NEW HELPER FUNCTIONS for musical analysis ---
+const noteStrings = ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"];
+function frequencyToNoteName(frequency: number): string {
+    if (frequency <= 0) return "N/A";
+    const midiNum = 69 + 12 * Math.log2(frequency / 440);
+    const roundedMidi = Math.round(midiNum);
+    if (roundedMidi < 0 || roundedMidi > 127) return "N/A";
+    const noteIndex = roundedMidi % 12;
+    const octave = Math.floor(roundedMidi / 12) - 1;
+    return noteStrings[noteIndex] + octave;
+}
+
+function detectBpm(buffer: AudioBuffer): number {
+    const channelData = buffer.getChannelData(0);
+    const sampleRate = buffer.sampleRate;
+    const frameSize = 1024;
+    const hopSize = 512;
+    const energies: number[] = [];
+
+    for (let i = 0; i + frameSize <= channelData.length; i += hopSize) {
+        let sum = 0;
+        for (let j = 0; j < frameSize; j++) {
+            sum += Math.pow(channelData[i + j], 2);
+        }
+        energies.push(sum);
+    }
+    
+    const onsets: number[] = [];
+    const historySize = 20; 
+    for (let i = historySize; i < energies.length - 1; i++) {
+        const historyBuffer = energies.slice(i - historySize, i);
+        const localAverage = historyBuffer.reduce((a, b) => a + b, 0) / historySize;
+        const threshold = localAverage * 1.4; 
+        
+        if (energies[i] > threshold && energies[i] > energies[i-1] && energies[i] > energies[i+1]) {
+            onsets.push(i * hopSize / sampleRate);
+        }
+    }
+
+    if (onsets.length < 4) return 0;
+    
+    const iois: number[] = [];
+    for (let i = 1; i < onsets.length; i++) {
+        const ioi = onsets[i] - onsets[i - 1];
+        if (ioi > 0.1 && ioi < 2.0) { // 30-600 bpm range
+            iois.push(ioi);
+        }
+    }
+    
+    if (iois.length < 3) return 0;
+    
+    iois.sort((a, b) => a - b);
+    const medianIoi = iois[Math.floor(iois.length / 2)];
+    
+    if (medianIoi === 0) return 0;
+
+    let bpm = 60.0 / medianIoi;
+    while (bpm < 70) bpm *= 2;
+    while (bpm > 180) bpm /= 2;
+
+    return Math.round(bpm);
+}
+
+function calculateHarmonicRichness(magnitudes: Float32Array, fundamentalIndex: number): number {
+    if (fundamentalIndex <= 0 || magnitudes.length === 0) return 0;
+
+    let harmonicEnergy = 0;
+    let totalEnergy = 0;
+    
+    for (let h = 1; (h * fundamentalIndex) < magnitudes.length; h++) {
+        const harmonicIdx = Math.round(h * fundamentalIndex);
+        
+        let peakEnergy = 0;
+        const window = 2;
+        for (let i = -window; i <= window; i++) {
+            const idx = harmonicIdx + i;
+            if (idx >= 0 && idx < magnitudes.length) {
+                peakEnergy = Math.max(peakEnergy, magnitudes[idx]);
+            }
+        }
+        harmonicEnergy += peakEnergy;
+    }
+    
+    for (let i = 0; i < magnitudes.length; i++) {
+        totalEnergy += magnitudes[i];
+    }
+    
+    if (totalEnergy === 0) return 0;
+
+    const richness = (harmonicEnergy / totalEnergy) * 100;
+    return isFinite(richness) ? Math.min(100, richness) : 0;
+}
+
+
+export async function analyzeAudioLocally(buffer: AudioBuffer): Promise<LocalAnalysisResult> {
+    if (!buffer) {
+        throw new Error("Invalid AudioBuffer provided.");
+    }
+    
+    const channelData = buffer.getChannelData(0); // Analyze mono
+    const sampleRate = buffer.sampleRate;
+    
+    // 1. Duration
+    const duration = buffer.duration;
+
+    // 2. Loudness
+    let sumOfSquares = 0;
+    let peak = 0;
+    for (let i = 0; i < channelData.length; i++) {
+        const sample = channelData[i];
+        sumOfSquares += sample * sample;
+        if (Math.abs(sample) > peak) {
+            peak = Math.abs(sample);
+        }
+    }
+    const rms = Math.sqrt(sumOfSquares / channelData.length);
+    const averageLoudness = 20 * Math.log10(rms); 
+    const peakLoudness = 20 * Math.log10(peak);
+    
+    // 3. Dominant Frequency
+    const fftSize = 4096;
+    if (channelData.length < fftSize) {
+        return {
+            duration,
+            peakLoudness: isFinite(peakLoudness) ? peakLoudness : -100,
+            averageLoudness: isFinite(averageLoudness) ? averageLoudness : -100,
+            dominantFrequency: 0,
+            estimatedBpm: 0,
+            estimatedPitch: 'N/A',
+            harmonicRichness: 0,
+        };
+    }
+    const start = Math.floor((channelData.length - fftSize) / 2);
+    const fftBuffer = new Float32Array(fftSize);
+    for (let i = 0; i < fftSize; i++) {
+        fftBuffer[i] = channelData[start + i] * (0.5 - 0.5 * Math.cos(2 * Math.PI * i / fftSize));
+    }
+    
+    const { real, imag } = fft(fftBuffer);
+    const magnitudes = new Float32Array(fftSize / 2).map((_, i) => Math.sqrt(real[i] * real[i] + imag[i] * imag[i]));
+    
+    let maxMag = 0;
+    let maxIndex = 0;
+    for (let i = 1; i < magnitudes.length; i++) {
+        if (magnitudes[i] > maxMag) {
+            maxMag = magnitudes[i];
+            maxIndex = i;
+        }
+    }
+    
+    const dominantFrequency = maxIndex * sampleRate / fftSize;
+
+    // 4. New Musical Analysis
+    const estimatedPitch = frequencyToNoteName(dominantFrequency);
+    const estimatedBpm = detectBpm(buffer);
+    const harmonicRichness = calculateHarmonicRichness(magnitudes, maxIndex);
+
+    return {
+        duration,
+        peakLoudness: isFinite(peakLoudness) ? peakLoudness : -100,
+        averageLoudness: isFinite(averageLoudness) ? averageLoudness : -100,
+        dominantFrequency,
+        estimatedBpm,
+        estimatedPitch,
+        harmonicRichness: isFinite(harmonicRichness) ? harmonicRichness : 0,
+    };
 }

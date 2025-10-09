@@ -1,6 +1,6 @@
 {
     "header": {
-        "title": "AI APP 1.0",
+        "title": "AIOS1.0",
         "credits": "เครดิต",
         "settings": "การตั้งค่า",
         "menu": "เมนู"
@@ -177,6 +177,25 @@
         "tabImage": "แปลงรูปภาพ",
         "tabReverser": "สลับเสียง",
         "tabMidi": "แปลงเป็น MIDI",
+        "tabAnalyzer": "วิเคราะห์เสียง",
+        "analyzer": {
+            "title": "เครื่องมือวิเคราะห์เสียง",
+            "description": "อัปโหลดไฟล์เสียงหรือวิดีโอเพื่อวิเคราะห์ข้อมูลทางเทคนิค เช่น ความดัง, ความถี่, และความยาว",
+            "uploadMedia": "อัปโหลดเสียงหรือวิดีโอ",
+            "sourceMedia": "ไฟล์สื่อต้นฉบับ",
+            "changeFile": "เปลี่ยนไฟล์",
+            "errorSelectMedia": "กรุณาเลือกไฟล์เสียงหรือวิดีโอ",
+            "transform": "วิเคราะห์เสียง",
+            "transforming": "กำลังวิเคราะห์...",
+            "resultTitle": "ผลการวิเคราะห์:",
+            "duration": "ความยาว",
+            "avgLoudness": "ความดังเฉลี่ย",
+            "peakLoudness": "ความดังสูงสุด",
+            "dominantFreq": "ความถี่เด่น",
+            "estimatedBpm": "BPM โดยประมาณ",
+            "estimatedPitch": "โน้ตดนตรี",
+            "harmonicRichness": "ความซับซ้อนของเสียง"
+        },
         "chiptuneCreator": {
             "title": "เครื่องสร้าง Chiptune",
             "description": "อัปโหลดไฟล์เสียงหรือวิดีโอและแปลงเป็นเสียง chiptune 8-bit! เอฟเฟกต์นี้ทำงานในเบราว์เซอร์ของคุณ",

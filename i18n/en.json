@@ -1,6 +1,6 @@
 {
     "header": {
-        "title": "AI APP 1.0",
+        "title": "AIOS1.0",
         "credits": "Credits",
         "settings": "Settings",
         "menu": "Menu"
@@ -178,6 +178,25 @@
         "tabImage": "Image Transformer",
         "tabReverser": "Audio Reverser",
         "tabMidi": "Audio to MIDI",
+        "tabAnalyzer": "Audio Analyzer",
+        "analyzer": {
+            "title": "Audio Analysis Tool",
+            "description": "Upload an audio or video file to analyze technical data like loudness, frequency, and duration.",
+            "uploadMedia": "Upload Audio or Video",
+            "sourceMedia": "Source Media",
+            "changeFile": "Change file",
+            "errorSelectMedia": "Please select an audio or video file.",
+            "transform": "Analyze Audio",
+            "transforming": "Analyzing...",
+            "resultTitle": "Analysis Results:",
+            "duration": "Duration",
+            "avgLoudness": "Avg. Loudness",
+            "peakLoudness": "Peak Loudness",
+            "dominantFreq": "Dominant Freq.",
+            "estimatedBpm": "Estimated BPM",
+            "estimatedPitch": "Estimated Pitch",
+            "harmonicRichness": "Harmonic Richness"
+        },
         "chiptuneCreator": {
             "title": "Chiptune Creator",
             "description": "Upload an audio or video file and transform its sound into a retro 8-bit chiptune! This effect works locally in your browser.",
