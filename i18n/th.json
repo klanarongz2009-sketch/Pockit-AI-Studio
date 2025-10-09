@@ -1,6 +1,6 @@
 {
     "header": {
-        "title": "AI APPS",
+        "title": "AI APP 1.0",
         "credits": "เครดิต",
         "settings": "การตั้งค่า",
         "menu": "เมนู"
@@ -148,6 +148,10 @@
         "colorFinder": {
             "title": "ค้นหาสี",
             "description": "อัปโหลดรูปภาพ แล้วให้ AI สกัดชุดสีที่สวยงามพร้อมชื่อและคำอธิบาย"
+        },
+        "emulatorSimulation": {
+            "title": "เอมูเลเตอจำลอง",
+            "description": "รันระบบปฏิบัติการย้อนยุคจำลอง พร้อมคำสั่งและโปรแกรมที่ซ่อนอยู่"
         }
     },
     "colorFinder": {

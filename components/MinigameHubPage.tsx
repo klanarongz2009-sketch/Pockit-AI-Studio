@@ -1,6 +1,9 @@
 
 
 
+
+
+
 import React, { useState, useMemo, useEffect } from 'react';
 import { LoadingSpinner } from './LoadingSpinner';
 import * as audioService from '../services/audioService';
@@ -149,7 +152,6 @@ export const MinigameHubPage: React.FC<MinigameHubPageProps> = ({ playSound, isO
                 { icon: <TranslateIcon className="w-16 h-16" />, title: "AI Translator", description: "Translate text between languages like Thai, English, and Japanese using AI.", onClick: () => handleLaunchGame('translator'), disabled: !isOnline, beta: true },
                 { icon: <BugIcon className="w-16 h-16" />, title: "AI Text Corrector", description: "Let an AI act as your personal proofreader for Thai text.", onClick: () => handleLaunchGame('aiBugSquasher'), disabled: !isOnline },
                 { icon: <OracleIcon className="w-16 h-16" />, title: "AI Oracle", description: "Ask the AI Oracle a question, and it will reveal a mysterious 'secret' or story for you.", onClick: () => handleLaunchGame('aiOracle'), disabled: !isOnline },
-                { icon: <DeviceIcon className="w-16 h-16" />, title: "Device Spy", description: "View detailed information about your current device, including hardware, software, and storage.", onClick: () => handleLaunchGame('deviceDetails') }
             ]
         },
         {
@@ -181,6 +183,12 @@ export const MinigameHubPage: React.FC<MinigameHubPageProps> = ({ playSound, isO
                 { icon: <TextToSpeechIcon className="w-16 h-16" />, title: "AI Text-to-Speech", description: "Convert text to speech with various voices.", onClick: () => handleLaunchGame('textToSpeech') },
                 { icon: <MagicButtonIcon className="w-16 h-16" />, title: "The Magic Button", description: "A simple yet powerful button! How many times can you press it?", onClick: () => handleLaunchGame('magicButton') },
                 { icon: <CalculatorIcon className="w-16 h-16" />, title: "Credit Calculator", description: "A simple calculator utility with a retro design.", onClick: () => handleLaunchGame('calculator') }
+            ]
+        },
+        {
+            title: "System",
+            items: [
+                { icon: <DeviceIcon className="w-16 h-16" />, title: "Device Spy", description: "View detailed information about your current device, including hardware, software, and storage.", onClick: () => handleLaunchGame('deviceDetails') }
             ]
         }
     ], [isOnline, t]);

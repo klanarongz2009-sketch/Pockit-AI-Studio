@@ -1,6 +1,6 @@
 {
     "header": {
-        "title": "AI APPS",
+        "title": "AI APP 1.0",
         "credits": "Credits",
         "settings": "Settings",
         "menu": "Menu"
@@ -149,6 +149,10 @@
         "colorFinder": {
             "title": "Color Finder",
             "description": "Upload an image and let AI extract a beautiful color palette with names and descriptions."
+        },
+        "emulatorSimulation": {
+            "title": "Emulator Simulation",
+            "description": "Run a simulated retro OS with hidden commands and programs."
         }
     },
     "colorFinder": {

@@ -1,6 +1,7 @@
 
 
 
+
 import React, { useState } from 'react';
 import * as audioService from '../services/audioService';
 import { CurrentPage } from '../App';
@@ -73,7 +74,7 @@ const LayoutComponent: React.FC<GlobalLayoutProps> = ({
             {/* Sidebar */}
             <aside className={`sidebar fixed top-0 left-0 h-full w-64 bg-background border-r-4 border-border-primary flex flex-col z-50 ${isSidebarOpen ? 'open' : ''}`}>
                 <header className="flex items-center justify-between p-4 border-b-4 border-border-primary">
-                     <h1 className="text-xl text-brand-yellow font-press-start drop-shadow-[2px_2px_0_var(--color-text-primary)]">
+                     <h1 className="text-xl text-brand-yellow font-press-start">
                         {t('header.menu')}
                     </h1>
                 </header>
@@ -142,7 +143,7 @@ const LayoutComponent: React.FC<GlobalLayoutProps> = ({
                     >
                         <MenuIcon className="w-5 h-5" />
                     </button>
-                     <h1 className="text-base sm:text-xl text-brand-yellow font-press-start drop-shadow-[2px_2px_0_var(--color-text-primary)]">
+                     <h1 className="text-base sm:text-xl text-brand-cyan font-press-start">
                         {t('header.title')}
                     </h1>
                 </div>
