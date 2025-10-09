@@ -3,14 +3,15 @@
         "title": "AIOS1.0",
         "credits": "เครดิต",
         "settings": "การตั้งค่า",
-        "menu": "เมนู"
+        "menu": "เมนู",
+        "back": "กลับ"
     },
     "sidebar": {
+        "home": "หน้าหลัก",
         "aiZone": "AI โซน",
         "aiChat": "AI Chat",
         "offlineAi": "OFFLINE AI",
         "article": "บทความ",
-        "archive": "ที่เก็บแบบถาวร",
         "updateInfo": "เกี่ยวกับอัปเดต"
     },
     "offline": {
@@ -34,7 +35,9 @@
             "spritesheet": "สไปรต์ชีต"
         },
         "fps": "FPS",
-        "frameCount": "เฟรม"
+        "frameCount": "เฟรม",
+        "promptPlaceholder": "ป้อนคำสั่งที่นี่ เช่น 'แมวในชุดอวกาศ'",
+        "aiSuggestions": "คำแนะนำจาก AI:"
     },
     "outputDisplay": {
         "emptyArea": "พื้นที่แสดงผลลัพธ์ว่างเปล่า",
@@ -152,6 +155,10 @@
         "emulatorSimulation": {
             "title": "เอมูเลเตอจำลอง",
             "description": "รันระบบปฏิบัติการย้อนยุคจำลอง พร้อมคำสั่งและโปรแกรมที่ซ่อนอยู่"
+        },
+        "talkingCat": {
+            "title": "แมวพูดได้",
+            "description": "สนทนาด้วยเสียงแบบเรียลไทม์กับแมว AI สุดกวน"
         }
     },
     "colorFinder": {
@@ -166,18 +173,44 @@
         "resultsTitle": "ชุดสีที่พบ",
         "copied": "คัดลอกแล้ว!"
     },
-    "archivePage": {
-        "title": "ที่เก็บแบบถาวร",
-        "description": "ฟีเจอร์ที่ถูกเก็บถาวรหรืออยู่ในสถานะทดลอง"
-    },
     "offlineAiPage": {
         "title": "เครื่องมือ OFFLINE",
         "description": "เครื่องมือสร้างสรรค์ที่ทำงานบนอุปกรณ์ของคุณโดยตรง ไม่ต้องใช้อินเทอร์เน็ต, AI, หรือเครดิต!",
-        "tabAudio": "แปลงเสียง",
-        "tabImage": "แปลงรูปภาพ",
-        "tabReverser": "สลับเสียง",
-        "tabMidi": "แปลงเป็น MIDI",
-        "tabAnalyzer": "วิเคราะห์เสียง",
+        "error": "เกิดข้อผิดพลาด",
+        "resultTitle": "ผลลัพธ์",
+        "play": "เล่น",
+        "stop": "หยุด",
+        "download": "ดาวน์โหลด",
+        "hub": {
+            "chiptune": {
+                "name": "เครื่องสร้าง Chiptune",
+                "description": "แปลงไฟล์เสียงให้เป็นเพลง 8-bit"
+            },
+            "reverser": {
+                "name": "เครื่องมือสลับเสียง",
+                "description": "เล่นเสียงแบบย้อนกลับเพื่อเอฟเฟกต์สุดเจ๋ง"
+            },
+            "midi": {
+                "name": "แปลงเสียงเป็น MIDI",
+                "description": "แปลงเมโลดี้จากไฟล์เสียงเป็นโน้ต MIDI"
+            },
+            "analyzer": {
+                "name": "เครื่องมือวิเคราะห์เสียง",
+                "description": "ดูข้อมูลทางเทคนิคของไฟล์เสียงของคุณ"
+            },
+            "image": {
+                "name": "เครื่องมือแปลงรูปภาพ",
+                "description": "สร้างเสียงและศิลปะจากรูปภาพ"
+            },
+            "detector": {
+                "name": "เครื่องมือตรวจจับเนื้อหา",
+                "description": "ตรวจสอบเนื้อหาเพื่อหาสัญญาณของ AI"
+            },
+            "textToImage": {
+                "name": "ข้อความเป็นภาพศิลป์",
+                "description": "สร้างภาพศิลปะจากข้อความโดยไม่ใช้ AI"
+            }
+        },
         "analyzer": {
             "title": "เครื่องมือวิเคราะห์เสียง",
             "description": "อัปโหลดไฟล์เสียงหรือวิดีโอเพื่อวิเคราะห์ข้อมูลทางเทคนิค เช่น ความดัง, ความถี่, และความยาว",
@@ -187,14 +220,14 @@
             "errorSelectMedia": "กรุณาเลือกไฟล์เสียงหรือวิดีโอ",
             "transform": "วิเคราะห์เสียง",
             "transforming": "กำลังวิเคราะห์...",
-            "resultTitle": "ผลการวิเคราะห์:",
             "duration": "ความยาว",
             "avgLoudness": "ความดังเฉลี่ย",
             "peakLoudness": "ความดังสูงสุด",
             "dominantFreq": "ความถี่เด่น",
             "estimatedBpm": "BPM โดยประมาณ",
             "estimatedPitch": "โน้ตดนตรี",
-            "harmonicRichness": "ความซับซ้อนของเสียง"
+            "harmonicRichness": "ความซับซ้อนของเสียง",
+            "clipping": "เสียงแตกพร่า"
         },
         "chiptuneCreator": {
             "title": "เครื่องสร้าง Chiptune",
@@ -202,30 +235,52 @@
             "uploadMedia": "อัปโหลดเสียงหรือวิดีโอ",
             "sourceMedia": "ไฟล์สื่อต้นฉบับ",
             "changeFile": "เปลี่ยนไฟล์",
-            "errorSelectMedia": "กรุณาเลือกไฟล์เสียงหรือวิดีโอ"
+            "errorSelectMedia": "กรุณาเลือกไฟล์เสียงหรือวิดีโอ",
+            "controlsTitle": "การควบคุม Chiptune",
+            "bitDepth": "ความลึกบิต",
+            "sampleRate": "อัตราสุ่ม",
+            "transform": "แปลงเป็น Chiptune",
+            "transforming": "กำลังแปลง...",
+            "loading": "กำลังบีบอัดบิต..."
         },
         "imageTransformer": {
             "title": "ความสนุกที่ไม่พึ่งพาเอไอ",
             "description": "เครื่องมือสร้างสรรค์ที่ทำงานบนอุปกรณ์ของคุณโดยตรง ไม่ใช้ AI และไม่เสียเครดิต",
+            "uploadImage": "อัปโหลดรูปภาพ",
+            "changeImage": "เปลี่ยนรูปภาพ",
+            "button": "สร้างสรรค์",
+            "loading": "กำลังสร้าง...",
+            "thinking": "กำลังวิเคราะห์ภาพ...",
+            "error": "เกิดข้อผิดพลาด",
+            "errorSelectImage": "กรุณาเลือกไฟล์รูปภาพ",
+            "soundSuccess": "สร้างเสียงสำเร็จ!",
+            "songSuccess": "สร้างเพลงสำเร็จ!",
+            "playAgain": "เล่นอีกครั้ง",
+            "playSong": "เล่นเพลง",
+            "stop": "หยุด",
+            "glyphResult": "Glyph Code ที่สร้างขึ้น",
+            "emojiResult": "Emoji Art ที่สร้างขึ้น",
+            "colorResult": "สีที่พบในภาพ",
+            "copy": "คัดลอก",
+            "copied": "คัดลอกแล้ว!",
+            "download": "ดาวน์โหลด",
             "modeSound": "ภาพเป็นเสียง",
             "modeSong": "ภาพเป็นเพลง",
             "modeGlyph": "Glyph Code",
             "modeColor": "วิเคราะห์สี",
-            "modeEmoji": "ภาพเป็นอิโมจิ",
-            "modeVideoCode": "วิดีโอเป็นโค้ด"
+            "modeEmoji": "ภาพเป็นอิโมจิ"
         },
         "audioReverser": {
-            "title": "เครื่องมือสลับเสียงวิดีโอ",
-            "description": "อัปโหลดวิดีโอเพื่อแยกและเล่นเสียงแบบย้อนกลับ วิธีสนุกๆ ในการค้นหาข้อความที่ซ่อนอยู่!",
-            "uploadVideo": "อัปโหลดวิดีโอ",
-            "sourceVideo": "วิดีโอต้นฉบับ",
+            "title": "เครื่องมือสลับเสียง",
+            "description": "อัปโหลดไฟล์เสียงหรือวิดีโอเพื่อแยกและเล่นเสียงแบบย้อนกลับ วิธีสนุกๆ ในการค้นหาข้อความที่ซ่อนอยู่!",
+            "uploadVideo": "อัปโหลดเสียงหรือวิดีโอ",
+            "sourceVideo": "ไฟล์ต้นฉบับ",
             "changeFile": "เปลี่ยนไฟล์",
-            "errorSelectVideo": "กรุณาเลือกไฟล์วิดีโอ",
+            "errorSelectVideo": "กรุณาเลือกไฟล์เสียงหรือวิดีโอ",
             "reverseAudio": "สลับเสียง",
             "transforming": "กำลังสลับเสียง...",
             "resultTitle": "ผลลัพธ์:",
             "playReversed": "เล่นเสียงสลับ",
-            "stop": "หยุด",
             "download": "ดาวน์โหลดเสียงที่สลับแล้ว"
         },
         "audioToMidi": {
@@ -240,8 +295,34 @@
             "resultTitle": "ผลลัพธ์:",
             "notesFound": "พบ {count} โน้ต",
             "playMidi": "เล่น MIDI",
-            "stop": "หยุด",
             "download": "ดาวน์โหลด (.wav)"
+        },
+        "detector": {
+            "title": "เครื่องมือตรวจจับเนื้อหา",
+            "description": "วิเคราะห์ข้อความ, เสียง, หรือรูปภาพเพื่อหาสัญญาณของการสร้างโดย AI (เป็นการประเมินเบื้องต้น, ไม่ใช่ AI จริง)",
+            "upload": "อัปโหลดไฟล์",
+            "changeFile": "เปลี่ยนไฟล์",
+            "analyze": "วิเคราะห์",
+            "analyzing": "กำลังวิเคราะห์...",
+            "resultTitle": "ผลการวิเคราะห์:",
+            "aiLikelihood": "ความเป็นไปได้ที่จะเป็น AI",
+            "humanLikeness": "ความเป็นธรรมชาติ",
+            "analysisDetails": "รายละเอียดการวิเคราะห์:",
+            "textComplexity": "ความซับซ้อนของข้อความ",
+            "textRepetition": "การใช้คำซ้ำ",
+            "audioClipping": "เสียงแตกพร่า",
+            "audioDynamics": "ไดนามิกของเสียง",
+            "imageMetadata": "ข้อมูลเมตาดาต้า",
+            "pasteText": "วางข้อความที่นี่..."
+        },
+        "textToImage": {
+            "title": "ข้อความเป็นภาพศิลป์",
+            "description": "สร้างภาพศิลปะแนว Abstract ที่เป็นเอกลักษณ์จากข้อความของคุณโดยใช้หลักการ Generative Art",
+            "inputLabel": "ป้อนข้อความของคุณ:",
+            "inputPlaceholder": "ข้อความใดๆ ก็ได้จะถูกใช้เป็น seed...",
+            "generate": "สร้างภาพ",
+            "generating": "กำลังสร้าง...",
+            "download": "ดาวน์โหลด"
         }
     },
     "about": {

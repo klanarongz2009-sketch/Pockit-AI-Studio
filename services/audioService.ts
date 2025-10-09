@@ -54,6 +54,7 @@ export interface LocalAnalysisResult {
     estimatedBpm: number;
     estimatedPitch: string;
     harmonicRichness: number; // Percentage
+    clippingPercentage: number;
 }
 
 
@@ -1079,19 +1080,24 @@ export async function analyzeAudioLocally(buffer: AudioBuffer): Promise<LocalAna
     // 1. Duration
     const duration = buffer.duration;
 
-    // 2. Loudness
+    // 2. Loudness & Clipping
     let sumOfSquares = 0;
     let peak = 0;
+    let clippedSamples = 0;
     for (let i = 0; i < channelData.length; i++) {
         const sample = channelData[i];
         sumOfSquares += sample * sample;
         if (Math.abs(sample) > peak) {
             peak = Math.abs(sample);
         }
+        if (Math.abs(sample) >= 0.99) {
+            clippedSamples++;
+        }
     }
     const rms = Math.sqrt(sumOfSquares / channelData.length);
     const averageLoudness = 20 * Math.log10(rms); 
     const peakLoudness = 20 * Math.log10(peak);
+    const clippingPercentage = (clippedSamples / channelData.length) * 100;
     
     // 3. Dominant Frequency
     const fftSize = 4096;
@@ -1104,6 +1110,7 @@ export async function analyzeAudioLocally(buffer: AudioBuffer): Promise<LocalAna
             estimatedBpm: 0,
             estimatedPitch: 'N/A',
             harmonicRichness: 0,
+            clippingPercentage,
         };
     }
     const start = Math.floor((channelData.length - fftSize) / 2);
@@ -1139,5 +1146,6 @@ export async function analyzeAudioLocally(buffer: AudioBuffer): Promise<LocalAna
         estimatedBpm,
         estimatedPitch,
         harmonicRichness: isFinite(harmonicRichness) ? harmonicRichness : 0,
+        clippingPercentage,
     };
 }

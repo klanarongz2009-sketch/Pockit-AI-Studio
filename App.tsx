@@ -1,6 +1,3 @@
-
-
-
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import * as audioService from './services/audioService';
 import { preloadAllAssets } from './services/assetLoader';
@@ -12,6 +9,7 @@ import { CreditProvider } from './contexts/CreditContext';
 // Component Imports
 import { Intro } from './components/Intro';
 import { GlobalLayout } from './components/GlobalLayout';
+import { HomePage } from './components/HomePage';
 import { MinigameHubPage } from './components/MinigameHubPage';
 import { AiChatPage } from './components/AiChatPage';
 import { ArtGalleryPage } from './components/ArtGalleryPage';
@@ -19,18 +17,16 @@ import { SettingsPage } from './components/SettingsPage';
 import { ALL_AI_MODELS } from './services/aiModels';
 import { ArticlePage } from './components/ArticlePage';
 import { OfflineAiPage } from './components/OfflineAiPage';
-import { ArchivePage } from './components/ArchivePage';
 
 
-export type CurrentPage = 'minigameHub' | 'aiChat' | 'article' | 'offlineAi' | 'archive';
+export type CurrentPage = 'home' | 'minigameHub' | 'aiChat' | 'article' | 'offlineAi';
 
 export const App: React.FC = () => {
     const [isSoundOn, setIsSoundOn] = useState(() => preferenceService.getPreference('isSoundOn', true));
-    const [currentPage, setCurrentPage] = useState<CurrentPage>('minigameHub');
+    const [currentPage, setCurrentPage] = useState<CurrentPage>('home');
     const [isOnline, setIsOnline] = useState(navigator.onLine);
     const [showIntro, setShowIntro] = useState(true);
     const [isSettingsOpen, setIsSettingsOpen] = useState(false);
-    const [isSidebarOpen, setIsSidebarOpen] = useState(false);
     const [uiAnimations, setUiAnimations] = useState(() => preferenceService.getPreference('uiAnimations', true));
     
     const audioInitialized = useRef(false);
@@ -108,7 +104,6 @@ export const App: React.FC = () => {
     const handleSetPage = useCallback((page: CurrentPage): void => {
         playSound(audioService.playClick);
         setCurrentPage(page);
-        setIsSidebarOpen(false); // Close sidebar on navigation
     }, [playSound]);
 
     const handleToggleSound = useCallback((): void => {
@@ -166,10 +161,13 @@ export const App: React.FC = () => {
                   onSetPage={handleSetPage}
                   onOpenSettings={openSettingsPage}
                   playSound={playSound}
-                  isSidebarOpen={isSidebarOpen}
-                  onToggleSidebar={() => setIsSidebarOpen(prev => !prev)}
                 >
                     <main id="main-content" role="main" className={`flex-grow overflow-y-auto ${isOnline ? 'pt-16' : 'pt-20'}`}>
+                      {currentPage === 'home' && (
+                        <HomePage
+                          onSetPage={handleSetPage}
+                        />
+                      )}
                       {currentPage === 'minigameHub' && (
                         <MinigameHubPage
                           isOnline={isOnline}
@@ -190,12 +188,6 @@ export const App: React.FC = () => {
                       {currentPage === 'article' && (
                           <ArticlePage
                               playSound={playSound}
-                          />
-                      )}
-                      {currentPage === 'archive' && (
-                          <ArchivePage
-                              playSound={playSound}
-                              isOnline={isOnline}
                           />
                       )}
                     </main>

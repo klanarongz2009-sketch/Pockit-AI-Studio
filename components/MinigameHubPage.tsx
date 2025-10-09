@@ -21,9 +21,7 @@ import { SearchMusicIcon } from './icons/SearchMusicIcon';
 import { SongSearchPage } from './SongSearchPage';
 import { MagicButtonIcon } from './icons/MagicButtonIcon';
 import { MagicButtonPage } from './MagicButtonPage';
-import { VideoEditorPage } from './VideoEditorPage';
 import { AnalyzeIcon } from './AnalyzeIcon';
-import { VideoEditorIcon } from './icons/VideoEditorIcon';
 import { SearchIcon } from './icons/SearchIcon';
 import { GuessThePromptIcon } from './icons/GuessThePromptIcon';
 import { GuessThePromptPage } from './GuessThePromptPage';
@@ -48,7 +46,6 @@ import { DeviceIcon } from './icons/DeviceIcon';
 import { DeviceDetailsPage } from './icons/DeviceDetailsPage';
 import { AiDetectorIcon } from './AiDetectorIcon';
 import { AiDetectorPage } from './AiDetectorPage';
-// FIX: Removed imports for empty/deprecated components to resolve module errors.
 import { PublishIcon } from './icons/PublishIcon';
 import { AppPublisherPage } from './AppPublisherPage';
 import { MusicAndSoundIcon } from './icons/MusicAndSoundIcon';
@@ -60,6 +57,9 @@ import { AsteroidShooterIcon } from './icons/AsteroidShooterIcon';
 import { AsteroidShooterPage } from './AsteroidShooterPage';
 import { MinesweeperIcon } from './icons/MinesweeperIcon';
 import { MinesweeperPage } from './MinesweeperPage';
+// FIX: Replaced missing TalkingCatIcon with existing PetIcon to resolve module not found error.
+import { PetIcon } from './icons/PetIcon';
+import { TalkingCatPage } from './TalkingCatPage';
 
 interface MinigameHubPageProps {
     playSound: (player: () => void) => void;
@@ -69,10 +69,11 @@ interface MinigameHubPageProps {
 type ActiveGame =
     | 'hub' | 'ticTacToe' | 'snake' | 'platformer' | 'asteroidShooter'
     | 'brickBreaker' | 'calculator' | 'aiOracle' | 'wordMatch' | 'aiBugSquasher'
-    | 'songSearch' | 'magicButton' | 'videoEditor'
+    | 'songSearch' | 'magicButton'
     | 'guessThePrompt' | 'musicMemory' | 'fileChat' | 'analyzeMedia'
     | 'imageToCode' | 'mediaRecorder' | 'textToSpeech' | 'translator' | 'pixelSequencer'
-    | 'jumpingGame' | 'deviceDetails' | 'aiDetector' | 'appPublisher' | 'musicAndSound' | 'colorFinder' | 'minesweeper';
+    | 'jumpingGame' | 'deviceDetails' | 'aiDetector' | 'appPublisher' | 'musicAndSound' | 'colorFinder' | 'minesweeper'
+    | 'talkingCat';
 
 const GameButton: React.FC<{ icon: React.ReactNode; title: string; description: string; onClick?: () => void; disabled?: boolean; comingSoon?: boolean; beta?: boolean; highScore?: number; }> = ({ icon, title, description, onClick, disabled, comingSoon, beta, highScore }) => (
     <div className="relative group h-full">
@@ -130,7 +131,6 @@ export const MinigameHubPage: React.FC<MinigameHubPageProps> = ({ playSound, isO
         { 
             title: "AI Creative Suite",
             items: [
-                { icon: <VideoEditorIcon className="w-16 h-16" />, title: "Video Editor", description: "Edit your videos with the power of AI. Change styles, generate automatic subtitles, and more.", onClick: () => handleLaunchGame('videoEditor'), disabled: !isOnline, beta: true },
                 { icon: <SearchMusicIcon className="w-16 h-16" />, title: "Song/Audio Search", description: "Upload an audio or video clip and let an AI help you identify the song and find more information.", onClick: () => handleLaunchGame('songSearch'), disabled: !isOnline, beta: true },
                 { icon: <AnalyzeIcon className="w-16 h-16" />, title: "Media Analyzer", description: "Let an AI analyze your image, video, or audio files to describe, enhance quality, or extract elements.", onClick: () => handleLaunchGame('analyzeMedia'), disabled: !isOnline, beta: true },
                 { icon: <CodeIcon className="w-16 h-16" />, title: "Image to Code", description: "Upload a UI mockup and watch AI convert it into HTML and CSS code.", onClick: () => handleLaunchGame('imageToCode'), disabled: !isOnline, beta: true },
@@ -171,6 +171,8 @@ export const MinigameHubPage: React.FC<MinigameHubPageProps> = ({ playSound, isO
         {
             title: "Fun & Utilities",
             items: [
+// FIX: Replaced missing TalkingCatIcon with existing PetIcon to resolve module not found error.
+                { icon: <PetIcon className="w-16 h-16" />, title: "Talking Cat", description: "Have a real-time voice conversation with a sassy AI cat.", onClick: () => handleLaunchGame('talkingCat'), disabled: !isOnline, beta: true },
                 { icon: <MusicAndSoundIcon className="w-16 h-16" />, title: "Music & Sound", description: "Browse a library of pre-made 8-bit sound effects and music loops to use in your projects.", onClick: () => handleLaunchGame('musicAndSound') },
                 { icon: <SequencerIcon className="w-16 h-16" />, title: "Pixel Sequencer", description: "Compose your own 8-bit chiptune melodies on a step sequencer grid. A powerful tool for music creation!", onClick: () => handleLaunchGame('pixelSequencer') },
                 { icon: <RecordIcon className="w-16 h-16" />, title: "Media Recorder", description: "Record audio from your microphone or video from your camera directly in the app.", onClick: () => handleLaunchGame('mediaRecorder') },
@@ -237,9 +239,6 @@ export const MinigameHubPage: React.FC<MinigameHubPageProps> = ({ playSound, isO
     if (activeGame === 'magicButton') {
         return <MagicButtonPage onClose={() => setActiveGame('hub')} playSound={playSound} />;
     }
-    if (activeGame === 'videoEditor') {
-        return <VideoEditorPage onClose={() => handleLaunchGame('hub')} playSound={playSound} isOnline={isOnline} />;
-    }
     if (activeGame === 'guessThePrompt') {
         return <GuessThePromptPage onClose={() => setActiveGame('hub')} playSound={playSound} isOnline={isOnline} />;
     }
@@ -287,6 +286,9 @@ export const MinigameHubPage: React.FC<MinigameHubPageProps> = ({ playSound, isO
     }
     if (activeGame === 'minesweeper') {
         return <MinesweeperPage onClose={() => setActiveGame('hub')} playSound={playSound} />;
+    }
+    if (activeGame === 'talkingCat') {
+        return <TalkingCatPage onClose={() => setActiveGame('hub')} playSound={playSound} isOnline={isOnline} />;
     }
 
 
