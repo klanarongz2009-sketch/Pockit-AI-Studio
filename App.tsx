@@ -1,5 +1,6 @@
 
 
+
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import * as audioService from './services/audioService';
 import { preloadAllAssets } from './services/assetLoader';
@@ -18,9 +19,10 @@ import { SettingsPage } from './components/SettingsPage';
 import { ALL_AI_MODELS } from './services/aiModels';
 import { ArticlePage } from './components/ArticlePage';
 import { OfflineAiPage } from './components/OfflineAiPage';
+import { ArchivePage } from './components/ArchivePage';
 
 
-export type CurrentPage = 'minigameHub' | 'aiChat' | 'article' | 'offlineAi';
+export type CurrentPage = 'minigameHub' | 'aiChat' | 'article' | 'offlineAi' | 'archive';
 
 export const App: React.FC = () => {
     const [isSoundOn, setIsSoundOn] = useState(() => preferenceService.getPreference('isSoundOn', true));
@@ -188,6 +190,12 @@ export const App: React.FC = () => {
                       {currentPage === 'article' && (
                           <ArticlePage
                               playSound={playSound}
+                          />
+                      )}
+                      {currentPage === 'archive' && (
+                          <ArchivePage
+                              playSound={playSound}
+                              isOnline={isOnline}
                           />
                       )}
                     </main>

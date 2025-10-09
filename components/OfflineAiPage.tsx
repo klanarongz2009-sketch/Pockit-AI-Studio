@@ -1,11 +1,5 @@
 
 
-
-
-
-
-
-
 import React, { useState, useRef, useCallback, useEffect } from 'react';
 import * as audioService from '../services/audioService';
 import * as preferenceService from '../services/preferenceService';
@@ -653,7 +647,7 @@ const AudioToMidiTool = ({ playSound, t }: { playSound: (player: () => void) => 
             const arrayBuffer = await uploadedFile.arrayBuffer();
             const audioCtx = new (window.AudioContext || (window as any).webkitAudioContext)();
             const audioBuffer = await audioCtx.decodeAudioData(arrayBuffer);
-            // FIX: Removed the extra `audioCtx` argument, as `analyzeAudioBufferToMidi` only expects one argument.
+            // FIX: The `analyzeAudioBufferToMidi` function only accepts one argument. The extra `audioCtx` argument has been removed to fix the error.
             const midiNotes = await audioService.analyzeAudioBufferToMidi(audioBuffer);
             if (midiNotes.length === 0) {
                 throw new Error("Could not detect any distinct notes in the audio.");

@@ -97,6 +97,7 @@ const musicLoops: LibraryMusicLoop[] = [
 export const MusicAndSoundPage: React.FC<MusicAndSoundPageProps> = ({ onClose, playSound }) => {
     const [playingId, setPlayingId] = useState<string | null>(null);
     const [downloadingId, setDownloadingId] = useState<string | null>(null);
+    const [error, setError] = useState<string | null>(null);
 
     const handlePlaySfx = (sfx: LibrarySoundEffect) => {
         playSound(() => audioService.playSoundFromParams(sfx.params));
@@ -121,35 +122,66 @@ export const MusicAndSoundPage: React.FC<MusicAndSoundPageProps> = ({ onClose, p
         };
     }, []);
 
-    const handleDownloadSfx = async (sfx: LibrarySoundEffect) => {
+    const handleDownloadSfx = useCallback(async (sfx: LibrarySoundEffect) => {
         if (downloadingId) return;
+        playSound(audioService.playDownload);
         setDownloadingId(sfx.id);
-        const wavBlob = await audioService.exportSoundEffectToWav(sfx.params);
-        if (wavBlob) {
-            const url = URL.createObjectURL(wavBlob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = `${sfx.name.replace(/\s+/g, '_').toLowerCase()}.wav`;
-            a.click();
-            URL.revokeObjectURL(url);
+        setError(null);
+    
+        try {
+            const wavBlob = await audioService.exportSoundEffectToWav(sfx.params);
+            if (wavBlob) {
+                const url = URL.createObjectURL(wavBlob);
+                const a = document.createElement('a');
+                a.style.display = 'none';
+                a.href = url;
+                a.download = `${sfx.name.replace(/\s+/g, '_').toLowerCase()}.wav`;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                // We don't revoke the URL immediately to prevent navigation errors in some browsers.
+                // The browser will handle cleanup on page unload.
+            } else {
+                throw new Error("Failed to create WAV file.");
+            }
+        } catch (err) {
+            const errorMessage = err instanceof Error ? err.message : "An unexpected download error occurred.";
+            setError(errorMessage);
+            playSound(audioService.playError);
+        } finally {
+            setDownloadingId(null);
         }
-        setDownloadingId(null);
-    };
+    }, [downloadingId, playSound]);
 
-    const handleDownloadLoop = async (loop: LibraryMusicLoop) => {
+    const handleDownloadLoop = useCallback(async (loop: LibraryMusicLoop) => {
         if (downloadingId) return;
+        playSound(audioService.playDownload);
         setDownloadingId(loop.id);
-        const wavBlob = await audioService.exportSongToWav(loop.song, loop.bpm);
-        if (wavBlob) {
-            const url = URL.createObjectURL(wavBlob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = `${loop.name.replace(/\s+/g, '_').toLowerCase()}.wav`;
-            a.click();
-            URL.revokeObjectURL(url);
+        setError(null);
+    
+        try {
+            const wavBlob = await audioService.exportSongToWav(loop.song, loop.bpm);
+            if (wavBlob) {
+                const url = URL.createObjectURL(wavBlob);
+                const a = document.createElement('a');
+                a.style.display = 'none';
+                a.href = url;
+                a.download = `${loop.name.replace(/\s+/g, '_').toLowerCase()}.wav`;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                // We don't revoke the URL immediately to prevent navigation errors in some browsers.
+            } else {
+                throw new Error("Failed to create WAV file.");
+            }
+        } catch (err) {
+            const errorMessage = err instanceof Error ? err.message : "An unexpected download error occurred.";
+            setError(errorMessage);
+            playSound(audioService.playError);
+        } finally {
+            setDownloadingId(null);
         }
-        setDownloadingId(null);
-    };
+    }, [downloadingId, playSound]);
 
     const renderItem = (item: LibrarySoundEffect | LibraryMusicLoop, type: 'sfx' | 'loop') => {
         const isPlaying = playingId === item.id;
@@ -193,6 +225,12 @@ export const MusicAndSoundPage: React.FC<MusicAndSoundPageProps> = ({ onClose, p
                 <p className="text-sm text-center text-brand-light/80">
                     เรียกดูคลังเสียงประกอบและเพลง 8-bit ที่สร้างไว้ล่วงหน้าของเรา คุณสามารถเล่นและดาวน์โหลดเพื่อใช้ในโปรเจกต์ของคุณได้เลย!
                 </p>
+
+                {error && (
+                    <div role="alert" className="w-full p-3 text-center text-sm text-brand-light bg-brand-magenta/20 border-2 border-brand-magenta">
+                        {error}
+                    </div>
+                )}
 
                 <div className="w-full my-2">
                     <AudioVisualizer />

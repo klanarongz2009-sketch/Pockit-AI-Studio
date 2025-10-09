@@ -1,4 +1,5 @@
 
+
 import { GoogleGenAI, Type, Chat, Modality, Content, GenerateContentResponse } from "@google/genai";
 import * as preferenceService from './preferenceService';
 import { AiModel } from './aiModels';
@@ -534,6 +535,7 @@ export async function getTicTacToeMove(board: string[][], player: 'X' | 'O'): Pr
             config: {
                 responseMimeType: "application/json",
                 responseSchema: schema,
+                thinkingConfig: { thinkingBudget: 0 }
             }
         });
         return safeJsonParse<{ row: number, col: number }>(response.text);
@@ -678,7 +680,7 @@ export async function identifyAndSearchMusic(base64Data: string, mimeType: strin
 
         const result = safeJsonParse<Omit<SearchResult, 'sources'>>(response.text);
         // FIX: Safely handle optional chaining to prevent runtime errors when grounding chunks are not available.
-        const sources = (response.candidates?.[0]?.groundingMetadata?.groundingChunks || []).map((chunk: any) => ({
+        const sources = (response.candidates?.[0]?.groundingMetadata?.groundingChunks ?? []).map((chunk: any) => ({
             uri: chunk.web?.uri || '',
             title: chunk.web?.title || ''
         })).filter(s => s.uri);
@@ -756,7 +758,7 @@ export async function sendMessageToChat(prompt: string, model: AiModel, webSearc
                 config: webSearchConfig,
             });
             // FIX: Safely handle optional chaining to prevent runtime errors when grounding chunks are not available.
-            const sources = (response.candidates?.[0]?.groundingMetadata?.groundingChunks || []).map((chunk: any) => ({
+            const sources = (response.candidates?.[0]?.groundingMetadata?.groundingChunks ?? []).map((chunk: any) => ({
                 uri: chunk.web?.uri || '',
                 title: chunk.web?.title || ''
             })).filter(s => s.uri);

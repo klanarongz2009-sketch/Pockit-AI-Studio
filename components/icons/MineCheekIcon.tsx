@@ -1,6 +1,6 @@
 import React from 'react';
 
-export const MinesweeperIcon = ({ className }: { className?: string }): React.ReactNode => (
+export const MineCheekIcon = ({ className }: { className?: string }): React.ReactNode => (
     <svg 
         xmlns="http://www.w3.org/2000/svg" 
         viewBox="0 0 24 24" 
@@ -17,7 +17,5 @@ export const MinesweeperIcon = ({ className }: { className?: string }): React.Re
         {/* Face */}
         <path d="M9 10H11V12H9V10Z M13 10H15V12H13V10Z" fill="white"/>
         <path d="M9 15H15V16H9V15Z" fill="white"/>
-        {/* Flag */}
-        <path d="M4 18H6V20H4V18Z M4 16H8V18H4V16Z M4 14H6V16H4V14Z" fill="#ff00ff"/>
     </svg>
 );

@@ -64,17 +64,17 @@ export const DeviceDetailsPage: React.FC<DeviceDetailsPageProps> = ({ onClose })
         return (
             <div className="space-y-4">
                 {Object.entries(deviceInfo).map(([category, details]) => (
-                    <div key={category}>
+                     <section key={category} className="bg-black/30 p-4 border-2 border-brand-light/50">
                         <h3 className="font-press-start text-brand-cyan mb-2">{category}</h3>
-                        <div className="bg-black/20 p-2 border border-brand-light/20">
+                        <div className="space-y-1">
                             {Object.entries(details).map(([key, value]) => (
                                 <div key={key} className="flex text-xs border-b border-brand-light/10 py-1">
                                     <span className="w-2/5 text-brand-light/80 break-words">{key}:</span>
-                                    <span className="w-3/5 text-brand-light break-words">{value}</span>
+                                    <span className="w-3/5 text-brand-light break-words font-mono">{value}</span>
                                 </div>
                             ))}
                         </div>
-                    </div>
+                    </section>
                 ))}
             </div>
         );

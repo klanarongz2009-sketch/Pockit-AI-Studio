@@ -9,8 +9,13 @@ export const DeviceIcon = ({ className }: { className?: string }): React.ReactNo
         style={{ imageRendering: 'pixelated' }} 
         aria-hidden="true"
     >
-        <path d="M6 3H18V21H6V3Z"/>
-        <path fill="var(--color-bg, black)" d="M8 5H16V19H8V5Z"/>
-        <path d="M9 7H15V8H9V7Z M9 10H15V11H9V10Z M9 13H15V14H9V13Z M9 16H13V17H9V16Z"/>
+        {/* Phone body */}
+        <path d="M7 2H17V22H7V2Z"/>
+        {/* Screen area */}
+        <path fill="var(--color-bg, black)" d="M8 4H16V20H8V4Z"/>
+        {/* Notch */}
+        <path d="M10 4H14V5H10V4Z"/>
+        {/* UI elements */}
+        <path d="M9 7H15V8H9V7Z M9 10H15V11H9V10Z M9 13H13V14H9V13Z"/>
     </svg>
 );

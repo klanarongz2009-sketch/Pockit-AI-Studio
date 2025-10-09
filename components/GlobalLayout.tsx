@@ -1,5 +1,6 @@
 
 
+
 import React, { useState } from 'react';
 import * as audioService from '../services/audioService';
 import { CurrentPage } from '../App';
@@ -14,6 +15,7 @@ import { useLanguage } from '../contexts/LanguageContext';
 import { UpdateIcon } from './icons/UpdateIcon';
 import { UpdateInfoPage } from './UpdateInfoPage';
 import { OfflineAiIcon } from './icons/OfflineAiIcon';
+import { ArchiveIcon } from './icons/ArchiveIcon';
 
 interface GlobalLayoutProps {
     children: React.ReactNode;
@@ -102,6 +104,13 @@ const LayoutComponent: React.FC<GlobalLayoutProps> = ({
                         icon={<ArticleIcon className="w-6 h-6" />}
                         isActive={currentPage === 'article'}
                         onClick={() => onSetPage('article')}
+                        playSound={() => playSound(audioService.playHover)}
+                    />
+                    <SidebarNavButton
+                        label={t('sidebar.archive')}
+                        icon={<ArchiveIcon className="w-6 h-6" />}
+                        isActive={currentPage === 'archive'}
+                        onClick={() => onSetPage('archive')}
                         playSound={() => playSound(audioService.playHover)}
                     />
                 </nav>

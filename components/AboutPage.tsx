@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React, { useState, useCallback } from 'react';
+import JSZip from 'jszip';
 import { SparklesIcon } from './icons/SparklesIcon';
 import { ShareIcon } from './icons/ShareIcon';
 import { InstallIcon } from './icons/InstallIcon';
@@ -149,6 +150,57 @@ const FeedbackSection: React.FC<{ playSound: (player: () => void) => void; isOnl
 
 export const AboutPage: React.FC<AboutPageProps> = ({ onClose, playSound, isOnline }) => {
     const { t } = useLanguage();
+    const [isDownloading, setIsDownloading] = useState(false);
+
+    const handleDownloadSource = useCallback(async () => {
+        if (isDownloading) return;
+        playSound(audioService.playDownload);
+        setIsDownloading(true);
+
+        const fileList = [
+            'index.html', 'index.tsx', 'metadata.json', 'manifest.json', 'sw.js', 'README.md', 'App.tsx',
+            'i18n/en.json', 'i18n/th.json',
+            'services/aiModels.ts', 'services/assetLoader.ts', 'services/audioService.ts', 'services/galleryService.ts', 'services/geminiService.ts', 'services/notificationService.ts', 'services/preferenceService.ts', 'services/translationService.ts',
+            'contexts/CreditContext.tsx', 'contexts/LanguageContext.tsx', 'contexts/ThemeContext.tsx',
+            'components/AboutPage.tsx', 'components/AdPlayer.tsx', 'components/AiBugSquasherPage.tsx', 'components/AiChatPage.tsx', 'components/AiDetectorPage.tsx', 'components/AiOraclePage.tsx', 'components/AnalyzeMediaPage.tsx', 'components/AppPublisherPage.tsx', 'components/ArchivePage.tsx', 'components/ArticlePage.tsx', 'components/ArticleViewerPage.tsx', 'components/ArtGalleryPage.tsx', 'components/AsteroidShooterPage.tsx', 'components/BellIcon.tsx', 'components/BellOffIcon.tsx', 'components/BrickBreakerGame.tsx', 'components/ChiptuneCreatorPage.tsx', 'components/ColorFinderPage.tsx', 'components/FileChatPage.tsx', 'components/GlobalLayout.tsx', 'components/GuessThePromptPage.tsx', 'components/ImageDisplay.tsx', 'components/ImageGeneratorPage.tsx', 'components/ImageToCodePage.tsx', 'components/ImageToSoundPage.tsx', 'components/InstallGuidePage.tsx', 'components/Intro.tsx', 'components/JumpingGame.tsx', 'components/LoadingSpinner.tsx', 'components/LoginPage.tsx', 'components/MagicButtonPage.tsx', 'components/MediaRecorderPage.tsx', 'components/MediaToSongPage.tsx', 'components/Minigame.tsx', 'components/MinigameHubPage.tsx', 'components/MinesweeperPage.tsx', 'components/Modal.tsx', 'components/ModelInfoPage.tsx', 'components/MusicAndSoundPage.tsx', 'components/MusicMemoryGamePage.tsx', 'components/NotificationControl.tsx', 'components/OfflineAiPage.tsx', 'components/PageComponents.ts', 'components/PetGame.tsx', 'components/PixelSequencerPage.tsx', 'components/PixelSynthesizerPage.tsx', 'components/PlatformerGame.tsx', 'components/SettingsPage.tsx', 'components/SnakeGame.tsx', 'components/SongSearchPage.tsx', 'components/SpinningWheel.tsx', 'components/TextToSongPage.tsx', 'components/TextToSpeechPage.tsx', 'components/TicTacToePage.tsx', 'components/TranslatorPage.tsx', 'components/UpdateInfoPage.tsx', 'components/VideoEditorPage.tsx', 'components/VoiceChangerPage.tsx', 'components/WordMatchPage.tsx', 'components/CalculatorPage.tsx', 'components/icon.svg', 'components/AiDetectorIcon.tsx', 'components/AnalyzeIcon.tsx', 'components/ArticleIcon.tsx',
+            'components/icons/ArchiveIcon.tsx', 'components/icons/AsteroidShooterIcon.tsx', 'components/icons/AudioTransformIcon.tsx', 'components/icons/AudioVisualizer.tsx', 'components/icons/BookmarkIcon.tsx', 'components/icons/BrickBreakerIcon.tsx', 'components/icons/BugIcon.tsx', 'components/icons/CalculatorIcon.tsx', 'components/icons/CalculatorPage.tsx', 'components/icons/ChatIcon.tsx', 'components/icons/CodeIcon.tsx', 'components/icons/CoinsIcon.tsx', 'components/icons/ColorPickerIcon.tsx', 'components/icons/CopyIcon.tsx', 'components/icons/CropIcon.tsx', 'components/icons/DeviceIcon.tsx', 'components/icons/DeviceDetailsPage.tsx', 'components/icons/DownloadIcon.tsx', 'components/icons/EarnCreditsModal.tsx', 'components/icons/FaceLostIcon.tsx', 'components/icons/FacePlayingIcon.tsx', 'components/icons/FaceWonIcon.tsx', 'components/icons/FeedbackIcon.tsx', 'components/icons/FileChatIcon.tsx', 'components/icons/FilmMusicIcon.tsx', 'components/icons/FlagCheekIcon.tsx', 'components/icons/GalleryIcon.tsx', 'components/icons/GamepadIcon.tsx', 'components/icons/GuessThePromptIcon.tsx', 'components/icons/HeartFilledIcon.tsx', 'components/icons/HeartIcon.tsx', 'components/icons/ImageSoundIcon.tsx', 'components/icons/InfoIcon.tsx', 'components/icons/InstallIcon.tsx', 'components/icons/JumpingIcon.tsx', 'components/icons/LinkIcon.tsx', 'components/icons/MagicButtonIcon.tsx', 'components/icons/MenuIcon.tsx', 'components/icons/MicrophoneIcon.tsx', 'components/icons/MineCheekIcon.tsx', 'components/icons/MinesweeperIcon.tsx', 'components/icons/MoonIcon.tsx', 'components/icons/MusicAndSoundIcon.tsx', 'components/icons/MusicInspectIcon.tsx', 'components/icons/MusicKeyboardIcon.tsx', 'components/icons/MusicNoteIcon.tsx', 'components/icons/OfflineAiIcon.tsx', 'components/icons/OracleIcon.tsx', 'components/icons/PaletteIcon.tsx', 'components/icons/PetIcon.tsx', 'components/icons/PlatformerIcon.tsx', 'components/icons/PlayIcon.tsx', 'components/icons/PlusSquareIcon.tsx', 'components/icons/PublishIcon.tsx', 'components/icons/RecordIcon.tsx', 'components/icons/RegenerateIcon.tsx', 'components/icons/ReverseIcon.tsx', 'components/icons/SearchIcon.tsx', 'components/icons/SearchMusicIcon.tsx', 'components/icons/SendIcon.tsx', 'components/icons/SequencerIcon.tsx', 'components/icons/SettingsIcon.tsx', 'components/icons/ShareIcon.tsx', 'components/icons/SnakeIcon.tsx', 'components/icons/SoundWaveIcon.tsx', 'components/icons/SparklesIcon.tsx', 'components/icons/SpeakerOffIcon.tsx', 'components/icons/SpeakerOnIcon.tsx', 'components/icons/SpriteSheetIcon.tsx', 'components/icons/StopIcon.tsx', 'components/icons/SubtitlesIcon.tsx', 'components/icons/SunIcon.tsx', 'components/icons/TextMusicIcon.tsx', 'components/icons/TextToSpeechIcon.tsx', 'components/icons/ThumbsDownIcon.tsx', 'components/icons/ThumbsUpIcon.tsx', 'components/icons/TicTacToeIcon.tsx', 'components/icons/TranslateIcon.tsx', 'components/icons/TrashIcon.tsx', 'components/icons/UpdateIcon.tsx', 'components/icons/UploadIcon.tsx', 'components/icons/VideoEditorIcon.tsx', 'components/icons/VoiceChangerIcon.tsx', 'components/icons/WordMatchIcon.tsx', 'components/icons/XIcon.tsx', 'VideoEditorPage.tsx', 'VoiceChangerPage.tsx'
+        ];
+
+        try {
+            const zip = new JSZip();
+            const fetchPromises = fileList.map(filePath =>
+                fetch(`/${filePath}`)
+                    .then(res => {
+                        if (!res.ok) throw new Error(`Failed to fetch ${filePath}`);
+                        // Handle binary files like icons if necessary, but for source code text is fine
+                        return res.text();
+                    })
+                    .then(content => {
+                        zip.file(filePath, content);
+                    })
+            );
+
+            await Promise.all(fetchPromises);
+
+            const content = await zip.generateAsync({ type: "blob" });
+            
+            const url = URL.createObjectURL(content);
+            const a = document.createElement('a');
+            a.style.display = 'none';
+            a.href = url;
+            a.download = 'ai-apps-source.zip';
+            document.body.appendChild(a);
+            a.click();
+            URL.revokeObjectURL(url);
+            document.body.removeChild(a);
+
+        } catch (error) {
+            console.error("Failed to create source code zip:", error);
+            alert("Sorry, there was an error creating the download file.");
+        } finally {
+            setIsDownloading(false);
+        }
+    }, [isDownloading, playSound]);
 
     return (
         <PageWrapper>
@@ -201,11 +253,11 @@ export const AboutPage: React.FC<AboutPageProps> = ({ onClose, playSound, isOnli
                     </ol>
                     <h4 className="font-press-start text-sm text-brand-yellow pt-2">{t('about.install.rom.title')}</h4>
                     <p className="text-xs">{t('about.install.rom.description')}</p>
-                     <a href="/app-source.zip" download="ai-apps-source.zip" className="inline-block mt-2 p-2 bg-brand-yellow text-black border-2 border-black font-press-start text-xs hover:bg-brand-lime">
-                        <InstructionStep icon={<DownloadIcon className="w-6 h-6" />}>
-                            {t('about.install.rom.button')}
+                     <button onClick={handleDownloadSource} disabled={isDownloading} className="inline-block mt-2 p-2 bg-brand-yellow text-black border-2 border-black font-press-start text-xs hover:bg-brand-lime disabled:bg-gray-500 disabled:cursor-wait">
+                        <InstructionStep icon={isDownloading ? <LoadingSpinner text=""/> : <DownloadIcon className="w-6 h-6" />}>
+                           {isDownloading ? 'กำลังสร้าง ZIP...' : t('about.install.rom.button')}
                         </InstructionStep>
-                    </a>
+                    </button>
                 </Section>
 
                 <Section title={t('about.feedback.title')} id="feedback">

@@ -10,6 +10,7 @@
         "aiChat": "AI Chat",
         "offlineAi": "OFFLINE AI",
         "article": "บทความ",
+        "archive": "ที่เก็บแบบถาวร",
         "updateInfo": "เกี่ยวกับอัปเดต"
     },
     "offline": {
@@ -160,6 +161,10 @@
         "error": "เกิดข้อผิดพลาด",
         "resultsTitle": "ชุดสีที่พบ",
         "copied": "คัดลอกแล้ว!"
+    },
+    "archivePage": {
+        "title": "ที่เก็บแบบถาวร",
+        "description": "ฟีเจอร์ที่ถูกเก็บถาวรหรืออยู่ในสถานะทดลอง"
     },
     "offlineAiPage": {
         "title": "เครื่องมือ OFFLINE",

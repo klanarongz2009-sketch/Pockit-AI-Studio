@@ -3,9 +3,6 @@
 
 
 
-
-
-
 import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { GoogleGenAI, LiveServerMessage, Modality, Blob } from '@google/genai';
 import * as geminiService from '../services/geminiService';
@@ -87,7 +84,8 @@ const ModelSelectionModal: React.FC<{
     const [searchQuery, setSearchQuery] = useState('');
     const { t } = useLanguage();
     const categories = useMemo(() => {
-        // FIX: Add type guard to prevent calling .map on unknown.
+        // FIX: The error "Property 'map' does not exist on type 'unknown'" is caused by attempting to call `.map()` on `models` when it may not be an array. A type guard is added to prevent this.
+        // FIX: Add type guard to prevent calling .map on non-array.
         if (!Array.isArray(models)) {
             return ['All'];
         }
@@ -96,7 +94,7 @@ const ModelSelectionModal: React.FC<{
     const [activeCategory, setActiveCategory] = useState<'All' | AiModel['category']>('All');
 
     const filteredModels = useMemo(() => {
-        // FIX: Add type guard to prevent calling .filter on unknown.
+        // FIX: Add type guard to prevent calling .filter on non-array.
         if (!Array.isArray(models)) {
             return [];
         }

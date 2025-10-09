@@ -95,7 +95,7 @@ export const FileChatPage: React.FC<FileChatPageProps> = ({ onClose, playSound, 
         try {
             const responseText = await geminiService.chatWithFile(
                 { base64: fileData.base64, mimeType: fileData.file.type },
-                // FIX: The complex filter/map was unnecessary and potentially buggy. Passing the `messages` array from the closure correctly represents the history before the current user message was added.
+                // FIX: The `messages` array from the closure correctly represents the history before the current user message was added.
                 messages,
                 trimmedInput
             );

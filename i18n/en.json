@@ -10,6 +10,7 @@
         "aiChat": "AI Chat",
         "offlineAi": "Offline AI",
         "article": "Articles",
+        "archive": "Archive",
         "updateInfo": "About Updates"
     },
     "offline": {
@@ -161,6 +162,10 @@
         "error": "An error occurred",
         "resultsTitle": "Detected Palette",
         "copied": "Copied!"
+    },
+    "archivePage": {
+        "title": "Archive",
+        "description": "Archived or experimental features."
     },
     "offlineAiPage": {
         "title": "Offline Tools",

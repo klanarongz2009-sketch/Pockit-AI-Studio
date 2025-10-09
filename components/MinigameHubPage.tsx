@@ -1,5 +1,6 @@
 
 
+
 import React, { useState, useMemo, useEffect } from 'react';
 import { LoadingSpinner } from './LoadingSpinner';
 import * as audioService from '../services/audioService';
@@ -50,8 +51,7 @@ import { DeviceIcon } from './icons/DeviceIcon';
 import { DeviceDetailsPage } from './icons/DeviceDetailsPage';
 import { AiDetectorIcon } from './AiDetectorIcon';
 import { AiDetectorPage } from './AiDetectorPage';
-import { TalkingCatIcon } from './icons/TalkingCatIcon';
-import { TalkingCatPage } from './TalkingCatPage';
+// FIX: Removed imports for empty/deprecated components to resolve module errors.
 import { PublishIcon } from './icons/PublishIcon';
 import { AppPublisherPage } from './AppPublisherPage';
 import { MusicAndSoundIcon } from './icons/MusicAndSoundIcon';
@@ -75,7 +75,7 @@ type ActiveGame =
     | 'songSearch' | 'magicButton' | 'videoEditor'
     | 'guessThePrompt' | 'musicMemory' | 'fileChat' | 'analyzeMedia'
     | 'imageToCode' | 'mediaRecorder' | 'textToSpeech' | 'translator' | 'pixelSequencer'
-    | 'jumpingGame' | 'deviceDetails' | 'aiDetector' | 'talkingCat' | 'appPublisher' | 'musicAndSound' | 'colorFinder' | 'minesweeper';
+    | 'jumpingGame' | 'deviceDetails' | 'aiDetector' | 'appPublisher' | 'musicAndSound' | 'colorFinder' | 'minesweeper';
 
 const GameButton: React.FC<{ icon: React.ReactNode; title: string; description: string; onClick?: () => void; disabled?: boolean; comingSoon?: boolean; beta?: boolean; highScore?: number; }> = ({ icon, title, description, onClick, disabled, comingSoon, beta, highScore }) => (
     <div className="relative group h-full">
@@ -133,7 +133,6 @@ export const MinigameHubPage: React.FC<MinigameHubPageProps> = ({ playSound, isO
         { 
             title: "AI Creative Suite",
             items: [
-                { icon: <TalkingCatIcon className="w-16 h-16" />, title: "Talking Cat", description: "Chat with a sassy AI cat in real-time using your voice. Powered by Gemini Live.", onClick: () => handleLaunchGame('talkingCat'), disabled: !isOnline, beta: true },
                 { icon: <VideoEditorIcon className="w-16 h-16" />, title: "Video Editor", description: "Edit your videos with the power of AI. Change styles, generate automatic subtitles, and more.", onClick: () => handleLaunchGame('videoEditor'), disabled: !isOnline, beta: true },
                 { icon: <SearchMusicIcon className="w-16 h-16" />, title: "Song/Audio Search", description: "Upload an audio or video clip and let an AI help you identify the song and find more information.", onClick: () => handleLaunchGame('songSearch'), disabled: !isOnline, beta: true },
                 { icon: <AnalyzeIcon className="w-16 h-16" />, title: "Media Analyzer", description: "Let an AI analyze your image, video, or audio files to describe, enhance quality, or extract elements.", onClick: () => handleLaunchGame('analyzeMedia'), disabled: !isOnline, beta: true },
@@ -274,9 +273,6 @@ export const MinigameHubPage: React.FC<MinigameHubPageProps> = ({ playSound, isO
     }
     if (activeGame === 'aiDetector') {
         return <AiDetectorPage onClose={() => setActiveGame('hub')} playSound={playSound} isOnline={isOnline} />;
-    }
-    if (activeGame === 'talkingCat') {
-        return <TalkingCatPage onClose={() => setActiveGame('hub')} playSound={playSound} isOnline={isOnline} />;
     }
     if (activeGame === 'appPublisher') {
         return <AppPublisherPage onClose={() => setActiveGame('hub')} playSound={playSound} isOnline={isOnline} />;
