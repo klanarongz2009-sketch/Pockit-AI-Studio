@@ -119,11 +119,11 @@ export const MusicMemoryGamePage: React.FC<{
     const getStatusMessage = () => {
         switch (gameState) {
             case 'idle':
-                if (level === 0) return 'กด "เริ่ม" เพื่อท้าทาย';
-                return `ยอดเยี่ยม! +${level*10} คะแนน`;
-            case 'showingSequence': return 'AI กำลังเล่น...';
-            case 'playerTurn': return 'ตาของคุณ!';
-            case 'gameOver': return 'เกมจบแล้ว!';
+                if (level === 0) return 'Press "Start" to begin';
+                return `Excellent! +${level*10} points`;
+            case 'showingSequence': return 'AI is playing...';
+            case 'playerTurn': return 'Your turn!';
+            case 'gameOver': return 'Game Over!';
             default: return '';
         }
     };
@@ -139,12 +139,12 @@ export const MusicMemoryGamePage: React.FC<{
 
     return (
         <PageWrapper>
-            <PageHeader title="นักสืบเสียงดนตรี" onBack={onClose} />
+            <PageHeader title="Music Inspector" onBack={onClose} />
             <main id="main-content" className="w-full max-w-2xl flex-grow flex flex-col items-center justify-center gap-6 p-4">
                 <div className="w-full grid grid-cols-3 items-center font-press-start text-brand-light text-center">
-                    <span>ระดับ: {level > 0 ? level : '-'}</span>
-                    <span className="text-lg text-brand-yellow">คะแนน: {score}</span>
-                    <span>สูงสุด: {highScore}</span>
+                    <span>Level: {level > 0 ? level : '-'}</span>
+                    <span className="text-lg text-brand-yellow">Score: {score}</span>
+                    <span>High: {highScore}</span>
                 </div>
                 
                 <div 
@@ -165,7 +165,7 @@ export const MusicMemoryGamePage: React.FC<{
                                 onClick={() => handlePlayerNotePress(note)}
                                 disabled={gameState !== 'playerTurn'}
                                 className={`w-full aspect-square border-4 border-brand-light shadow-pixel transition-all disabled:opacity-50 disabled:cursor-not-allowed ${color} ${activeNote === note ? 'scale-110' : 'hover:brightness-125'} ${isSuccess ? 'animate-pulse' : ''}`}
-                                aria-label={`เล่นโน้ต ${note}`}
+                                aria-label={`Play note ${note}`}
                             >
                                 <span className="font-press-start text-black text-opacity-70 text-lg pointer-events-none">
                                     {note.slice(0, -1)}
@@ -180,23 +180,23 @@ export const MusicMemoryGamePage: React.FC<{
                         onClick={startNextLevel}
                         className="w-full max-w-xs mt-4 p-3 bg-brand-cyan text-black border-4 border-brand-light shadow-pixel font-press-start text-lg hover:bg-brand-yellow"
                     >
-                        เริ่มเกม
+                        Start Game
                     </button>
                 )}
                  {gameState === 'gameOver' && (
                     <div className="text-center space-y-4 mt-4 animate-fadeIn">
                         <p className="font-press-start text-xl text-brand-magenta">
-                            จบเกม!
+                            Game Over!
                         </p>
                         <p className="font-press-start text-lg">
-                            คะแนนสุดท้าย: <span className="text-brand-yellow">{score}</span>
+                            Final Score: <span className="text-brand-yellow">{score}</span>
                         </p>
-                        {score > highScore && <p className="font-press-start text-brand-lime">คะแนนสูงสุดใหม่!</p>}
+                        {score > highScore && <p className="font-press-start text-brand-lime">New High Score!</p>}
                         <button
                             onClick={handleRestart}
                             className="w-full max-w-xs p-3 bg-brand-cyan text-black border-4 border-brand-light shadow-pixel font-press-start text-lg hover:bg-brand-yellow"
                         >
-                            เล่นอีกครั้ง
+                            Play Again
                         </button>
                     </div>
                 )}

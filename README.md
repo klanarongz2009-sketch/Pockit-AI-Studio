@@ -4,14 +4,6 @@ Welcome to AI APPS, a creative suite and digital playground packed with AI-power
 
 This project is designed as a Progressive Web App (PWA), offering a fast, installable, and reliable experience with offline capabilities for non-AI features.
 
-## 🌐 Access the App
-
-You can access the latest version of this application directly through the following link:
-
-**[Open AI APPS](https://ai.studio/apps/drive/1yBGwvk27fvwS483MKKu4Ixd7xYXaWIhQ)**
-
-This link provides direct access in case the application is moved or archived from its original location on Google AI Studio.
-
 ## 🚀 Add to Your AI Studio
 
 You can add this application to your own Google AI Studio workspace to experiment with and modify the code.
@@ -89,12 +81,6 @@ This project is set up as a static web application with no build step required.
     npx serve
     ```
     This will start a server, and you can open the provided `localhost` URL in your browser.
-
-## 📦 Offline Installation (Download Source)
-
-For advanced users, developers, or for use in environments like emulators (e.g., RetroArch), you can download the entire application source code. This allows you to run the app from a local web server for offline archival and use.
-
-*   **[Download Application Source (.zip)](/app-source.zip)**
 
 ## PWA Installation
 

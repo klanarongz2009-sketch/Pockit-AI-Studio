@@ -106,9 +106,9 @@ export const Modal: React.FC<ModalProps> = ({ isOpen, onClose, title, children, 
               <button
                 onClick={onBack}
                 className="text-sm underline hover:text-brand-yellow transition-colors font-sans"
-                aria-label="กลับ"
+                aria-label="Back"
               >
-                &#x2190; กลับ
+                &#x2190; Back
               </button>
             )}
             <h2 id="modal-title" className="text-base sm:text-lg text-brand-yellow">
@@ -117,7 +117,7 @@ export const Modal: React.FC<ModalProps> = ({ isOpen, onClose, title, children, 
           </div>
           <button
             onClick={onClose}
-            aria-label="ปิด"
+            aria-label="Close"
             className="w-8 h-8 flex-shrink-0 flex items-center justify-center bg-brand-magenta text-white border-2 border-border-primary hover:bg-brand-yellow hover:text-black transition-colors text-sm"
           >
             X

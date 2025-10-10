@@ -23,18 +23,18 @@ interface VideoEditorPageProps {
 }
 
 const languages = [
-    { name: 'ไทย', code: 'th-TH' },
+    { name: 'Thai', code: 'th-TH' },
     { name: 'English', code: 'en-US' },
-    { name: '日本語', code: 'ja-JP' },
-    { name: '한국어', code: 'ko-KR' },
-    { name: '中文 (简体)', code: 'zh-CN' },
-    { name: 'Français', code: 'fr-FR' },
-    { name: 'Deutsch', code: 'de-DE' },
-    { name: 'Español', code: 'es-ES' },
-    { name: 'Português', code: 'pt-BR' },
-    { name: 'Русский', code: 'ru-RU' },
-    { name: 'Tiếng Việt', code: 'vi-VN' },
-    { name: 'Bahasa Indonesia', code: 'id-ID' },
+    { name: 'Japanese', code: 'ja-JP' },
+    { name: 'Korean', code: 'ko-KR' },
+    { name: 'Chinese (Simplified)', code: 'zh-CN' },
+    { name: 'French', code: 'fr-FR' },
+    { name: 'German', code: 'de-DE' },
+    { name: 'Spanish', code: 'es-ES' },
+    { name: 'Portuguese', code: 'pt-BR' },
+    { name: 'Russian', code: 'ru-RU' },
+    { name: 'Vietnamese', code: 'vi-VN' },
+    { name: 'Indonesian', code: 'id-ID' },
 ];
 
 export const VideoEditorPage: React.FC<VideoEditorPageProps> = ({ onClose, playSound, isOnline }) => {
@@ -44,7 +44,7 @@ export const VideoEditorPage: React.FC<VideoEditorPageProps> = ({ onClose, playS
     const [error, setError] = useState<string | null>(null);
     const [prompt, setPrompt] = useState('');
     const [addSubs, setAddSubs] = useState(false);
-    const [subtitleLanguage, setSubtitleLanguage] = useState<string>(() => preferenceService.getPreference('videoEditorSubtitleLang', 'th-TH'));
+    const [subtitleLanguage, setSubtitleLanguage] = useState<string>(() => preferenceService.getPreference('videoEditorSubtitleLang', 'en-US'));
     const [autoDetectLanguage, setAutoDetectLanguage] = useState<boolean>(() => preferenceService.getPreference('videoEditorAutoDetectLang', true));
     const [isDragging, setIsDragging] = useState<boolean>(false);
 
@@ -82,7 +82,7 @@ export const VideoEditorPage: React.FC<VideoEditorPageProps> = ({ onClose, playS
         if (!file) return;
 
         if (!file.type.startsWith('video/') && !file.type.startsWith('audio/')) {
-            setError('กรุณาเลือกไฟล์วิดีโอหรือไฟล์เสียง');
+            setError('Please select a video or audio file.');
             return;
         }
 
@@ -115,7 +115,7 @@ export const VideoEditorPage: React.FC<VideoEditorPageProps> = ({ onClose, playS
 
     const pollVideoOperation = useCallback(async (operation: any, retries = 20): Promise<void> => {
         if (retries <= 0) {
-            throw new Error('การสร้างวิดีโอใช้เวลานานเกินไป โปรดลองอีกครั้ง');
+            throw new Error('Video generation took too long. Please try again.');
         }
 
         const updatedOperation = await getVideosOperation(operation);
@@ -127,7 +127,7 @@ export const VideoEditorPage: React.FC<VideoEditorPageProps> = ({ onClose, playS
             if (downloadLink) {
                 setGeneratedVideoUrl(downloadLink);
             } else {
-                 throw new Error('ไม่พบลิงก์วิดีโอในผลลัพธ์ อาจเกิดจากปัญหาความปลอดภัยหรือข้อผิดพลาดที่ไม่ทราบสาเหตุ');
+                 throw new Error('No video link found in results. This may be due to a safety issue or an unknown error.');
             }
         } else {
             await new Promise(resolve => setTimeout(resolve, 10000));
@@ -157,11 +157,11 @@ export const VideoEditorPage: React.FC<VideoEditorPageProps> = ({ onClose, playS
     const handleGenerate = useCallback(async () => {
         if (!uploadedFile || isLoading || !isOnline) return;
         if (isAudioFile && !addSubs) {
-            setError('สำหรับไฟล์เสียง, กรุณาเลือก "สร้างคำบรรยายอัตโนมัติ"');
+            setError('For audio files, please select "Generate Subtitles".');
             return;
         }
         if (!isAudioFile && !prompt.trim() && !addSubs) {
-            setError('กรุณาป้อนคำสั่งหรือเลือกสร้างคำบรรยาย');
+            setError('Please enter a prompt or select subtitle generation.');
             return;
         }
 
@@ -226,7 +226,7 @@ export const VideoEditorPage: React.FC<VideoEditorPageProps> = ({ onClose, playS
     return (
         <PageWrapper className="justify-start">
             <input type="file" ref={fileInputRef} onChange={handleFileChange} accept="video/*,audio/*" className="hidden" aria-hidden="true" />
-            <PageHeader title="AI Video Editor (รุ่นทดลอง)" onBack={onClose} />
+            <PageHeader title="AI Video Editor (Beta)" onBack={onClose} />
             <main 
                 id="main-content"
                 className="w-full max-w-4xl flex-grow flex flex-col items-center gap-4 font-sans"
@@ -235,20 +235,20 @@ export const VideoEditorPage: React.FC<VideoEditorPageProps> = ({ onClose, playS
                 {isDragging && (
                     <div className="absolute inset-0 bg-black/80 border-4 border-dashed border-brand-yellow z-10 flex flex-col items-center justify-center pointer-events-none">
                         <UploadIcon className="w-12 h-12 text-brand-yellow" />
-                        <p className="font-press-start text-xl text-brand-yellow mt-4">วางไฟล์ของคุณที่นี่</p>
+                        <p className="font-press-start text-xl text-brand-yellow mt-4">Drop your file here</p>
                     </div>
                 )}
                 <div className="w-full h-auto aspect-video bg-black/50 border-4 border-brand-light flex items-center justify-center shadow-pixel" aria-live="polite">
-                    {isLoading ? <LoadingSpinner text="AI กำลังตัดต่อ..." /> :
+                    {isLoading ? <LoadingSpinner text="AI is editing..." /> :
                     error ? (
                         <div role="alert" className="w-full h-full p-4 flex flex-col items-center justify-center gap-4 text-center bg-black/40 border-4 border-brand-magenta">
-                            <h3 className="font-press-start text-lg text-brand-magenta">เกิดข้อผิดพลาด</h3>
+                            <h3 className="font-press-start text-lg text-brand-magenta">An Error Occurred</h3>
                             <p className="font-sans text-sm break-words text-brand-light/90 max-w-md">{error}</p>
                         </div>
                     ) : generatedVideoUrl ? (
                         <video key={generatedVideoUrl} controls autoPlay loop className="w-full h-full object-contain" crossOrigin="anonymous">
                             <source src={`${generatedVideoUrl}&key=${process.env.API_KEY}`} type="video/mp4" />
-                            {subtitleVttUrl && <track label="Subtitles" kind="subtitles" srcLang="th" src={subtitleVttUrl} default />}
+                            {subtitleVttUrl && <track label="Subtitles" kind="subtitles" srcLang="en" src={subtitleVttUrl} default />}
                         </video>
                     ) : subtitleVttUrl && filePreview ? (
                         isAudioFile ? (
@@ -258,13 +258,13 @@ export const VideoEditorPage: React.FC<VideoEditorPageProps> = ({ onClose, playS
                                  <audio key={filePreview} controls className="w-full" src={filePreview} />
                                  <a href={subtitleVttUrl} download={`${uploadedFile?.name?.split('.').slice(0, -1).join('.') || 'subtitles'}.vtt`} className="w-full flex items-center justify-center gap-3 p-3 bg-brand-yellow text-black border-4 border-brand-light shadow-pixel text-base transition-all hover:bg-brand-magenta hover:text-white">
                                     <DownloadIcon className="w-5 h-5"/>
-                                    <span>ดาวน์โหลดไฟล์คำบรรยาย (.vtt)</span>
+                                    <span>Download Subtitles (.vtt)</span>
                                  </a>
                             </div>
                         ) : (
                              <video key={filePreview} controls autoPlay loop className="w-full h-full object-contain" crossOrigin="anonymous">
                                 <source src={filePreview} type={uploadedFile?.type} />
-                                <track label="Subtitles" kind="subtitles" srcLang="th" src={subtitleVttUrl} default />
+                                <track label="Subtitles" kind="subtitles" srcLang="en" src={subtitleVttUrl} default />
                             </video>
                         )
                     ) : filePreview && uploadedFile ? (
@@ -280,8 +280,8 @@ export const VideoEditorPage: React.FC<VideoEditorPageProps> = ({ onClose, playS
                     ) : (
                          <div className="w-full h-full flex flex-col items-center justify-center text-center p-4 border-4 border-dashed border-border-primary/50 cursor-pointer hover:border-brand-yellow" onClick={handleUploadClick}>
                             <UploadIcon className="w-12 h-12 text-border-primary/70 mb-4" />
-                            <p className="font-press-start text-lg">ลากและวางวิดีโอหรือเสียงที่นี่</p>
-                            <p className="text-sm text-text-secondary mt-2">หรือคลิกเพื่ออัปโหลด</p>
+                            <p className="font-press-start text-lg">Drag & Drop Video or Audio</p>
+                            <p className="text-sm text-text-secondary mt-2">or click to upload</p>
                         </div>
                     )}
                 </div>
@@ -291,32 +291,32 @@ export const VideoEditorPage: React.FC<VideoEditorPageProps> = ({ onClose, playS
                     <div className="w-full grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div className="p-4 bg-black/20 border-2 border-border-primary space-y-3">
                              <div className="flex justify-between items-center">
-                                <h3 className="font-press-start text-brand-cyan">แก้ไขด้วย AI <span className="text-xs text-brand-magenta">(BETA)</span></h3>
-                                {isAudioFile && <span className="text-xs text-yellow-400">ใช้ได้กับวิดีโอเท่านั้น</span>}
+                                <h3 className="font-press-start text-brand-cyan">Edit with AI <span className="text-xs text-brand-magenta">(BETA)</span></h3>
+                                {isAudioFile && <span className="text-xs text-yellow-400">Video only</span>}
                             </div>
                             <textarea
                                 id="prompt-input"
                                 value={prompt}
                                 onChange={(e) => setPrompt(e.target.value)}
-                                placeholder="เช่น เปลี่ยนสไตล์เป็น 8-bit, สร้างตัวอย่าง 10 วินาที"
+                                placeholder="e.g., change style to 8-bit, make a 10s trailer"
                                 className="w-full h-20 p-2 bg-brand-light text-black rounded-none border-2 border-black focus:outline-none focus:ring-2 focus:ring-brand-yellow resize-y disabled:bg-gray-400 disabled:cursor-not-allowed"
                                 disabled={isLoading || !isOnline || isAudioFile}
                             />
                         </div>
 
                          <div className="p-4 bg-black/20 border-2 border-border-primary space-y-4">
-                             <h3 className="font-press-start text-brand-cyan">คำบรรยายอัตโนมัติ</h3>
+                             <h3 className="font-press-start text-brand-cyan">Auto Subtitles</h3>
                             <label className="flex items-center gap-3 cursor-pointer">
                                 <input type="checkbox" checked={addSubs} onChange={(e) => { playSound(audioService.playToggle); setAddSubs(e.target.checked); }} disabled={isLoading || !isOnline} className="w-6 h-6 accent-brand-magenta" />
-                                <span className="text-sm font-press-start">สร้างคำบรรยาย</span>
+                                <span className="text-sm font-press-start">Generate Subtitles</span>
                             </label>
                              <div className={`space-y-2 transition-opacity ${addSubs ? 'opacity-100' : 'opacity-50'}`}>
                                  <label className="flex items-center gap-3 cursor-pointer">
                                     <input type="checkbox" checked={autoDetectLanguage} onChange={(e) => { playSound(audioService.playToggle); setAutoDetectLanguage(e.target.checked); }} disabled={isLoading || !isOnline || !addSubs} className="w-5 h-5 accent-brand-magenta" />
-                                    <span className="text-sm">ตรวจจับภาษาอัตโนมัติ</span>
+                                    <span className="text-sm">Auto-detect language</span>
                                 </label>
                                  <div className="flex flex-col gap-1">
-                                      <label htmlFor="language-select" className={`text-xs font-press-start text-brand-light/70 transition-opacity ${autoDetectLanguage ? 'opacity-50' : 'opacity-100'}`}>หรือเลือกภาษา:</label>
+                                      <label htmlFor="language-select" className={`text-xs font-press-start text-brand-light/70 transition-opacity ${autoDetectLanguage ? 'opacity-50' : 'opacity-100'}`}>Or select a language:</label>
                                       <select id="language-select" value={subtitleLanguage} onChange={(e) => setSubtitleLanguage(e.target.value)} disabled={isLoading || !isOnline || autoDetectLanguage || !addSubs} className="w-full max-w-xs p-2 bg-brand-light text-black border-2 border-black disabled:opacity-50 disabled:cursor-not-allowed">
                                         {languages.map(lang => (<option key={lang.code} value={lang.code}>{lang.name}</option>))}
                                     </select>
@@ -326,14 +326,14 @@ export const VideoEditorPage: React.FC<VideoEditorPageProps> = ({ onClose, playS
                     </div>
                     
                     <div className="flex justify-between items-center">
-                        <button onClick={handleUploadClick} disabled={isLoading} onMouseEnter={() => playSound(audioService.playHover)} title="ปุ่มลัด: Alt+U" className="text-sm underline hover:text-brand-yellow disabled:opacity-50 disabled:cursor-not-allowed">
-                            แทนที่ไฟล์
+                        <button onClick={handleUploadClick} disabled={isLoading} onMouseEnter={() => playSound(audioService.playHover)} title="Shortcut: Alt+U" className="text-sm underline hover:text-brand-yellow disabled:opacity-50 disabled:cursor-not-allowed">
+                            Replace File
                         </button>
                     </div>
 
-                    <button onClick={handleGenerate} disabled={!canGenerate} onMouseEnter={() => playSound(audioService.playHover)} title={!isOnline ? 'ฟีเจอร์นี้ต้องใช้การเชื่อมต่ออินเทอร์เน็ต' : 'ปุ่มลัด: Ctrl+Enter'} className="w-full flex items-center justify-center gap-3 p-4 bg-brand-magenta text-white border-4 border-brand-light shadow-pixel text-base transition-all hover:bg-brand-yellow hover:text-black active:shadow-pixel-active active:translate-y-[2px] active:translate-x-[2px] disabled:bg-gray-500 disabled:cursor-not-allowed">
+                    <button onClick={handleGenerate} disabled={!canGenerate} onMouseEnter={() => playSound(audioService.playHover)} title={!isOnline ? 'This feature requires an internet connection' : 'Shortcut: Ctrl+Enter'} className="w-full flex items-center justify-center gap-3 p-4 bg-brand-magenta text-white border-4 border-brand-light shadow-pixel text-base transition-all hover:bg-brand-yellow hover:text-black active:shadow-pixel-active active:translate-y-[2px] active:translate-x-[2px] disabled:bg-gray-500 disabled:cursor-not-allowed">
                         <SparklesIcon className="w-6 h-6" />
-                        {isLoading ? 'กำลังประมวลผล...' : 'ประมวลผลวิดีโอ'}
+                        {isLoading ? 'Processing...' : 'Process Video'}
                     </button>
                 </div>
                 )}

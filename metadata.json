@@ -1,6 +1,6 @@
 {
   "name": "AIOS1.0",
-  "description": "จักรวาลแห่งแอป AI! สนุกไปกับมินิเกม, ผู้ช่วย AI, และเครื่องมือสร้างสรรค์เสียงและวิดีโอ ทั้งหมดในที่เดียว!",
+  "description": "A universe of AI apps! Enjoy mini-games, AI assistants, and creative tools for sound and video, all in one place!",
   "prompt": "",
   "requestFramePermissions": [
     "microphone",

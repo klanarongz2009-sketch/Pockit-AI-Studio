@@ -208,55 +208,37 @@ export const exportSoundEffectToWav = async (params: SoundEffectParameters): Pro
 };
 
 
-export const playHover = () => playSoundInternal('sine', 1500, 1500, 0.03, 0.05);
-export const playClick = () => playSoundInternal('square', 440, 480, 0.05, 0.15);
-export const playToggle = () => playSoundInternal('triangle', 600, 800, 0.08, 0.1);
-export const playCloseModal = () => playSoundInternal('sine', 400, 100, 0.2, 0.2);
-export const playGenerate = () => playNoteSequence([
-    { freq: NOTE_FREQUENCIES['C4'], duration: 0.08, type: 'square', volume: 0.1, delay: 0 },
-    { freq: NOTE_FREQUENCIES['E4'], duration: 0.08, type: 'square', volume: 0.1, delay: 0.08 },
-    { freq: NOTE_FREQUENCIES['G4'], duration: 0.1, type: 'square', volume: 0.1, delay: 0.16 },
-]);
-export const playSuccess = () => playNoteSequence([
-    { freq: NOTE_FREQUENCIES['C5'], duration: 0.08, type: 'triangle', volume: 0.2, delay: 0 },
-    { freq: NOTE_FREQUENCIES['E5'], duration: 0.08, type: 'triangle', volume: 0.2, delay: 0.1 },
-    { freq: NOTE_FREQUENCIES['G5'], duration: 0.08, type: 'triangle', volume: 0.2, delay: 0.2 },
-    { freq: NOTE_FREQUENCIES['C6'], duration: 0.15, type: 'triangle', volume: 0.2, delay: 0.3 },
-]);
-export const playError = () => playSoundInternal('sawtooth', 200, 50, 0.4, 0.3);
-export const playSwoosh = () => playSoundInternal('sine', 1200, 100, 0.2, 0.15);
-export const playSelection = () => playSoundInternal('square', 1000, 1000, 0.05, 0.1);
-export const playCameraShutter = () => playSoundInternal('square', 3000, 500, 0.1, 0.25);
-export const playDownload = () => playNoteSequence([
-    { freq: NOTE_FREQUENCIES['G5'], duration: 0.08, type: 'sine', volume: 0.2, delay: 0 },
-    { freq: NOTE_FREQUENCIES['E5'], duration: 0.08, type: 'sine', volume: 0.2, delay: 0.1 },
-    { freq: NOTE_FREQUENCIES['C5'], duration: 0.15, type: 'sine', volume: 0.2, delay: 0.2 },
-]);
+export const playHover = () => playSoundInternal('sine', 2000, 2000, 0.05, 0.04);
+export const playClick = () => playSoundInternal('sine', 1200, 400, 0.1, 0.2);
+export const playToggle = () => playNoteSequence([{ freq: 800, duration: 0.05, type: 'sine', volume: 0.15, delay: 0 }, { freq: 1200, duration: 0.05, type: 'sine', volume: 0.15, delay: 0.06 }]);
+export const playCloseModal = () => playSoundInternal('sine', 300, 50, 0.25, 0.15);
+export const playGenerate = () => playNoteSequence([{ freq: NOTE_FREQUENCIES['C5'], duration: 0.07, type: 'sine', volume: 0.2, delay: 0 }, { freq: NOTE_FREQUENCIES['E5'], duration: 0.07, type: 'sine', volume: 0.2, delay: 0.08 }, { freq: NOTE_FREQUENCIES['G5'], duration: 0.07, type: 'sine', volume: 0.2, delay: 0.16 }]);
+export const playSuccess = () => playNoteSequence([{ freq: NOTE_FREQUENCIES['C5'], duration: 0.08, type: 'sine', volume: 0.2, delay: 0 }, { freq: NOTE_FREQUENCIES['G5'], duration: 0.08, type: 'sine', volume: 0.2, delay: 0.1 }, { freq: NOTE_FREQUENCIES['C6'], duration: 0.15, type: 'sine', volume: 0.2, delay: 0.2 }]);
+export const playError = () => playSoundInternal('sawtooth', 150, 80, 0.3, 0.25);
+export const playSwoosh = () => playSoundInternal('sine', 1500, 200, 0.2, 0.1);
+export const playSelection = () => playSoundInternal('sine', 1000, 1000, 0.05, 0.1);
+export const playCameraShutter = () => playSoundInternal('sine', 3000, 500, 0.1, 0.25);
+export const playDownload = () => playNoteSequence([{ freq: NOTE_FREQUENCIES['G5'], duration: 0.08, type: 'sine', volume: 0.2, delay: 0 }, { freq: NOTE_FREQUENCIES['E5'], duration: 0.08, type: 'sine', volume: 0.2, delay: 0.1 }, { freq: NOTE_FREQUENCIES['C5'], duration: 0.15, type: 'sine', volume: 0.2, delay: 0.2 }]);
 export const playSliderChange = () => playSoundInternal('sine', 1200, 1200, 0.02, 0.04);
-export const playScore = () => playSoundInternal('triangle', 1200, 1800, 0.08, 0.25);
-export const playPlayerHit = () => playSoundInternal('square', 200, 50, 0.2, 0.3);
-export const playGameOver = () => playNoteSequence([
-    { freq: NOTE_FREQUENCIES['G3'], duration: 0.1, type: 'sawtooth', volume: 0.3, delay: 0 },
-    { freq: NOTE_FREQUENCIES['F#3'], duration: 0.1, type: 'sawtooth', volume: 0.3, delay: 0.15 },
-    { freq: NOTE_FREQUENCIES['F3'], duration: 0.1, type: 'sawtooth', volume: 0.3, delay: 0.3 },
-    { freq: NOTE_FREQUENCIES['E3'], duration: 0.4, type: 'sawtooth', volume: 0.3, delay: 0.45 },
-]);
-export const playTrash = () => playSoundInternal('square', 200, 100, 0.15, 0.2);
+export const playScore = () => playSoundInternal('sine', 1200, 1800, 0.08, 0.25);
+export const playPlayerHit = () => playSoundInternal('sine', 200, 50, 0.2, 0.3);
+export const playGameOver = () => playNoteSequence([{ freq: NOTE_FREQUENCIES['G3'], duration: 0.1, type: 'sine', volume: 0.3, delay: 0 }, { freq: NOTE_FREQUENCIES['F#3'], duration: 0.1, type: 'sine', volume: 0.3, delay: 0.15 }, { freq: NOTE_FREQUENCIES['F3'], duration: 0.1, type: 'sine', volume: 0.3, delay: 0.3 }, { freq: NOTE_FREQUENCIES['E3'], duration: 0.4, type: 'sine', volume: 0.3, delay: 0.45 }]);
+export const playTrash = () => playSoundInternal('sine', 200, 100, 0.15, 0.2);
 export const playCreditAdd = () => playSoundInternal('sine', 1000, 1500, 0.1, 0.3);
 export const playCreditSpend = () => playSoundInternal('sine', 800, 500, 0.1, 0.2);
-export const playIntro1 = () => playSoundInternal('sine', 600, 800, 0.1, 0.3);
-export const playIntro2 = () => playSoundInternal('sine', 800, 1000, 0.1, 0.3);
-export const playIntro3 = () => playSoundInternal('sine', 1000, 1400, 0.15, 0.3);
-export const playBrickHit = () => playSoundInternal('square', 1500, 1500, 0.05, 0.2);
-export const playPaddleHit = () => playSoundInternal('square', 500, 500, 0.05, 0.3);
+export const playIntro1 = () => playSoundInternal('sine', 220, 220, 0.2, 0.3);
+export const playIntro2 = () => playNoteSequence([{ freq: 440, duration: 0.05, type: 'sine', volume: 0.1, delay: 0 }, { freq: 550, duration: 0.05, type: 'sine', volume: 0.1, delay: 0.06 }, { freq: 660, duration: 0.05, type: 'sine', volume: 0.1, delay: 0.12 }, { freq: 880, duration: 0.05, type: 'sine', volume: 0.1, delay: 0.18 }]);
+export const playIntro3 = () => playNoteSequence([{ freq: NOTE_FREQUENCIES['A4'], duration: 0.2, type: 'sine', volume: 0.15, delay: 0 }, { freq: NOTE_FREQUENCIES['E5'], duration: 0.2, type: 'sine', volume: 0.15, delay: 0.02 }]);
+export const playBootSound1 = () => playSoundInternal('sine', 220, 220, 0.2, 0.3);
+export const playBootSound2 = () => playNoteSequence([{ freq: 440, duration: 0.05, type: 'sine', volume: 0.1, delay: 0 }, { freq: 550, duration: 0.05, type: 'sine', volume: 0.1, delay: 0.06 }, { freq: 660, duration: 0.05, type: 'sine', volume: 0.1, delay: 0.12 }, { freq: 880, duration: 0.05, type: 'sine', volume: 0.1, delay: 0.18 }]);
+export const playBootSound3 = () => playNoteSequence([{ freq: NOTE_FREQUENCIES['A4'], duration: 0.2, type: 'sine', volume: 0.15, delay: 0 }, { freq: NOTE_FREQUENCIES['E5'], duration: 0.2, type: 'sine', volume: 0.15, delay: 0.02 }]);
+export const playBootSound4 = () => playNoteSequence([{ freq: NOTE_FREQUENCIES['C4'], duration: 0.1, type: 'sine', volume: 0.2, delay: 0 }, { freq: NOTE_FREQUENCIES['E4'], duration: 0.1, type: 'sine', volume: 0.2, delay: 0.1 }, { freq: NOTE_FREQUENCIES['G4'], duration: 0.1, type: 'sine', volume: 0.2, delay: 0.2 }, { freq: NOTE_FREQUENCIES['C5'], duration: 0.2, type: 'sine', volume: 0.2, delay: 0.3 }]);
+export const playBrickHit = () => playSoundInternal('sine', 1500, 1500, 0.05, 0.2);
+export const playPaddleHit = () => playSoundInternal('sine', 500, 500, 0.05, 0.3);
 export const playWallHit = () => playSoundInternal('sine', 300, 300, 0.05, 0.2);
-export const playMiss = () => playSoundInternal('triangle', 800, 400, 0.3, 0.3);
+export const playMiss = () => playSoundInternal('sine', 800, 400, 0.3, 0.3);
 export const playWheelSpin = () => playSoundInternal('sine', 800, 1600, 0.5, 0.1);
-export const playWheelWin = () => playNoteSequence([
-    { freq: NOTE_FREQUENCIES['C5'], duration: 0.08, type: 'sine', volume: 0.2, delay: 0 },
-    { freq: NOTE_FREQUENCIES['G5'], duration: 0.08, type: 'sine', volume: 0.2, delay: 0.1 },
-    { freq: NOTE_FREQUENCIES['C6'], duration: 0.15, type: 'sine', volume: 0.2, delay: 0.2 },
-]);
+export const playWheelWin = () => playNoteSequence([{ freq: NOTE_FREQUENCIES['C5'], duration: 0.08, type: 'sine', volume: 0.2, delay: 0 }, { freq: NOTE_FREQUENCIES['G5'], duration: 0.08, type: 'sine', volume: 0.2, delay: 0.1 }, { freq: NOTE_FREQUENCIES['C6'], duration: 0.15, type: 'sine', volume: 0.2, delay: 0.2 }]);
 
 export const playMusicalNote = (frequency: number, type: SoundType, duration: number) => {
     if (!audioContext || !masterGain || audioContext.state !== 'running') return;
@@ -790,6 +772,63 @@ export const applyBitcrusherEffect = async (
 
     return await offlineCtx.startRendering();
 };
+
+export const applyAiVoiceEffect = async (
+    file: File,
+    intensity: number // A value from 0.0 to 1.0
+): Promise<AudioBuffer> => {
+    if (!audioContext) throw new Error("Audio context not initialized");
+
+    const arrayBuffer = await file.arrayBuffer();
+    const originalBuffer = await audioContext.decodeAudioData(arrayBuffer);
+
+    if (intensity === 0) {
+        return originalBuffer;
+    }
+    
+    const bitDepth = Math.max(1, 16 - (intensity * 14)); // 16 bit at 0% intensity, 2 bit at 100%
+    const sampleRateReduction = 1 + Math.floor(intensity * 20); // 1x reduction at 0%, 21x at 100%
+    
+    const offlineCtxForCrushing = new OfflineAudioContext(originalBuffer.numberOfChannels, originalBuffer.length, originalBuffer.sampleRate);
+    const inputData = originalBuffer.getChannelData(0); // mono for simplicity
+    const crushedBuffer = offlineCtxForCrushing.createBuffer(1, originalBuffer.length, originalBuffer.sampleRate);
+    const outputData = crushedBuffer.getChannelData(0);
+    
+    const steps = Math.pow(2, bitDepth);
+    const stepSize = 2 / steps;
+    let lastSample = 0;
+
+    for (let i = 0; i < inputData.length; i++) {
+        if (i % sampleRateReduction === 0) {
+            const currentSample = inputData[i];
+            const crushedSample = stepSize * Math.floor(currentSample / stepSize + 0.5);
+            lastSample = crushedSample;
+        }
+        outputData[i] = lastSample;
+    }
+
+    const offlineCtxForMixing = new OfflineAudioContext(originalBuffer.numberOfChannels, originalBuffer.length, originalBuffer.sampleRate);
+
+    const drySource = offlineCtxForMixing.createBufferSource();
+    drySource.buffer = originalBuffer;
+    const dryGain = offlineCtxForMixing.createGain();
+    dryGain.gain.value = 1 - intensity;
+    drySource.connect(dryGain);
+    dryGain.connect(offlineCtxForMixing.destination);
+    
+    const wetSource = offlineCtxForMixing.createBufferSource();
+    wetSource.buffer = crushedBuffer;
+    const wetGain = offlineCtxForMixing.createGain();
+    wetGain.gain.value = intensity;
+    wetSource.connect(wetGain);
+    wetGain.connect(offlineCtxForMixing.destination);
+
+    drySource.start(0);
+    wetSource.start(0);
+
+    return await offlineCtxForMixing.startRendering();
+};
+
 
 // This function takes an AudioBuffer and returns a new, reversed one.
 export const reverseAudioBuffer = (buffer: AudioBuffer): AudioBuffer => {

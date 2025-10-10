@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import * as audioService from '../services/audioService';
 import { CurrentPage } from '../App';
-import { SettingsIcon } from './icons/SettingsIcon';
 import { useLanguage } from '../contexts/LanguageContext';
 import { UpdateInfoPage } from './UpdateInfoPage';
 
@@ -10,7 +9,6 @@ interface GlobalLayoutProps {
     playSound: (player: () => void) => void;
     currentPage: CurrentPage;
     onSetPage: (page: CurrentPage) => void;
-    onOpenSettings: () => void;
     isOnline: boolean;
 }
 
@@ -19,7 +17,6 @@ const LayoutComponent: React.FC<GlobalLayoutProps> = ({
     playSound,
     currentPage,
     onSetPage,
-    onOpenSettings,
     isOnline,
 }) => {
     const { t } = useLanguage();
@@ -58,14 +55,7 @@ const LayoutComponent: React.FC<GlobalLayoutProps> = ({
                 </div>
 
                 <div className="flex items-center gap-1 sm:gap-2">
-                     <button
-                        onClick={onOpenSettings}
-                        onMouseEnter={() => playSound(audioService.playHover)}
-                        aria-label={t('header.settings')}
-                        className="w-10 h-10 flex-shrink-0 flex items-center justify-center bg-surface-primary border-2 border-border-primary text-text-primary hover:bg-brand-yellow hover:text-text-inverted transition-all hover:-translate-y-px"
-                    >
-                        <SettingsIcon className="w-5 h-5" />
-                    </button>
+                    {/* Placeholder for items on the right side of the header */}
                 </div>
             </header>
             

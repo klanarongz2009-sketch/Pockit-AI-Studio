@@ -1,4 +1,5 @@
 
+
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { PageWrapper } from './PageComponents';
 import * as audioService from '../services/audioService';
@@ -160,7 +161,7 @@ export const SnakeGame: React.FC<SnakeGameProps> = ({ onClose, playSound }) => {
             if (isNewHighScore) {
                 ctx.fillStyle = '#00ff00';
                 ctx.font = '24px "Press Start 2P"';
-                ctx.fillText('คะแนนสูงสุดใหม่!', GAME_WIDTH / 2, GAME_HEIGHT / 2 + 10);
+                ctx.fillText('NEW HIGH SCORE!', GAME_WIDTH / 2, GAME_HEIGHT / 2 + 10);
             }
 
             ctx.fillStyle = 'white';
@@ -249,12 +250,12 @@ export const SnakeGame: React.FC<SnakeGameProps> = ({ onClose, playSound }) => {
              <div className="w-full max-w-2xl mx-auto flex flex-col items-center">
                  <header className="w-full flex items-center justify-between mb-4">
                      <button onClick={onClose} className="text-sm underline hover:text-brand-yellow transition-colors pr-4 font-sans">
-                        &#x2190; กลับ
+                        &#x2190; Back
                     </button>
-                    <h2 className="text-xl text-brand-yellow font-press-start">เกมงู</h2>
+                    <h2 className="text-xl text-brand-yellow font-press-start">Snake Game</h2>
                      <div className="text-right font-press-start text-brand-light text-base">
-                        <span className="mr-4">คะแนนสูงสุด: {highScore}</span>
-                        <span>คะแนน: {score}</span>
+                        <span className="mr-4">HIGH SCORE: {highScore}</span>
+                        <span>SCORE: {score}</span>
                      </div>
                 </header>
                  <canvas
@@ -268,7 +269,7 @@ export const SnakeGame: React.FC<SnakeGameProps> = ({ onClose, playSound }) => {
                  <div className="w-full flex justify-center gap-4 mt-4">
                     {(!gameStarted || isGameOver) && (
                          <button onClick={resetGame} className="w-full max-w-xs p-3 bg-brand-cyan text-black border-4 border-brand-light shadow-pixel transition-all hover:bg-brand-yellow active:shadow-pixel-active active:translate-y-[2px] active:translate-x-[2px] font-press-start">
-                             {isGameOver ? 'เล่นอีกครั้ง' : 'เริ่มเกม'}
+                             {isGameOver ? 'PLAY AGAIN' : 'START GAME'}
                          </button>
                     )}
                  </div>

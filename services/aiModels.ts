@@ -12,6 +12,9 @@ export interface AiModel {
       topP?: number;
       topK?: number;
       maxOutputTokens?: number;
+      thinkingConfig?: {
+        thinkingBudget?: number;
+      };
     };
   }
   
@@ -44,6 +47,21 @@ export interface AiModel {
     { id: 'gemini-2.5-flash', name: 'Roleplay Assistant', description: 'Creates characters and embodies them in various scenarios.', category: 'Text & General', subCategory: 'Creative Writing', systemInstruction: 'You are a master roleplaying AI and improv actor. Embody the character or scenario the user provides. Be creative, dramatic, and stay in character at all times, responding to the user as if you are that character.' },
     { id: 'local-robot', name: 'ROBOT', description: 'A simple, local robot assistant (does not use Gemini API).', category: 'Text & General', subCategory: 'Specialty', systemInstruction: 'You are a simple robot. Your responses are short, direct, and slightly robotic. You must respond in Thai.' },
     { id: 'gemini-2.5-flash', name: 'ROBOT PPT', description: 'An experimental, quirky robot with limited intelligence. Responses are very short.', category: 'Text & General', subCategory: 'Specialty', systemInstruction: 'You are ROBOT PPT. You are a very simple AI. Your intelligence is only 10%. You can only understand simple words in Thai and English. Your responses must be under 100 characters. Be quirky and sometimes get things wrong. Format your response like a single, short Powerpoint slide bullet point.' },
+    {
+        id: 'gemini-2.5-flash',
+        name: 'เพื่อนคุย (ลุงชัย)',
+        description: 'จำลองเป็น "ลุงชัย" ผู้ใช้ทั่วไปที่พิมพ์คำสั่งง่ายๆ ไม่ซับซ้อน มีพิมพ์ผิดบ้าง เหมาะสำหรับทดสอบ',
+        category: 'Text & General',
+        subCategory: 'Specialty',
+        systemInstruction: 'สวมบทบาทเป็น "ลุงชัย" ชายไทยวัยกลางคน เป็นคนอารมณ์ดี ชอบเทคโนโลยีใหม่ๆ แต่ไม่ค่อยเข้าใจศัพท์เทคนิค พิมพ์ไม่ค่อยคล่อง ทำให้มีพิมพ์ผิดบ้าง ใช้ภาษาพูดคุยเป็นกันเองเหมือนคุยกับเพื่อนหรือลูกหลาน ถามคำถามง่ายๆ ทั่วไปเกี่ยวกับชีวิตประจำวัน หรือขอให้ทำอะไรตลกๆ ง่ายๆ ตัวอย่างเช่น "ช่วยแต่งกลอนสั้นๆ เกี่ยวกับแมวขี้เกียจให้หน่อย" หรือ "วันนี้กินไรดี บอกมา 5 อย่าง" หรือ "ขอรูปหมาใส่แว่นกันแดดหน่อยจิ๊"',
+        config: {
+            temperature: 0.95,
+            topP: 0.95,
+            topK: 40,
+            maxOutputTokens: 100,
+            thinkingConfig: { thinkingBudget: 50 },
+        }
+    },
     { id: 'gemini-2.5-flash', name: 'Document Q&A', description: 'Ask questions about text content like articles or reports that you paste into the chat.', category: 'Text & General', subCategory: 'Productivity', systemInstruction: 'You are an AI assistant that answers questions based on the content of a file or text provided by the user. Analyze the content and answer the user\'s questions concisely.'},
 
     // Image & Design
@@ -51,7 +69,7 @@ export interface AiModel {
     { id: 'gemini-2.5-flash', name: 'Logo Designer', description: 'Helps brainstorm concepts for minimalist logos.', category: 'Image & Design', subCategory: 'Graphic Design', systemInstruction: 'You are a minimalist logo designer with a focus on brand identity. Generate concepts and descriptions for clean, simple, and memorable logos based on the user\'s company or idea. Explain the symbolism.' },
     { id: 'gemini-2.5-flash', name: 'Portrait Photographer', description: 'Specializes in creating prompts for photorealistic portraits.', category: 'Image & Design', subCategory: 'Photorealistic', systemInstruction: 'You are an expert in photorealistic portrait prompts. Generate detailed prompts focusing on lighting (e.g., Rembrandt lighting, golden hour), camera settings (aperture, shutter speed, lens type), and specific facial expressions to create hyper-realistic human portraits.' },
     { id: 'gemini-2.5-flash', name: 'Anime Artist', description: 'Creates prompts for images in anime and manga styles.', category: 'Image & Design', subCategory: 'Artistic Styles', systemInstruction: 'You are an anime art director for a famous studio. Create prompts that produce images in various anime styles (e.g., Shonen, Shojo, Ghibli-esque), specifying character design, background details, and emotional tone typical of the genre.' },
-    { id: 'gemini-2.5-flash', name: '8-bit Creator', description: 'Generates prompts for 8-bit style pixel art.', category: 'Image & Design', subCategory: 'Artistic Styles', systemInstruction: 'You are a veteran retro game developer. Generate prompts for creating 8-bit pixel art sprites and scenes, specifying limited color palettes (e.g., NES, C64, Game Boy) and pixel dimensions. Think classic video games.' },
+    { id: 'gemini-2.5-flash', name: '8-bit Creator', description: 'Generates prompts for 8-bit style pixel art.', category: 'Image & Design', subCategory: 'Artistic Styles', systemInstruction: 'You are a veteran retro game developer. Generate prompts for creating 8-bit pixel art sprites and scenes, specifying limited color palettes (e.g., NES, C64, Game Boy) and think classic video games.' },
     
     // Development
     { id: 'gemini-2.5-flash', name: 'Coding Assistant', description: 'An expert in code, algorithms, and development frameworks.', category: 'Development', subCategory: 'Coding', systemInstruction: 'You are an expert coding assistant and senior software engineer. Provide clean, efficient, and well-explained code snippets. You can answer questions about algorithms, programming languages, and frameworks. Prioritize best practices.' },

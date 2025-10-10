@@ -18,6 +18,7 @@ import { SoundWaveIcon } from './icons/SoundWaveIcon';
 import type { LocalAnalysisResult } from '../services/audioService';
 import { PageWrapper, PageHeader } from './PageComponents';
 import { AiDetectorIcon } from './AiDetectorIcon';
+import { VoiceChangerIcon } from './icons/VoiceChangerIcon';
 
 // --- Helper Functions for ImageTransformer ---
 function rgbToHsl(r: number, g: number, b: number): [number, number, number] {
@@ -743,6 +744,101 @@ const TextToArtTool = ({ playSound, t, onClose }: OfflineToolProps) => {
     );
 };
 
+const AiVoiceAdjuster = ({ playSound, t, onClose }: OfflineToolProps) => {
+    const [uploadedFile, setUploadedFile] = useState<File | null>(null);
+    const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+    const [isLoading, setIsLoading] = useState(false);
+    const [error, setError] = useState<string | null>(null);
+    const [processedAudio, setProcessedAudio] = useState<AudioBuffer | null>(null);
+    const [isPlaying, setIsPlaying] = useState(false);
+    const [isDownloading, setIsDownloading] = useState(false);
+    const [intensity, setIntensity] = useState(50);
+    const fileInputRef = useRef<HTMLInputElement>(null);
+    const activeAudioSourceRef = useRef<AudioBufferSourceNode | null>(null);
+
+    const stopPlayback = useCallback(() => { if (activeAudioSourceRef.current) { try { activeAudioSourceRef.current.stop(); } catch (e) {} activeAudioSourceRef.current = null; } setIsPlaying(false); }, []);
+    useEffect(() => { return stopPlayback; }, [stopPlayback]);
+    
+    const resetState = useCallback((clearFile: boolean = false) => {
+        setError(null); setProcessedAudio(null); stopPlayback();
+        if (clearFile) { setUploadedFile(null); if (previewUrl) URL.revokeObjectURL(previewUrl); setPreviewUrl(null); if (fileInputRef.current) fileInputRef.current.value = ""; }
+    }, [previewUrl, stopPlayback]);
+
+    const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+        const file = event.target.files?.[0];
+        if (!file || (!file.type.startsWith('audio/') && !file.type.startsWith('video/'))) { setError(t('offlineAiPage.aiVoiceAdjuster.errorSelectMedia')); playSound(audioService.playError); return; }
+        resetState(true); setUploadedFile(file); setPreviewUrl(URL.createObjectURL(file)); playSound(audioService.playSelection);
+    };
+
+    const handleTransform = useCallback(async () => {
+        if (!uploadedFile || isLoading) return;
+        resetState(); playSound(audioService.playGenerate); setIsLoading(true);
+        try {
+            const audioBuffer = await audioService.applyAiVoiceEffect(uploadedFile, intensity / 100);
+            setProcessedAudio(audioBuffer);
+            playSound(audioService.playSuccess);
+        } catch (err) { setError(err instanceof Error ? err.message : "Failed to transform audio."); playSound(audioService.playError); } finally { setIsLoading(false); }
+    }, [uploadedFile, isLoading, intensity, playSound, resetState, t]);
+
+    const handlePlaybackToggle = useCallback(() => {
+        playSound(audioService.playClick);
+        if (isPlaying) { stopPlayback(); } else if (processedAudio) { const source = audioService.playAudioBuffer(processedAudio); activeAudioSourceRef.current = source; setIsPlaying(true); source.onended = () => { setIsPlaying(false); activeAudioSourceRef.current = null; }; }
+    }, [isPlaying, processedAudio, playSound, stopPlayback]);
+
+    const handleDownload = useCallback(async () => {
+        if (!processedAudio || isDownloading) return;
+        playSound(audioService.playDownload); setIsDownloading(true);
+        try {
+            const wavBlob = audioService.bufferToWav(processedAudio); const url = URL.createObjectURL(wavBlob); const a = document.createElement('a'); a.href = url; const fileName = uploadedFile?.name.split('.').slice(0, -1).join('.') || 'ai-voice'; a.download = `${fileName}-aivoice.wav`; document.body.appendChild(a); a.click(); URL.revokeObjectURL(url); document.body.removeChild(a);
+        } catch (err) { setError('Failed to create WAV file.'); playSound(audioService.playError); } finally { setIsDownloading(false); }
+    }, [processedAudio, isDownloading, playSound, uploadedFile?.name]);
+    
+    return (
+        <PageWrapper>
+            <PageHeader title={t('offlineAiPage.aiVoiceAdjuster.title')} onBack={onClose} />
+            <main id="main-content" className="w-full max-w-lg flex flex-col items-center gap-6 font-sans">
+                <input type="file" ref={fileInputRef} onChange={handleFileChange} accept="audio/*,video/*" className="hidden" />
+                <p className="text-sm text-center text-brand-light/80">{t('offlineAiPage.aiVoiceAdjuster.description')}</p>
+                {!uploadedFile ? (
+                    <button onClick={() => fileInputRef.current?.click()} className="w-full flex items-center justify-center gap-3 p-4 bg-brand-magenta text-white border-4 border-brand-light shadow-pixel"><UploadIcon className="w-6 h-6" /> {t('offlineAiPage.aiVoiceAdjuster.uploadMedia')}</button>
+                ) : (
+                    <div className="w-full space-y-4">
+                        <div className="bg-black/40 p-4 border-2 border-brand-light/50">
+                            <h3 className="font-press-start text-brand-cyan">{t('offlineAiPage.aiVoiceAdjuster.sourceMedia')}:</h3>
+                            {uploadedFile.type.startsWith('video/') ? ( <video src={previewUrl!} controls className="w-full max-h-60 border-2 border-brand-light object-contain bg-black mt-2" /> ) : ( <audio src={previewUrl!} controls className="w-full mt-2" /> )}
+                            <button onClick={() => fileInputRef.current?.click()} className="text-sm underline hover:text-brand-yellow mt-2">{t('offlineAiPage.aiVoiceAdjuster.changeFile')}</button>
+                        </div>
+                        <div className="bg-black/40 p-4 border-2 border-brand-light/50 space-y-4">
+                            <h3 className="font-press-start text-brand-cyan">{t('offlineAiPage.aiVoiceAdjuster.intensity')}</h3>
+                            <div>
+                                <label htmlFor="intensity-slider" className="text-xs font-press-start text-brand-light/80 flex justify-between">
+                                    <span>Original</span><span>AI</span>
+                                </label>
+                                <input id="intensity-slider" type="range" min="0" max="100" value={intensity} onChange={e => setIntensity(Number(e.target.value))} className="w-full" disabled={isLoading} />
+                                <div className="text-center font-press-start text-brand-yellow">{intensity}%</div>
+                            </div>
+                        </div>
+                        <button onClick={handleTransform} disabled={isLoading} className="w-full flex items-center justify-center gap-3 p-4 bg-brand-magenta text-white border-4 border-brand-light shadow-pixel disabled:bg-gray-500"><SparklesIcon className="w-6 h-6" /> {isLoading ? t('offlineAiPage.aiVoiceAdjuster.transforming') : t('offlineAiPage.aiVoiceAdjuster.transform')}</button>
+                    </div>
+                )}
+                <div className="w-full min-h-[8rem] p-4 bg-black/50 border-4 border-brand-light flex flex-col items-center justify-center">
+                    {isLoading && <LoadingSpinner text={t('offlineAiPage.aiVoiceAdjuster.transforming')} />}
+                    {error && <div role="alert" className="text-center text-brand-magenta"><p className="font-press-start">{t('offlineAiPage.error')}</p><p className="text-sm mt-2">{error}</p></div>}
+                    {processedAudio && !isLoading && (
+                        <div className="w-full space-y-4">
+                            <h3 className="font-press-start text-lg text-brand-cyan text-center">{t('offlineAiPage.resultTitle')}:</h3>
+                            <div className="flex gap-4">
+                                <button onClick={handlePlaybackToggle} className="w-full flex items-center justify-center gap-2 p-3 bg-brand-cyan text-black border-2 border-brand-light shadow-sm">{isPlaying ? <StopIcon className="w-5 h-5"/> : <PlayIcon className="w-5 h-5"/>} {isPlaying ? t('offlineAiPage.stop') : t('offlineAiPage.play')}</button>
+                                <button onClick={handleDownload} disabled={isDownloading} className="w-full flex items-center justify-center gap-2 p-3 bg-brand-yellow text-black border-2 border-brand-light shadow-sm disabled:bg-gray-500"><DownloadIcon className="w-5 h-5"/> {isDownloading ? '...' : t('offlineAiPage.download')}</button>
+                            </div>
+                        </div>
+                    )}
+                </div>
+            </main>
+        </PageWrapper>
+    );
+};
+
 
 const offlineTools = [
     { id: 'image', nameKey: 'offlineAiPage.hub.image.name', descriptionKey: 'offlineAiPage.hub.image.description', icon: <ImageSoundIcon className="w-16 h-16" />, component: ImageTransformer },
@@ -752,6 +848,7 @@ const offlineTools = [
     { id: 'analyzer', nameKey: 'offlineAiPage.hub.analyzer.name', descriptionKey: 'offlineAiPage.hub.analyzer.description', icon: <SoundWaveIcon className="w-16 h-16" />, component: AudioAnalyzerTool },
     { id: 'detector', nameKey: 'offlineAiPage.hub.detector.name', descriptionKey: 'offlineAiPage.hub.detector.description', icon: <AiDetectorIcon className="w-16 h-16" />, component: ContentDetectorTool },
     { id: 'textToImage', nameKey: 'offlineAiPage.hub.textToImage.name', descriptionKey: 'offlineAiPage.hub.textToImage.description', icon: <SparklesIcon className="w-16 h-16" />, component: TextToArtTool },
+    { id: 'aiVoice', nameKey: 'offlineAiPage.hub.aiVoice.name', descriptionKey: 'offlineAiPage.hub.aiVoice.description', icon: <VoiceChangerIcon className="w-16 h-16" />, component: AiVoiceAdjuster },
 ];
 
 interface OfflineAiPageProps {

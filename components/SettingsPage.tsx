@@ -35,7 +35,7 @@ const SettingToggle: React.FC<{ label: string; description?: string; isChecked: 
             {description && <p className="text-xs text-brand-light/70">{description}</p>}
         </div>
         <button id={`toggle-${label}`} onClick={onToggle} className="p-2 border-2 border-border-primary w-20 text-center">
-            {isChecked ? 'เปิด' : 'ปิด'}
+            {isChecked ? 'ON' : 'OFF'}
         </button>
     </div>
 );
@@ -50,7 +50,7 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({
     onUiAnimationsChange,
 }) => {
     const { themePreference, setThemePreference } = useTheme();
-    const { language, setLanguage, t } = useLanguage();
+    const { t } = useLanguage();
     const [isAboutPageOpen, setIsAboutPageOpen] = useState(false);
     const [isModelInfoOpen, setIsModelInfoOpen] = useState(false);
 
@@ -144,14 +144,9 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({
                     </div>
                      <div>
                         <label className="font-press-start">{t('settings.language')}</label>
-                        <select
-                            value={language}
-                            onChange={(e) => { playSound(audioService.playClick); setLanguage(e.target.value as any); }}
-                            className="w-full mt-2 p-2 bg-brand-light text-black border-2 border-black font-sans"
-                        >
-                            <option value="th">{t('settings.langTh')}</option>
-                            <option value="en">{t('settings.langEn')}</option>
-                        </select>
+                        <div className="w-full mt-2 p-2 bg-surface-primary border-2 border-border-secondary text-text-secondary font-sans">
+                            {t('settings.langEn')}
+                        </div>
                     </div>
                     <SettingToggle label={t('settings.uiAnimations')} isChecked={uiAnimations} onToggle={() => { playSound(audioService.playToggle); onUiAnimationsChange(!uiAnimations); }} />
                     <SettingToggle label="High Contrast" isChecked={highContrast} onToggle={() => { playSound(audioService.playToggle); setHighContrast(p => !p); }} />

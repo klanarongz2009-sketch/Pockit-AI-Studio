@@ -106,7 +106,7 @@ if (API_KEY) {
 
 const checkApi = (): GoogleGenAI => {
     if (!ai) {
-        throw new Error("ไม่ได้กำหนดค่า API_KEY ไม่สามารถเรียกใช้ Gemini API ได้");
+        throw new Error("API_KEY is not configured, cannot call Gemini API.");
     }
     return ai;
 };
@@ -146,7 +146,7 @@ export function parseApiError(error: unknown): string {
     if (typeof error === 'object' && error !== null && 'promptFeedback' in error) {
         const feedback = (error as any).promptFeedback;
         if (feedback?.blockReason) {
-            return `คำสั่งของคุณถูกบล็อกเนื่องจากนโยบายความปลอดภัย (${feedback.blockReason}). โปรดลองปรับเปลี่ยนคำสั่งให้เป็นกลางมากขึ้น`;
+            return `Your prompt was blocked due to safety policies (${feedback.blockReason}). Please try modifying your prompt to be more neutral.`;
         }
     }
 
@@ -173,31 +173,31 @@ export function parseApiError(error: unknown): string {
     // 3. Check for common, specific error types based on status or content
     // API Key / Permission Error
     if (details?.status === 'PERMISSION_DENIED' || lowerCaseMessage.includes('api key not valid')) {
-        return 'เกิดข้อผิดพลาดในการกำหนดค่าบริการ ไม่สามารถเชื่อมต่อกับ AI ได้ในขณะนี้';
+        return 'There was an error in the service configuration. Cannot connect to AI at this time.';
     }
     // Quota/Rate Limit Error
     if (details?.status === 'RESOURCE_EXHAUSTED' || lowerCaseMessage.includes('quota') || lowerCaseMessage.includes('rate limit')) {
-        return 'มีการใช้งานเกินโควต้าที่กำหนด โปรดรอสักครู่แล้วลองอีกครั้ง';
+        return 'Usage has exceeded the allotted quota. Please wait a moment and try again.';
     }
     // Invalid Argument Error
     if (details?.status === 'INVALID_ARGUMENT') {
-        return `คำขอไม่ถูกต้อง: โปรดตรวจสอบว่าข้อมูลที่ส่งถูกต้องและครบถ้วน`;
+        return `Invalid request: Please ensure the submitted data is correct and complete.`;
     }
     // Server/Service Error
     if (lowerCaseMessage.includes('service is currently unavailable') || (details.code && details.code >= 500)) {
-        return 'บริการ AI ไม่พร้อมใช้งานชั่วคราว โปรดลองอีกครั้งในภายหลัง';
+        return 'The AI service is temporarily unavailable. Please try again later.';
     }
     // Safety Policy Error (catch-all)
     if (lowerCaseMessage.includes('safety policy') || lowerCaseMessage.includes('blocked') || lowerCaseMessage.includes('safety threshold')) {
-        return `คำสั่งของคุณอาจขัดต่อนโยบายความปลอดภัยและถูกบล็อก โปรดลองปรับเปลี่ยนคำสั่ง`;
+        return `Your prompt may violate safety policies and has been blocked. Please try modifying the prompt.`;
     }
     // Network Error
     if (lowerCaseMessage.includes('failed to fetch') || lowerCaseMessage.includes('network request failed')) {
-        return 'เกิดข้อผิดพลาดในการเชื่อมต่อเครือข่าย โปรดตรวจสอบการเชื่อมต่ออินเทอร์เน็ตของคุณแล้วลองอีกครั้ง';
+        return 'A network connection error occurred. Please check your internet connection and try again.';
     }
     // JSON parsing error from `safeJsonParse`
-    if (lowerCaseMessage.includes('api sent back a non-json response') || lowerCaseMessage.includes('api ส่งคืนการตอบกลับที่ไม่ใช่รูปแบบ json')) {
-        return 'AI ส่งคืนข้อมูลในรูปแบบที่ไม่คาดคิด โปรดลองอีกครั้ง หากยังพบปัญหาอยู่ โปรดลองเปลี่ยนคำสั่งของคุณ';
+    if (lowerCaseMessage.includes('api sent back a non-json response') || lowerCaseMessage.includes('api returned an invalid json response')) {
+        return 'The AI returned data in an unexpected format. Please try again. If the problem persists, try changing your prompt.';
     }
     
     // 4. Final cleanup and fallback
@@ -205,18 +205,18 @@ export function parseApiError(error: unknown): string {
     if (finalMessage.startsWith('Error: ')) finalMessage = finalMessage.substring(7);
     if (finalMessage.startsWith('[GoogleGenerativeAI Error]: ')) finalMessage = finalMessage.substring(28);
     if (!finalMessage || finalMessage.toLowerCase() === 'undefined') {
-        return 'เกิดข้อผิดพลาดที่ไม่สามารถระบุสาเหตุได้ โปรดลองอีกครั้งในภายหลัง';
+        return 'An unknown error occurred. Please try again later.';
     }
 
     // Default to showing the cleaned-up error message
-    return `เกิดข้อผิดพลาดที่ไม่คาดคิด: ${finalMessage}`;
+    return `An unexpected error occurred: ${finalMessage}`;
 }
 
 
 function safeJsonParse<T>(text: string | undefined): T {
     // 1. Ensure we have a workable string
     if (typeof text !== 'string' || text.trim() === '') {
-        throw new Error("ได้รับข้อมูลตอบกลับที่ว่างเปล่าหรือไม่ถูกต้องจาก API");
+        throw new Error("Received an empty or invalid response from the API.");
     }
 
     let potentialJson = text.trim();
@@ -246,7 +246,7 @@ function safeJsonParse<T>(text: string | undefined): T {
     } catch (e: any) {
         console.error("Failed to parse JSON even after cleaning:", potentialJson);
         console.error("Original text from API:", text);
-        throw new Error(`API ส่งคืนการตอบกลับที่ไม่ใช่รูปแบบ JSON ที่ถูกต้อง: ${e.message}`);
+        throw new Error(`API returned an invalid JSON response: ${e.message}`);
     }
 }
 
@@ -655,7 +655,7 @@ export async function correctText(text: string): Promise<string> {
     try {
         const response = await ai.models.generateContent({
             model: 'gemini-2.5-flash',
-            contents: `Correct any spelling and grammar mistakes in the following Thai text. Respond only with the corrected text.\n\nText: "${text}"`,
+            contents: `Correct any spelling and grammar mistakes in the following text. Respond only with the corrected text.\n\nText: "${text}"`,
         });
         return response.text.trim();
     } catch (error) {
@@ -732,7 +732,7 @@ export function resetChatSession() {
 export async function sendMessageToChat(prompt: string, model: AiModel, webSearchEnabled: boolean): Promise<{ text: string, sources?: any[] }> {
     const ai = checkApi();
     if (model.id === 'local-robot') {
-        return { text: "บี๊บ บู๊บ... ฉันคือหุ่นยนต์" };
+        return { text: "BEEP BOOP... I AM A ROBOT" };
     }
     try {
         let chat = chatSessions.get(model.id);
@@ -774,6 +774,46 @@ export async function sendMessageToChat(prompt: string, model: AiModel, webSearc
         throw new Error(parseApiError(error));
     }
 }
+
+export async function sendMessageToChatStream(
+    prompt: string,
+    model: AiModel
+): Promise<AsyncIterable<GenerateContentResponse>> {
+    const ai = checkApi();
+    if (model.id === 'local-robot') {
+        async function* localRobotStream(): AsyncIterable<GenerateContentResponse> {
+            const robotText = "BEEP BOOP... I AM A ROBOT";
+            const words = robotText.split(' ');
+            for (const word of words) {
+                yield { text: word + ' ' } as GenerateContentResponse;
+                await new Promise(res => setTimeout(res, 200));
+            }
+        }
+        return localRobotStream();
+    }
+
+    try {
+        let chat = chatSessions.get(model.id);
+        if (!chat) {
+            const chatConfig = {
+                systemInstruction: model.systemInstruction,
+                ...model.config,
+            };
+
+            chat = ai.chats.create({
+                model: model.id,
+                config: chatConfig,
+            });
+            chatSessions.set(model.id, chat);
+        }
+
+        const responseStream = await chat.sendMessageStream({ message: prompt });
+        return responseStream;
+    } catch (error) {
+        throw new Error(parseApiError(error));
+    }
+}
+
 
 // FIX: Implemented missing function chatWithFile
 export async function chatWithFile(file: { base64: string; mimeType: string }, history: FileChatMessage[], prompt: string): Promise<string> {

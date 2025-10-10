@@ -1,8 +1,3 @@
-
-
-
-
-
 import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { GoogleGenAI, LiveServerMessage, Modality, Blob } from '@google/genai';
 import * as geminiService from '../services/geminiService';
@@ -83,22 +78,17 @@ const ModelSelectionModal: React.FC<{
 }> = ({ isOpen, onClose, onSelect, onLearnMore, models }) => {
     const [searchQuery, setSearchQuery] = useState('');
     const { t } = useLanguage();
+
     const categories = useMemo(() => {
-        // FIX: The error "Property 'map' does not exist on type 'unknown'" is caused by attempting to call `.map()` on `models` when it may not be an array. A type guard is added to prevent this.
-        // FIX: Add type guard to prevent calling .map on non-array.
-        if (!Array.isArray(models)) {
-            return ['All'];
-        }
-        return ['All', ...Array.from(new Set(models.map(m => m.category)))];
+        const modelArray = Array.isArray(models) ? models : [];
+        const uniqueCategories = new Set(modelArray.map(m => m.category));
+        return ['All', ...Array.from(uniqueCategories)];
     }, [models]);
     const [activeCategory, setActiveCategory] = useState<'All' | AiModel['category']>('All');
 
     const filteredModels = useMemo(() => {
-        // FIX: Add type guard to prevent calling .filter on non-array.
-        if (!Array.isArray(models)) {
-            return [];
-        }
-        return models
+        const modelArray = Array.isArray(models) ? models : [];
+        return modelArray
             .filter(model => activeCategory === 'All' || model.category === activeCategory)
             .filter(model => 
                 model.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -227,7 +217,9 @@ export const AiChatPage: React.FC<AiChatPageProps> = ({ isOnline, playSound }) =
     useEffect(() => {
         if (saveChatHistory) {
             const savedHistory = preferenceService.getPreference('chatHistory', {})[selectedModel.id];
-            if (savedHistory) {
+            // FIX: Ensure that savedHistory is an array before setting it to state.
+            // This prevents runtime errors if localStorage data is corrupted or in an old format.
+            if (savedHistory && Array.isArray(savedHistory)) {
                 setMessages(savedHistory);
             } else {
                 setMessages([]);
@@ -283,61 +275,88 @@ export const AiChatPage: React.FC<AiChatPageProps> = ({ isOnline, playSound }) =
     const handleSendMessage = useCallback(async (messageText?: string) => {
         const textToSend = (messageText || userInput).trim();
         if ((!textToSend && !fileData) || isLoading || !isOnline) return;
-
+    
         playSound(audioService.playClick);
         setError(null);
-
-        const userMessage: Message = {
-            id: `msg_${Date.now()}`,
-            role: 'user',
-            text: textToSend
-        };
-        setMessages(prev => [...prev, userMessage]);
-        setUserInput('');
-        setIsLoading(true);
-
-        try {
-            if (fileData) {
-                const responseText = await geminiService.chatWithFile(
-                    { base64: fileData.base64, mimeType: fileData.file.type },
-                    messages.filter(m => m.role !== 'user' || m.text).map(m => ({ role: m.role, text: m.text })),
-                    textToSend
-                );
-                 const modelMessage: Message = {
-                    id: `msg_${Date.now()}_model`,
-                    role: 'model',
-                    text: responseText
-                };
-                setMessages(prev => [...prev, modelMessage]);
-                setFileData(null);
-            } else {
-                const response = await geminiService.sendMessageToChat(textToSend, selectedModel, webSearchEnabled);
-                const modelMessage: Message = {
-                    id: `msg_${Date.now()}_model`,
-                    role: 'model',
-                    text: response.text,
-                    sources: response.sources
-                };
-                setMessages(prev => [...prev, modelMessage]);
-            }
-            
-        } catch (err) {
-            const errorMessage = err instanceof Error ? err.message : 'An unknown error occurred.';
-            setError(errorMessage);
-            setMessages(prev => prev.slice(0, -1)); // Remove the user's message on error
-        } finally {
-            setIsLoading(false);
+    
+        if (!messageText) {
+            const userMessage: Message = { id: `msg_${Date.now()}`, role: 'user', text: textToSend };
+            setMessages(prev => [...prev, userMessage]);
+            setUserInput('');
         }
-    }, [userInput, isLoading, isOnline, playSound, selectedModel, webSearchEnabled, fileData, messages]);
+    
+        setIsLoading(true);
+    
+        if (webSearchEnabled || fileData) {
+            // Non-streaming for web search or file chat
+            try {
+                if (fileData) {
+                    const responseText = await geminiService.chatWithFile(
+                        { base64: fileData.base64, mimeType: fileData.file.type },
+                        messages.filter(m => m.role !== 'user' || m.text).map(m => ({ role: m.role, text: m.text })),
+                        textToSend
+                    );
+                    const modelMessage: Message = { id: `msg_${Date.now()}_model`, role: 'model', text: responseText };
+                    setMessages(prev => [...prev, modelMessage]);
+                    setFileData(null);
+                } else {
+                    const response = await geminiService.sendMessageToChat(textToSend, selectedModel, webSearchEnabled);
+                    const modelMessage: Message = { id: `msg_${Date.now()}_model`, role: 'model', text: response.text, sources: response.sources };
+                    setMessages(prev => [...prev, modelMessage]);
+                }
+            } catch (err) {
+                const errorMessage = err instanceof Error ? err.message : 'An unknown error occurred.';
+                setError(errorMessage);
+                setMessages(prev => prev.slice(0, -1)); // Remove user's message on error
+            } finally {
+                setIsLoading(false);
+            }
+        } else {
+            // Streaming for regular chat
+            try {
+                const modelMessageId = `msg_${Date.now()}_model`;
+                setMessages(prev => [...prev, { id: modelMessageId, role: 'model', text: '' }]);
+    
+                const stream = await geminiService.sendMessageToChatStream(textToSend, selectedModel);
+                
+                let accumulatedText = "";
+                for await (const chunk of stream) {
+                    accumulatedText += chunk.text;
+                    setMessages(prev =>
+                        prev.map(msg =>
+                            msg.id === modelMessageId ? { ...msg, text: accumulatedText } : msg
+                        )
+                    );
+                }
+            } catch (err) {
+                const errorMessage = err instanceof Error ? err.message : 'An unknown error occurred.';
+                setError(errorMessage);
+                // Remove the user message and the model placeholder
+                setMessages(prev => prev.slice(0, -2));
+            } finally {
+                setIsLoading(false);
+            }
+        }
+    }, [userInput, fileData, isLoading, isOnline, playSound, selectedModel, webSearchEnabled, messages]);
 
     const handleRegenerate = useCallback(async () => {
         const lastUserMessage = messages.filter(m => m.role === 'user').pop();
         if (!lastUserMessage || isLoading) return;
         
-        // Remove the last model response
-        setMessages(prev => prev.filter((_, index) => index < prev.length - 1));
+        // FIX: Replace findLastIndex with a manual loop for broader browser compatibility.
+        let lastModelMessageIndex = -1;
+        for (let i = messages.length - 1; i >= 0; i--) {
+            if (messages[i].role === 'model') {
+                lastModelMessageIndex = i;
+                break;
+            }
+        }
         
-        await handleSendMessage(lastUserMessage.text);
+        if (lastModelMessageIndex === -1) return;
+        
+        setMessages(prev => prev.slice(0, lastModelMessageIndex));
+        
+        handleSendMessage(lastUserMessage.text);
     }, [messages, isLoading, handleSendMessage]);
 
     const handleSelectModel = (model: AiModel) => {
@@ -544,7 +563,7 @@ export const AiChatPage: React.FC<AiChatPageProps> = ({ isOnline, playSound }) =
                     {currentModelOutput && <div className="text-left text-brand-light/80 italic animate-pulse">...{currentModelOutput}</div>}
 
                 </div>
-                {isLoading && (
+                {isLoading && messages[messages.length -1]?.role !== 'model' && (
                     <div className="flex gap-4 mt-6">
                         <div className="flex-shrink-0 w-8 h-8 text-brand-cyan mt-1"><SparklesIcon/></div>
                         <div className="p-3"><LoadingSpinner text="" /></div>

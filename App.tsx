@@ -8,6 +8,7 @@ import { CreditProvider } from './contexts/CreditContext';
 
 // Component Imports
 import { Intro } from './components/Intro';
+import { StartScreen } from './components/StartScreen';
 import { GlobalLayout } from './components/GlobalLayout';
 import { HomePage } from './components/HomePage';
 import { MinigameHubPage } from './components/MinigameHubPage';
@@ -20,12 +21,13 @@ import { OfflineAiPage } from './components/OfflineAiPage';
 
 
 export type CurrentPage = 'home' | 'minigameHub' | 'aiChat' | 'article' | 'offlineAi';
+type AppState = 'intro' | 'startScreen' | 'mainApp';
 
 export const App: React.FC = () => {
     const [isSoundOn, setIsSoundOn] = useState(() => preferenceService.getPreference('isSoundOn', true));
     const [currentPage, setCurrentPage] = useState<CurrentPage>('home');
     const [isOnline, setIsOnline] = useState(navigator.onLine);
-    const [showIntro, setShowIntro] = useState(true);
+    const [appState, setAppState] = useState<AppState>('intro');
     const [isSettingsOpen, setIsSettingsOpen] = useState(false);
     const [uiAnimations, setUiAnimations] = useState(() => preferenceService.getPreference('uiAnimations', true));
     
@@ -119,9 +121,14 @@ export const App: React.FC = () => {
         preferenceService.setPreference('uiAnimations', enabled);
     }, []);
 
-    const handleIntroComplete = useCallback((): void => {
-        setShowIntro(false);
+    const handleIntroSequenceComplete = useCallback((): void => {
+        setAppState('startScreen');
     }, []);
+
+    const handleStartApp = useCallback((): void => {
+        playSound(audioService.playSuccess);
+        setAppState('mainApp');
+    }, [playSound]);
 
     const openSettingsPage = useCallback((): void => {
         playSound(audioService.playClick);
@@ -133,9 +140,33 @@ export const App: React.FC = () => {
         setIsSettingsOpen(false);
     }, [playSound]);
     
-    if (showIntro) {
-        return <Intro onComplete={handleIntroComplete} />;
+    if (appState === 'intro') {
+        return <Intro onSequenceComplete={handleIntroSequenceComplete} />;
     }
+
+    if (appState === 'startScreen') {
+        return (
+            <LanguageProvider>
+                <ThemeProvider>
+                    <div className="h-screen w-screen flex flex-col bg-background text-text-primary">
+                        {isSettingsOpen && (
+                            <SettingsPage
+                                onClose={closeSettingsPage}
+                                playSound={playSound}
+                                isSoundOn={isSoundOn}
+                                onToggleSound={handleToggleSound}
+                                uiAnimations={uiAnimations}
+                                onUiAnimationsChange={handleUiAnimationsChange}
+                                aiModels={ALL_AI_MODELS}
+                            />
+                        )}
+                        <StartScreen onStartApp={handleStartApp} />
+                    </div>
+                </ThemeProvider>
+            </LanguageProvider>
+        );
+    }
+    
 
     return (
       <LanguageProvider>
@@ -159,13 +190,13 @@ export const App: React.FC = () => {
                   currentPage={currentPage}
                   isOnline={isOnline}
                   onSetPage={handleSetPage}
-                  onOpenSettings={openSettingsPage}
                   playSound={playSound}
                 >
                     <main id="main-content" role="main" className={`flex-grow overflow-y-auto ${isOnline ? 'pt-16' : 'pt-20'}`}>
                       {currentPage === 'home' && (
                         <HomePage
                           onSetPage={handleSetPage}
+                          onOpenSettings={openSettingsPage}
                         />
                       )}
                       {currentPage === 'minigameHub' && (

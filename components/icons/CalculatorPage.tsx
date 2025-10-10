@@ -134,7 +134,7 @@ export const CalculatorPage: React.FC<{
 
     return (
         <PageWrapper>
-            <PageHeader title="เครื่องคิดเลขเครดิต" onBack={onClose} />
+            <PageHeader title="Credit Calculator" onBack={onClose} />
             <main className="w-full max-w-sm flex flex-col items-center gap-4 font-press-start">
                 <div className="w-full p-4 bg-black/80 border-4 border-brand-light text-right h-28 flex flex-col justify-between shadow-pixel">
                     <div className="text-2xl text-brand-light/80 h-8 overflow-x-auto overflow-y-hidden whitespace-nowrap" dir="ltr">{input || '0'}</div>
@@ -152,8 +152,8 @@ export const CalculatorPage: React.FC<{
                 </div>
                 
                 <div className="font-sans text-sm text-center text-brand-light/80 p-2">
-                   <p>รับ 1 เครดิตต่อ 1 หน่วยของผลลัพธ์ (ปัดลง)</p>
-                   <p>ตัวอย่าง: ผลลัพธ์ 150 จะได้รับ 150 เครดิต</p>
+                   <p>Earn 1 credit per 1 unit of the result (rounded down).</p>
+                   <p>Example: A result of 150 earns 150 credits.</p>
                 </div>
             </main>
         </PageWrapper>

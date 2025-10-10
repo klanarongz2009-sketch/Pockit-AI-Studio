@@ -1,4 +1,5 @@
 
+
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { PageWrapper } from './PageComponents';
 import * as audioService from '../services/audioService';
@@ -262,7 +263,7 @@ export const PlatformerGame: React.FC<PlatformerGameProps> = ({ onClose, playSou
              <div className="w-full h-full flex flex-col bg-black">
                  <header className="w-full flex items-center justify-between p-2 flex-shrink-0 z-10">
                      <button onClick={onClose} className="text-sm underline hover:text-brand-yellow transition-colors pr-4 font-sans">
-                        &#x2190; กลับ
+                        &#x2190; Back
                     </button>
                     <h2 className="text-xl text-brand-yellow font-press-start">Platformer</h2>
                 </header>
@@ -281,7 +282,7 @@ export const PlatformerGame: React.FC<PlatformerGameProps> = ({ onClose, playSou
                                 {gameState === 'won' ? 'YOU WIN!' : 'GAME OVER'}
                             </h2>
                             <button onClick={handleRestart} className="w-full max-w-xs p-3 bg-brand-cyan text-black border-4 border-brand-light shadow-pixel transition-all hover:bg-brand-yellow active:shadow-pixel-active active:translate-y-[2px] active:translate-x-[2px] font-press-start">
-                                {gameState === 'lost' ? 'ลองอีกครั้ง' : 'เล่นอีกครั้ง'}
+                                {gameState === 'lost' ? 'Try Again' : 'Play Again'}
                             </button>
                         </div>
                     )}

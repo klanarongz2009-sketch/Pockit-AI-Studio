@@ -171,7 +171,6 @@ export const MinigameHubPage: React.FC<MinigameHubPageProps> = ({ playSound, isO
         {
             title: "Fun & Utilities",
             items: [
-// FIX: Replaced missing TalkingCatIcon with existing PetIcon to resolve module not found error.
                 { icon: <PetIcon className="w-16 h-16" />, title: "Talking Cat", description: "Have a real-time voice conversation with a sassy AI cat.", onClick: () => handleLaunchGame('talkingCat'), disabled: !isOnline, beta: true },
                 { icon: <MusicAndSoundIcon className="w-16 h-16" />, title: "Music & Sound", description: "Browse a library of pre-made 8-bit sound effects and music loops to use in your projects.", onClick: () => handleLaunchGame('musicAndSound') },
                 { icon: <SequencerIcon className="w-16 h-16" />, title: "Pixel Sequencer", description: "Compose your own 8-bit chiptune melodies on a step sequencer grid. A powerful tool for music creation!", onClick: () => handleLaunchGame('pixelSequencer') },

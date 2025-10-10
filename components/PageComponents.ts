@@ -27,8 +27,8 @@ export const PageHeader: React.FC<{ title: string; onBack: () => void; }> = ({ t
     React.createElement('button', {
         onClick: onBack,
         className: "text-sm underline hover:text-brand-yellow transition-colors pr-4 font-sans",
-        'aria-label': 'กลับ'
-    }, '\u2190 กลับ'),
+        'aria-label': 'Back'
+    }, '\u2190 Back'),
     React.createElement('h2', {
         className: "text-base sm:text-lg text-brand-yellow font-press-start"
     }, title))

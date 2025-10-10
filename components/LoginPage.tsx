@@ -20,7 +20,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess }) => {
             onLoginSuccess();
         } else {
             audioService.playError();
-            setError('กรุณากรอกชื่อผู้ใช้และรหัสผ่าน');
+            setError('Please enter a username and password');
         }
     };
 
@@ -28,14 +28,14 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess }) => {
         <div className="h-screen w-screen bg-background text-text-primary flex flex-col items-center justify-center font-press-start p-4">
             <div className="w-full max-w-sm bg-black/40 p-6 border-4 border-border-primary shadow-pixel animate-fadeIn">
                 <h1 className="text-2xl text-brand-yellow text-center drop-shadow-[2px_2px_0_var(--color-text-primary)] mb-6">
-                    ยืนยันตัวตน
+                    Authentication
                 </h1>
                 <p className="font-sans text-sm text-center text-text-secondary mb-6">
-                    เพื่อความปลอดภัย กรุณาเข้าสู่ระบบ (ในเวอร์ชันเดโมนี้ คุณสามารถกรอกอะไรก็ได้)
+                    For security, please log in. (In this demo, you can enter anything).
                 </p>
                 <form onSubmit={handleLogin} className="space-y-4 font-sans">
                     <div>
-                        <label htmlFor="username" className="block text-xs font-press-start text-brand-cyan mb-1">ชื่อผู้ใช้</label>
+                        <label htmlFor="username" className="block text-xs font-press-start text-brand-cyan mb-1">Username</label>
                         <input
                             id="username"
                             type="text"
@@ -46,7 +46,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess }) => {
                         />
                     </div>
                      <div>
-                        <label htmlFor="password"  className="block text-xs font-press-start text-brand-cyan mb-1">รหัสผ่าน</label>
+                        <label htmlFor="password"  className="block text-xs font-press-start text-brand-cyan mb-1">Password</label>
                         <input
                             id="password"
                             type="password"
@@ -61,7 +61,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess }) => {
                         type="submit"
                         className="w-full mt-4 p-3 bg-brand-magenta text-white border-4 border-border-primary shadow-pixel text-base font-press-start transition-all hover:bg-brand-yellow hover:text-black active:shadow-pixel-active active:translate-y-[2px] active:translate-x-[2px]"
                     >
-                        เข้าสู่ระบบ
+                        Log In
                     </button>
                 </form>
             </div>

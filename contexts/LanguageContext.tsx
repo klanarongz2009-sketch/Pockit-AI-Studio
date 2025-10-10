@@ -17,17 +17,23 @@ const fetchTranslations = async (lang: Language): Promise<Translations> => {
     try {
         const response = await fetch(`/i18n/${lang}.json`);
         if (!response.ok) {
-            throw new Error(`Could not load ${lang}.json`);
+            throw new Error(`Could not load ${lang}.json: ${response.statusText}`);
         }
-        return await response.json();
+        const text = await response.text();
+        // If the file is empty or just whitespace, it's not valid JSON.
+        // Return an empty object to prevent a parsing error.
+        if (text.trim() === '') {
+            return {};
+        }
+        return JSON.parse(text);
     } catch (error) {
-        console.error('Failed to fetch translations:', error);
-        return {}; // Return empty object on failure
+        console.error(`Failed to fetch or parse translations for '${lang}':`, error);
+        return {}; // Return empty object on any failure
     }
 };
 
 export const LanguageProvider: FC<{ children: ReactNode }> = ({ children }) => {
-    const [language, setLanguageState] = useState<Language>(() => preferenceService.getPreference('language', 'th'));
+    const [language, setLanguageState] = useState<Language>(() => preferenceService.getPreference('language', 'en'));
     const [translations, setTranslations] = useState<Translations>({});
 
     useEffect(() => {

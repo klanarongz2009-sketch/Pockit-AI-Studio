@@ -19,6 +19,24 @@ export interface Article {
 
 const articlesData: Article[] = [
     {
+        id: 'downloadable-features-incomplete',
+        titleKey: 'articles.downloadableFeaturesIncomplete.title',
+        summaryKey: 'articles.downloadableFeaturesIncomplete.summary',
+        contentKey: 'articles.downloadableFeaturesIncomplete.content',
+        author: 'The Development Team',
+        category: 'article',
+        voice: 'Zephyr',
+    },
+    {
+        id: 'feature-summary-update',
+        titleKey: 'articles.featureSummaryUpdate.title',
+        summaryKey: 'articles.featureSummaryUpdate.summary',
+        contentKey: 'articles.featureSummaryUpdate.content',
+        author: 'The Development Team',
+        category: 'article',
+        voice: 'Zephyr',
+    },
+    {
         id: 'emulator-support',
         titleKey: 'articles.emulatorSupport.title',
         summaryKey: 'articles.emulatorSupport.summary',
@@ -59,15 +77,6 @@ const articlesData: Article[] = [
         titleKey: 'articles.workshopSoundUpdate.title',
         summaryKey: 'articles.workshopSoundUpdate.summary',
         contentKey: 'articles.workshopSoundUpdate.content',
-        author: 'The Development Team',
-        category: 'article',
-        voice: 'Zephyr',
-    },
-    {
-        id: 'feature-summary-update',
-        titleKey: 'articles.featureSummaryUpdate.title',
-        summaryKey: 'articles.featureSummaryUpdate.summary',
-        contentKey: 'articles.featureSummaryUpdate.content',
         author: 'The Development Team',
         category: 'article',
         voice: 'Zephyr',

@@ -63,7 +63,7 @@ export const FileChatPage: React.FC<FileChatPageProps> = ({ onClose, playSound, 
             setFileData({ file, base64, previewUrl });
 
         } catch (err) {
-            setError(err instanceof Error ? err.message : "ไม่สามารถประมวลผลไฟล์ได้");
+            setError(err instanceof Error ? err.message : "Could not process file.");
             playSound(audioService.playError);
         } finally {
             setIsLoading(false);
@@ -80,7 +80,7 @@ export const FileChatPage: React.FC<FileChatPageProps> = ({ onClose, playSound, 
 
         const cost = 5; // Example cost per message
         if (!spendCredits(cost)) {
-            setError(`เครดิตไม่เพียงพอ! ต้องการ ${cost} เครดิต`);
+            setError(`Not enough credits! Requires ${cost} credits.`);
             playSound(audioService.playError);
             return;
         }
@@ -95,14 +95,14 @@ export const FileChatPage: React.FC<FileChatPageProps> = ({ onClose, playSound, 
         try {
             const responseText = await geminiService.chatWithFile(
                 { base64: fileData.base64, mimeType: fileData.file.type },
-                // FIX: The `messages` array from the closure correctly represents the history before the current user message was added.
+                // FIX: Pass only the previous messages. `messages` from the closure is correct as it doesn't include the new `userMessage` yet.
                 messages,
                 trimmedInput
             );
             const modelMessage: geminiService.FileChatMessage = { role: 'model', text: responseText };
             setMessages(prev => [...prev, modelMessage]);
         } catch (err) {
-            setError(err instanceof Error ? err.message : 'เกิดข้อผิดพลาดในการสื่อสารกับ AI');
+            setError(err instanceof Error ? err.message : 'Error communicating with AI.');
             playSound(audioService.playError);
         } finally {
             setIsLoading(false);
@@ -134,19 +134,19 @@ export const FileChatPage: React.FC<FileChatPageProps> = ({ onClose, playSound, 
                 {isDragging && (
                     <div className="absolute inset-0 bg-black/80 border-4 border-dashed border-brand-yellow z-10 flex flex-col items-center justify-center pointer-events-none">
                         <UploadIcon className="w-12 h-12 text-brand-yellow" />
-                        <p className="font-press-start text-xl text-brand-yellow mt-4">วางไฟล์ของคุณที่นี่</p>
+                        <p className="font-press-start text-xl text-brand-yellow mt-4">Drop your file here</p>
                     </div>
                 )}
                 {!fileData && !isLoading && (
                     <div className="flex-grow flex flex-col items-center justify-center text-center p-4">
-                        <p className="text-sm text-brand-light/80 mb-4">อัปโหลดไฟล์ (รูปภาพ, เสียง, วิดีโอ, ข้อความ) แล้วเริ่มถามคำถามเกี่ยวกับเนื้อหาในไฟล์นั้นได้เลย</p>
+                        <p className="text-sm text-brand-light/80 mb-4">Upload a file (image, audio, video, text) and start asking questions about its content.</p>
                         <button onClick={() => fileInputRef.current?.click()} className="flex items-center justify-center gap-3 p-4 bg-brand-magenta text-white border-4 border-brand-light shadow-pixel text-base transition-all hover:bg-brand-yellow hover:text-black">
-                            <UploadIcon className="w-6 h-6" /> อัปโหลดไฟล์
+                            <UploadIcon className="w-6 h-6" /> Upload File
                         </button>
                     </div>
                 )}
 
-                {isLoading && !fileData && <LoadingSpinner text="กำลังประมวลผลไฟล์..." />}
+                {isLoading && !fileData && <LoadingSpinner text="Processing file..." />}
 
                 {fileData && (
                     <div className="w-full h-full flex flex-col border-4 border-brand-light shadow-pixel bg-black/40">
@@ -166,7 +166,7 @@ export const FileChatPage: React.FC<FileChatPageProps> = ({ onClose, playSound, 
                                 {fileData.file.type.startsWith('image/') && <img src={fileData.previewUrl} className="max-w-full max-h-full object-contain" alt="File preview" />}
                                 {fileData.file.type.startsWith('audio/') && <audio src={fileData.previewUrl} controls className="w-full" />}
                                 {fileData.file.type.startsWith('video/') && <video src={fileData.previewUrl} controls className="max-w-full max-h-full object-contain" />}
-                                {!fileData.file.type.match(/^(image|audio|video)\//) && <p className="text-sm text-center">ไม่มีตัวอย่างสำหรับไฟล์ประเภทนี้</p>}
+                                {!fileData.file.type.match(/^(image|audio|video)\//) && <p className="text-sm text-center">No preview available for this file type.</p>}
                             </div>
 
                             <div className="w-full md:w-2/3 flex flex-col">
@@ -197,7 +197,7 @@ export const FileChatPage: React.FC<FileChatPageProps> = ({ onClose, playSound, 
                                             value={userInput}
                                             onChange={(e) => setUserInput(e.target.value)}
                                             onKeyPress={(e) => e.key === 'Enter' && handleSendMessage()}
-                                            placeholder="ถามเกี่ยวกับไฟล์นี้..."
+                                            placeholder="Ask about this file..."
                                             className="flex-grow p-2 bg-brand-light text-black rounded-none border-2 border-black focus:outline-none"
                                             disabled={isLoading || !isOnline}
                                         />

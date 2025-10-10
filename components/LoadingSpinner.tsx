@@ -1,7 +1,7 @@
 
 import React from 'react';
 
-export const LoadingSpinner = ({ text = "กำลังสร้าง..." }: { text?: string }): React.ReactNode => {
+export const LoadingSpinner = ({ text = "Generating..." }: { text?: string }): React.ReactNode => {
     return (
         <div role="status" className="flex flex-col items-center justify-center space-y-4 font-press-start text-brand-light">
             <div className="relative w-16 h-16">
@@ -11,7 +11,7 @@ export const LoadingSpinner = ({ text = "กำลังสร้าง..." }: {
                     style={{ imageRendering: 'pixelated' }}
                     fill="currentColor"
                     xmlns="http://www.w3.org/2000/svg"
-                    aria-label="ไอคอนหัวใจกำลังเต้น"
+                    aria-label="Pulsing heart icon"
                  >
                     <path d="M7 3H9V5H7V3Z" />
                     <path d="M15 3H17V5H15V3Z" />

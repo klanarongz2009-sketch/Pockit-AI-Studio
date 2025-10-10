@@ -16,10 +16,18 @@ interface TranslatorPageProps {
 }
 
 const languages = [
+    { code: 'auto', name: 'Auto-detect' },
     { code: 'en', name: 'English' },
     { code: 'th', name: 'Thai' },
     { code: 'ja', name: 'Japanese' },
-    { code: 'auto', name: 'Auto-detect' },
+    { code: 'ko', name: 'Korean' },
+    { code: 'zh', name: 'Chinese' },
+    { code: 'fr', name: 'French' },
+    { code: 'de', name: 'German' },
+    { code: 'es', name: 'Spanish' },
+    { code: 'pt', name: 'Portuguese' },
+    { code: 'ru', name: 'Russian' },
+    { code: 'vi', name: 'Vietnamese' },
 ];
 
 export const TranslatorPage: React.FC<TranslatorPageProps> = ({ onClose, playSound, isOnline }) => {
@@ -27,7 +35,7 @@ export const TranslatorPage: React.FC<TranslatorPageProps> = ({ onClose, playSou
     const [inputText, setInputText] = useState('');
     const [outputText, setOutputText] = useState('');
     const [sourceLang, setSourceLang] = useState('auto');
-    const [targetLang, setTargetLang] = useState('th');
+    const [targetLang, setTargetLang] = useState('en');
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const { credits, spendCredits } = useCredits();

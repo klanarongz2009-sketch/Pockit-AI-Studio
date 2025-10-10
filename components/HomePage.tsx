@@ -7,9 +7,11 @@ import { GamepadIcon } from './icons/GamepadIcon';
 import { ChatIcon } from './icons/ChatIcon';
 import { OfflineAiIcon } from './icons/OfflineAiIcon';
 import { ArticleIcon } from './ArticleIcon';
+import { SettingsIcon } from './icons/SettingsIcon';
 
 interface HomePageProps {
   onSetPage: (page: CurrentPage) => void;
+  onOpenSettings: () => void;
 }
 
 const AppLauncherButton: React.FC<{
@@ -28,8 +30,8 @@ const AppLauncherButton: React.FC<{
 );
 
 
-export const HomePage: React.FC<HomePageProps> = ({ onSetPage }) => {
-    const { t } = useLanguage();
+export const HomePage: React.FC<HomePageProps> = ({ onSetPage, onOpenSettings }) => {
+    const { t, language, setLanguage } = useLanguage();
 
     const apps = [
         { page: 'minigameHub', label: t('sidebar.aiZone'), icon: <GamepadIcon className="w-full h-full" /> },
@@ -38,8 +40,30 @@ export const HomePage: React.FC<HomePageProps> = ({ onSetPage }) => {
         { page: 'article', label: t('sidebar.article'), icon: <ArticleIcon className="w-full h-full" /> },
     ];
 
+    const toggleLanguage = () => {
+        const newLang = language === 'en' ? 'th' : 'en';
+        setLanguage(newLang);
+    };
+
     return (
-        <div className="w-full h-full flex flex-col items-center justify-center px-4 animate-page-enter">
+        <div className="w-full h-full flex flex-col items-center justify-center px-4 animate-page-enter relative">
+            <div className="absolute top-4 right-4 flex gap-2">
+                 <button
+                    onClick={toggleLanguage}
+                    aria-label="Toggle Language"
+                    className="w-12 h-12 flex-shrink-0 flex items-center justify-center bg-surface-1 border-2 border-border-primary text-text-primary hover:bg-brand-primary hover:text-text-inverted transition-all"
+                >
+                    <span className="font-press-start text-sm">{language === 'en' ? 'ไทย' : 'EN'}</span>
+                </button>
+                <button
+                    onClick={onOpenSettings}
+                    aria-label={t('header.settings')}
+                    className="w-12 h-12 flex-shrink-0 flex items-center justify-center bg-surface-1 border-2 border-border-primary text-text-primary hover:bg-brand-primary hover:text-text-inverted transition-all"
+                >
+                    <SettingsIcon className="w-6 h-6" />
+                </button>
+            </div>
+
              <h1 className="text-3xl sm:text-5xl text-brand-primary font-press-start text-center mb-10">
                 {t('header.title')} Home
             </h1>

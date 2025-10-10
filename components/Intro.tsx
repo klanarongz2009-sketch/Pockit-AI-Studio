@@ -1,84 +1,79 @@
-
 import React, { useState, useEffect } from 'react';
 import * as audioService from '../services/audioService';
 import { SparklesIcon } from './icons/SparklesIcon';
 
 interface IntroProps {
-  onComplete: () => void;
+  onSequenceComplete: () => void;
 }
 
 const introSequences = [
-  // Sequence 1: Original
-  [
-    { text: '', sound: () => {}, duration: 1500 },
-    { text: 'ยินดีต้อนรับสู่', sound: audioService.playIntro1, duration: 2000 },
-    { text: 'Ai Studio แบบพกพา', sound: audioService.playIntro2, duration: 2000 },
-    { text: 'ขับเคลื่อนโดย Google AI', sound: audioService.playIntro3, icon: true, duration: 2500 },
-  ],
-  // Sequence 2: Creative focus
-  [
-    { text: '', sound: () => {}, duration: 1500 },
-    { text: 'ปลดปล่อยจินตนาการ', sound: audioService.playScore, duration: 2000 },
-    { text: 'สร้างสรรค์ผลงานของคุณ', sound: audioService.playSuccess, duration: 2000 },
-    { text: 'ด้วยพลังแห่ง AI', sound: audioService.playGenerate, icon: true, duration: 2500 },
-  ],
-  // Sequence 3: Quick and punchy
-  [
-    { text: '', sound: () => {}, duration: 1500 },
-    { text: 'คิด.', sound: audioService.playClick, duration: 1500 },
-    { text: 'สร้าง.', sound: audioService.playHover, duration: 1500 },
-    { text: 'เล่น.', sound: audioService.playSelection, icon: true, duration: 2000 },
-  ]
+  { text: 'AIOS Initializing...', sound: audioService.playBootSound1, duration: 2000, showIcon: false, showBar: false },
+  { text: 'Loading Core Modules...', sound: audioService.playBootSound2, duration: 3000, showIcon: false, showBar: true },
+  { text: 'Connecting to Gemini Core...', sound: audioService.playBootSound3, duration: 2500, showIcon: true, showBar: false },
+  { text: 'System Ready', sound: audioService.playBootSound4, duration: 1800, showIcon: false, showBar: false },
 ];
 
+const LoadingBar: React.FC = () => {
+    const [progress, setProgress] = useState(0);
+    useEffect(() => {
+        const timer = setTimeout(() => setProgress(100), 100);
+        return () => clearTimeout(timer);
+    }, []);
 
-export const Intro: React.FC<IntroProps> = ({ onComplete }) => {
-  const [introSteps] = useState(() => introSequences[Math.floor(Math.random() * introSequences.length)]);
+    return (
+        <div className="w-64 h-4 bg-surface-1 border-2 border-border-primary mt-4">
+            <div 
+                className="h-full bg-brand-primary transition-all duration-[2500ms] ease-in-out"
+                style={{ width: `${progress}%`}}
+            ></div>
+        </div>
+    );
+}
+
+
+export const Intro: React.FC<IntroProps> = ({ onSequenceComplete }) => {
   const [step, setStep] = useState(0);
   const [visible, setVisible] = useState(false);
 
   useEffect(() => {
-    // Start invisible
     setVisible(false);
 
-    // After a short delay, play sound and fade in
     const animationTimeout = setTimeout(() => {
-      // Don't play sound for the blank intro step
-      if (introSteps[step].text) {
-        introSteps[step].sound();
+      if (introSequences[step].sound) {
+        introSequences[step].sound();
       }
       setVisible(true);
     }, 300);
 
-    // After the specified duration, advance to the next step or complete
     const stepTimeout = setTimeout(() => {
-      setVisible(false); // Start fade out
-      setTimeout(() => { // Wait for fade out to finish
-        if (step < introSteps.length - 1) {
+      setVisible(false);
+      setTimeout(() => {
+        if (step < introSequences.length - 1) {
           setStep(s => s + 1);
         } else {
-          onComplete();
+          onSequenceComplete();
         }
-      }, 500)
-    }, introSteps[step].duration);
+      }, 500);
+    }, introSequences[step].duration);
 
     return () => {
       clearTimeout(animationTimeout);
       clearTimeout(stepTimeout);
     };
-  }, [step, onComplete, introSteps]);
+  }, [step, onSequenceComplete]);
 
-  const currentStep = introSteps[step];
+  const currentStep = introSequences[step];
 
   return (
-    <div className={`fixed inset-0 bg-black z-[100] flex flex-col items-center justify-center font-press-start text-brand-light transition-opacity duration-500 ${visible ? 'opacity-100' : 'opacity-0'}`}>
-      <p className="text-xl sm:text-3xl text-center text-brand-cyan px-4">{currentStep.text}</p>
-      {currentStep.icon && (
-          <div className="mt-4 flex items-center gap-2 text-sm text-brand-yellow">
+    <div className={`fixed inset-0 bg-background z-[100] flex flex-col items-center justify-center font-press-start text-text-primary transition-opacity duration-500 ${visible ? 'opacity-100' : 'opacity-0'}`}>
+      <p className="text-xl sm:text-3xl text-center text-brand-primary px-4">{currentStep.text}</p>
+      {currentStep.showIcon && (
+          <div className="mt-4 flex items-center gap-2 text-sm text-brand-secondary">
               <SparklesIcon className="w-6 h-6"/>
               <span>Google AI</span>
           </div>
       )}
+      {currentStep.showBar && <LoadingBar />}
     </div>
   );
 };
