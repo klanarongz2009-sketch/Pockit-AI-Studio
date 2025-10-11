@@ -19,6 +19,15 @@ export interface Article {
 
 const articlesData: Article[] = [
     {
+        id: 'github-reupload',
+        titleKey: 'articles.githubReupload.title',
+        summaryKey: 'articles.githubReupload.summary',
+        contentKey: 'articles.githubReupload.content',
+        author: 'The Development Team',
+        category: 'article',
+        voice: 'Zephyr',
+    },
+    {
         id: 'downloadable-features-incomplete',
         titleKey: 'articles.downloadableFeaturesIncomplete.title',
         summaryKey: 'articles.downloadableFeaturesIncomplete.summary',

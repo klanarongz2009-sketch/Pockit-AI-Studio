@@ -166,29 +166,27 @@ export const AboutPage: React.FC<AboutPageProps> = ({ onClose, playSound, isOnli
             'components/AnalyzeMediaPage.tsx', 'components/AppPublisherPage.tsx', 'components/ArticlePage.tsx', 'components/ArticleViewerPage.tsx', 'components/ArtGalleryPage.tsx', 'components/AsteroidShooterPage.tsx',
             'components/BrickBreakerGame.tsx', 'components/ChiptuneCreatorPage.tsx', 'components/ColorFinderPage.tsx', 'components/EmulatorSimulationPage.tsx', 'components/FileChatPage.tsx', 'components/GlobalLayout.tsx',
             'components/GuessThePromptPage.tsx', 'components/HomePage.tsx', 'components/ImageDisplay.tsx', 'components/ImageGeneratorPage.tsx', 'components/ImageToCodePage.tsx', 'components/ImageToSoundPage.tsx',
-            'components/InstallGuidePage.tsx', 'components/Intro.tsx', 'components/JumpingGame.tsx', 'components/LoadingSpinner.tsx', 'components/LoginPage.tsx', 'components/MagicButtonPage.tsx',
+            'components/InstallGuidePage.tsx', 'components/Intro.tsx', 'components/JumpingGame.tsx', 'components/LoginPage.tsx', 'components/MagicButtonPage.tsx',
             'components/MediaRecorderPage.tsx', 'components/MediaToSongPage.tsx', 'components/Minigame.tsx', 'components/MinigameHubPage.tsx', 'components/MinesweeperPage.tsx', 'components/Modal.tsx',
             'components/ModelInfoPage.tsx', 'components/MusicAndSoundPage.tsx', 'components/MusicGamePage.tsx', 'components/MusicMemoryGamePage.tsx', 'components/NotificationControl.tsx', 'components/OfflineAiPage.tsx',
             'components/PageComponents.ts', 'components/PixelSequencerPage.tsx', 'components/PixelSynthesizerPage.tsx', 'components/PlatformerGame.tsx', 'components/SettingsPage.tsx', 'components/SnakeGame.tsx',
             'components/SongSearchPage.tsx', 'components/SpinningWheel.tsx', 'components/StartScreen.tsx', 'components/TalkingCatPage.tsx', 'components/TextToSongPage.tsx', 'components/TextToSpeechPage.tsx', 'components/TicTacToePage.tsx',
-            'components/TranslatorPage.tsx', 'components/UpdateInfoPage.tsx', 'components/VideoEditorPage.tsx', 'components/VoiceChangerPage.tsx', 'components/WordMatchPage.tsx',
-            'components/icon.svg', 'components/AnalyzeIcon.tsx', 'components/AiDetectorIcon.tsx', 'components/ArticleIcon.tsx', 'components/BellIcon.tsx', 'components/BellOffIcon.tsx',
-            'components/icons/AsteroidShooterIcon.tsx', 'components/icons/AudioTransformIcon.tsx', 'components/icons/AudioVisualizer.tsx', 'components/icons/BookmarkIcon.tsx',
-            'components/icons/BrickBreakerIcon.tsx', 'components/icons/BugIcon.tsx', 'components/icons/CalculatorIcon.tsx', 'components/icons/CalculatorPage.tsx', 'components/icons/ChatIcon.tsx', 'components/icons/CodeIcon.tsx',
-            'components/icons/CoinsIcon.tsx', 'components/icons/ColorPickerIcon.tsx', 'components/icons/CopyIcon.tsx', 'components/icons/CropIcon.tsx', 'components/icons/DeviceIcon.tsx', 'components/icons/DeviceDetailsPage.tsx',
-            'components/icons/DownloadIcon.tsx', 'components/icons/EarnCreditsModal.tsx', 'components/icons/EmulatorIcon.tsx', 'components/icons/FaceLostIcon.tsx', 'components/icons/FacePlayingIcon.tsx', 'components/icons/FaceWonIcon.tsx',
-            'components/icons/FeedbackIcon.tsx', 'components/icons/FileChatIcon.tsx', 'components/icons/FilmMusicIcon.tsx', 'components/icons/FlagCheekIcon.tsx', 'components/icons/GalleryIcon.tsx', 'components/icons/GamepadIcon.tsx',
-            'components/icons/GuessThePromptIcon.tsx', 'components/icons/HeartFilledIcon.tsx', 'components/icons/HeartIcon.tsx', 'components/icons/ImageSoundIcon.tsx', 'components/icons/InfoIcon.tsx',
-            'components/icons/InstallIcon.tsx', 'components/icons/JumpingIcon.tsx', 'components/icons/LinkIcon.tsx', 'components/icons/MagicButtonIcon.tsx', 'components/icons/MenuIcon.tsx',
-            'components/icons/MicrophoneIcon.tsx', 'components/icons/MineCheekIcon.tsx', 'components/icons/MinesweeperIcon.tsx', 'components/icons/MoonIcon.tsx', 'components/icons/MusicAndSoundIcon.tsx',
-            'components/icons/MusicInspectIcon.tsx', 'components/icons/MusicKeyboardIcon.tsx', 'components/icons/MusicNoteIcon.tsx', 'components/icons/OfflineAiIcon.tsx', 'components/icons/OracleIcon.tsx',
-            'components/icons/PaletteIcon.tsx', 'components/icons/PetIcon.tsx', 'components/icons/PlatformerIcon.tsx', 'components/icons/PlayIcon.tsx', 'components/icons/PlusSquareIcon.tsx', 'components/icons/PublishIcon.tsx',
-            'components/icons/RecordIcon.tsx', 'components/icons/RegenerateIcon.tsx', 'components/icons/ReverseIcon.tsx', 'components/icons/SearchIcon.tsx', 'components/icons/SearchMusicIcon.tsx', 'components/icons/SendIcon.tsx',
-            'components/icons/SequencerIcon.tsx', 'components/icons/SettingsIcon.tsx', 'components/icons/ShareIcon.tsx', 'components/icons/SnakeIcon.tsx', 'components/icons/SoundWaveIcon.tsx', 'components/icons/SparklesIcon.tsx',
-            'components/icons/SpeakerOffIcon.tsx', 'components/icons/SpeakerOnIcon.tsx', 'components/icons/SpriteSheetIcon.tsx', 'components/icons/StopIcon.tsx', 'components/icons/SubtitlesIcon.tsx',
-            'components/icons/SunIcon.tsx', 'components/icons/TextMusicIcon.tsx', 'components/icons/TextToSpeechIcon.tsx', 'components/icons/ThumbsDownIcon.tsx', 'components/icons/ThumbsUpIcon.tsx',
-            'components/icons/TicTacToeIcon.tsx', 'components/icons/TranslateIcon.tsx', 'components/icons/TrashIcon.tsx', 'components/icons/UpdateIcon.tsx', 'components/icons/UploadIcon.tsx', 'components/icons/VideoEditorIcon.tsx',
-            'components/icons/VoiceChangerIcon.tsx', 'components/icons/WordMatchIcon.tsx', 'components/icons/XIcon.tsx'
+            'components/TranslatorPage.tsx', 'components/UpdateInfoPage.tsx', 'components/VideoEditorPage.tsx', 'components/VoiceChangerPage.tsx', 'components/WordMatchPage.tsx', 'components/icon.svg',
+            'components/icons/AiDetectorIcon.tsx', 'components/icons/AnalyzeIcon.tsx', 'components/icons/ArticleIcon.tsx', 'components/icons/AsteroidShooterIcon.tsx', 'components/icons/AudioTransformIcon.tsx', 'components/icons/AudioVisualizer.tsx',
+            'components/icons/BellIcon.tsx', 'components/icons/BellOffIcon.tsx', 'components/icons/BookmarkIcon.tsx', 'components/icons/BrickBreakerIcon.tsx', 'components/icons/BugIcon.tsx', 'components/icons/CalculatorIcon.tsx',
+            'components/icons/CalculatorPage.tsx', 'components/icons/ChatIcon.tsx', 'components/icons/CodeIcon.tsx', 'components/icons/CoinsIcon.tsx', 'components/icons/ColorPickerIcon.tsx', 'components/icons/CopyIcon.tsx',
+            'components/icons/CropIcon.tsx', 'components/icons/DeviceDetailsPage.tsx', 'components/icons/DeviceIcon.tsx', 'components/icons/DownloadIcon.tsx', 'components/icons/EarnCreditsModal.tsx', 'components/icons/EmulatorIcon.tsx',
+            'components/icons/FaceLostIcon.tsx', 'components/icons/FacePlayingIcon.tsx', 'components/icons/FaceWonIcon.tsx', 'components/icons/FeedbackIcon.tsx', 'components/icons/FileChatIcon.tsx', 'components/icons/FilmMusicIcon.tsx',
+            'components/icons/FlagCheekIcon.tsx', 'components/icons/GalleryIcon.tsx', 'components/icons/GamepadIcon.tsx', 'components/icons/GuessThePromptIcon.tsx', 'components/icons/HeartFilledIcon.tsx', 'components/icons/HeartIcon.tsx',
+            'components/icons/ImageSoundIcon.tsx', 'components/icons/InfoIcon.tsx', 'components/icons/InstallIcon.tsx', 'components/icons/JumpingIcon.tsx', 'components/icons/LinkIcon.tsx', 'components/icons/MagicButtonIcon.tsx',
+            'components/icons/MenuIcon.tsx', 'components/icons/MicrophoneIcon.tsx', 'components/icons/MineCheekIcon.tsx', 'components/icons/MinesweeperIcon.tsx', 'components/icons/MoonIcon.tsx', 'components/icons/MusicAndSoundIcon.tsx',
+            'components/icons/MusicInspectIcon.tsx', 'components/icons/MusicKeyboardIcon.tsx', 'components/icons/MusicNoteIcon.tsx', 'components/icons/OfflineAiIcon.tsx', 'components/icons/OracleIcon.tsx', 'components/icons/PaletteIcon.tsx',
+            'components/icons/PetIcon.tsx', 'components/icons/PlatformerIcon.tsx', 'components/icons/PlayIcon.tsx', 'components/icons/PlusSquareIcon.tsx', 'components/icons/PublishIcon.tsx', 'components/icons/RecordIcon.tsx',
+            'components/icons/RegenerateIcon.tsx', 'components/icons/ReverseIcon.tsx', 'components/icons/SearchIcon.tsx', 'components/icons/SearchMusicIcon.tsx', 'components/icons/SendIcon.tsx', 'components/icons/SequencerIcon.tsx',
+            'components/icons/SettingsIcon.tsx', 'components/icons/ShareIcon.tsx', 'components/icons/SnakeIcon.tsx', 'components/icons/SoundWaveIcon.tsx', 'components/icons/SparklesIcon.tsx', 'components/icons/SpeakerOffIcon.tsx',
+            'components/icons/SpeakerOnIcon.tsx', 'components/icons/SpriteSheetIcon.tsx', 'components/icons/StopIcon.tsx', 'components/icons/SubtitlesIcon.tsx', 'components/icons/SunIcon.tsx', 'components/icons/TextMusicIcon.tsx',
+            'components/icons/TextToSpeechIcon.tsx', 'components/icons/ThumbsDownIcon.tsx', 'components/icons/ThumbsUpIcon.tsx', 'components/icons/TicTacToeIcon.tsx', 'components/icons/TranslateIcon.tsx', 'components/icons/TrashIcon.tsx',
+            'components/icons/UpdateIcon.tsx', 'components/icons/UploadIcon.tsx', 'components/icons/VideoEditorIcon.tsx', 'components/icons/VoiceChangerIcon.tsx', 'components/icons/WordMatchIcon.tsx', 'components/icons/XIcon.tsx'
         ];
 
         try {
@@ -284,7 +282,7 @@ export const AboutPage: React.FC<AboutPageProps> = ({ onClose, playSound, isOnli
                     <p className="text-xs">{t('about.install.rom.description')}</p>
                      <button onClick={handleDownloadSource} disabled={isDownloading} className="inline-block mt-2 p-2 bg-brand-yellow text-black border-2 border-black font-press-start text-xs hover:bg-brand-lime disabled:bg-gray-500 disabled:cursor-wait">
                         <InstructionStep icon={isDownloading ? <LoadingSpinner text=""/> : <DownloadIcon className="w-6 h-6" />}>
-                           {isDownloading ? 'กำลังสร้าง ZIP...' : t('about.install.rom.button')}
+                           {isDownloading ? t('about.install.rom.buttonLoading') : t('about.install.rom.button')}
                         </InstructionStep>
                     </button>
                 </Section>

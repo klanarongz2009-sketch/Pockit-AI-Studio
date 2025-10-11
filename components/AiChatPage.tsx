@@ -272,8 +272,10 @@ export const AiChatPage: React.FC<AiChatPageProps> = ({ isOnline, playSound }) =
     }, [handleNewChat]);
 
 
-    const handleSendMessage = useCallback(async (messageText?: string) => {
+    const handleSendMessage = useCallback(async (messageText?: string, messageHistory?: Message[]) => {
         const textToSend = (messageText || userInput).trim();
+        const history = messageHistory || messages;
+
         if ((!textToSend && !fileData) || isLoading || !isOnline) return;
     
         playSound(audioService.playClick);
@@ -293,7 +295,7 @@ export const AiChatPage: React.FC<AiChatPageProps> = ({ isOnline, playSound }) =
                 if (fileData) {
                     const responseText = await geminiService.chatWithFile(
                         { base64: fileData.base64, mimeType: fileData.file.type },
-                        messages.filter(m => m.role !== 'user' || m.text).map(m => ({ role: m.role, text: m.text })),
+                        history.filter(m => m.role !== 'user' || m.text).map(m => ({ role: m.role, text: m.text })),
                         textToSend
                     );
                     const modelMessage: Message = { id: `msg_${Date.now()}_model`, role: 'model', text: responseText };
@@ -354,9 +356,10 @@ export const AiChatPage: React.FC<AiChatPageProps> = ({ isOnline, playSound }) =
         
         if (lastModelMessageIndex === -1) return;
         
-        setMessages(prev => prev.slice(0, lastModelMessageIndex));
+        const newMessages = messages.slice(0, lastModelMessageIndex);
+        setMessages(newMessages);
         
-        handleSendMessage(lastUserMessage.text);
+        handleSendMessage(lastUserMessage.text, newMessages);
     }, [messages, isLoading, handleSendMessage]);
 
     const handleSelectModel = (model: AiModel) => {

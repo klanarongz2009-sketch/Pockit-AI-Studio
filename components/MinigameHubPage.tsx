@@ -129,61 +129,61 @@ export const MinigameHubPage: React.FC<MinigameHubPageProps> = ({ playSound, isO
     
     const categories = useMemo(() => [
         { 
-            title: "AI Creative Suite",
+            title: t('minigameHub.categories.aiCreativeSuite'),
             items: [
-                { icon: <SearchMusicIcon className="w-16 h-16" />, title: "Song/Audio Search", description: "Upload an audio or video clip and let an AI help you identify the song and find more information.", onClick: () => handleLaunchGame('songSearch'), disabled: !isOnline, beta: true },
-                { icon: <AnalyzeIcon className="w-16 h-16" />, title: "Media Analyzer", description: "Let an AI analyze your image, video, or audio files to describe, enhance quality, or extract elements.", onClick: () => handleLaunchGame('analyzeMedia'), disabled: !isOnline, beta: true },
-                { icon: <CodeIcon className="w-16 h-16" />, title: "Image to Code", description: "Upload a UI mockup and watch AI convert it into HTML and CSS code.", onClick: () => handleLaunchGame('imageToCode'), disabled: !isOnline, beta: true },
-                { icon: <ColorPickerIcon className="w-16 h-16" />, title: 'minigameHub.colorFinder.title', description: 'minigameHub.colorFinder.description', onClick: () => handleLaunchGame('colorFinder'), disabled: !isOnline, beta: true },
+                { icon: <SearchMusicIcon className="w-16 h-16" />, title: t('minigameHub.songSearch.title'), description: t('minigameHub.songSearch.description'), onClick: () => handleLaunchGame('songSearch'), disabled: !isOnline, beta: true },
+                { icon: <AnalyzeIcon className="w-16 h-16" />, title: t('minigameHub.mediaAnalyzer.title'), description: t('minigameHub.mediaAnalyzer.description'), onClick: () => handleLaunchGame('analyzeMedia'), disabled: !isOnline, beta: true },
+                { icon: <CodeIcon className="w-16 h-16" />, title: t('minigameHub.imageToCode.title'), description: t('minigameHub.imageToCode.description'), onClick: () => handleLaunchGame('imageToCode'), disabled: !isOnline, beta: true },
+                { icon: <ColorPickerIcon className="w-16 h-16" />, title: t('minigameHub.colorFinder.title'), description: t('minigameHub.colorFinder.description'), onClick: () => handleLaunchGame('colorFinder'), disabled: !isOnline, beta: true },
             ]
         },
         {
-            title: "AI Utilities",
+            title: t('minigameHub.categories.aiUtilities'),
             items: [
-                { icon: <PublishIcon className="w-16 h-16" />, title: "App Publisher", description: "Get AI-generated names, descriptions, and a manifest.json for your web app idea.", onClick: () => handleLaunchGame('appPublisher'), disabled: !isOnline, beta: true },
-                { icon: <FileChatIcon className="w-16 h-16" />, title: "File Q&A", description: "Upload a file (image, audio, text) and start chatting with an AI about its content.", onClick: () => handleLaunchGame('fileChat'), disabled: !isOnline, beta: true },
-                { icon: <AiDetectorIcon className="w-16 h-16" />, title: "AI Content Detector", description: "Check if text or media is human-made or AI-generated.", onClick: () => handleLaunchGame('aiDetector'), disabled: !isOnline, beta: true },
-                { icon: <TranslateIcon className="w-16 h-16" />, title: "AI Translator", description: "Translate text between languages like Thai, English, and Japanese using AI.", onClick: () => handleLaunchGame('translator'), disabled: !isOnline, beta: true },
-                { icon: <BugIcon className="w-16 h-16" />, title: "AI Text Corrector", description: "Let an AI act as your personal proofreader for Thai text.", onClick: () => handleLaunchGame('aiBugSquasher'), disabled: !isOnline },
-                { icon: <OracleIcon className="w-16 h-16" />, title: "AI Oracle", description: "Ask the AI Oracle a question, and it will reveal a mysterious 'secret' or story for you.", onClick: () => handleLaunchGame('aiOracle'), disabled: !isOnline },
+                { icon: <PublishIcon className="w-16 h-16" />, title: t('minigameHub.appPublisher.title'), description: t('minigameHub.appPublisher.description'), onClick: () => handleLaunchGame('appPublisher'), disabled: !isOnline, beta: true },
+                { icon: <FileChatIcon className="w-16 h-16" />, title: t('minigameHub.fileChat.title'), description: t('minigameHub.fileChat.description'), onClick: () => handleLaunchGame('fileChat'), disabled: !isOnline, beta: true },
+                { icon: <AiDetectorIcon className="w-16 h-16" />, title: t('minigameHub.aiDetector.title'), description: t('minigameHub.aiDetector.description'), onClick: () => handleLaunchGame('aiDetector'), disabled: !isOnline, beta: true },
+                { icon: <TranslateIcon className="w-16 h-16" />, title: t('minigameHub.translator.title'), description: t('minigameHub.translator.description'), onClick: () => handleLaunchGame('translator'), disabled: !isOnline, beta: true },
+                { icon: <BugIcon className="w-16 h-16" />, title: t('minigameHub.textCorrector.title'), description: t('minigameHub.textCorrector.description'), onClick: () => handleLaunchGame('aiBugSquasher'), disabled: !isOnline },
+                { icon: <OracleIcon className="w-16 h-16" />, title: t('minigameHub.aiOracle.title'), description: t('minigameHub.aiOracle.description'), onClick: () => handleLaunchGame('aiOracle'), disabled: !isOnline },
             ]
         },
         {
-            title: "Classic Arcade",
+            title: t('minigameHub.categories.classicArcade'),
             items: [
-                { icon: <AsteroidShooterIcon className="w-16 h-16" />, title: "Asteroid Shooter", description: "A classic vector-style arcade game. Blast asteroids and survive the onslaught!", onClick: () => handleLaunchGame('asteroidShooter') },
-                { icon: <JumpingIcon className="w-16 h-16" />, title: "Pixel Jumper", description: "A fast-paced endless runner. Tap to jump over obstacles and grab coins!", onClick: () => handleLaunchGame('jumpingGame') },
-                { icon: <BrickBreakerIcon className="w-16 h-16" />, title: "Brick Breaker", description: "The timeless classic block-breaking game!", onClick: () => handleLaunchGame('brickBreaker') },
-                { icon: <SnakeIcon className="w-16 h-16" />, title: "Snake Game", description: "Control the little snake to eat food, grow, and score points.", onClick: () => handleLaunchGame('snake') },
-                { icon: <PlatformerIcon className="w-16 h-16" />, title: "Platformer", description: "A challenging platforming adventure. Guide your character through the level to reach the goal.", onClick: () => handleLaunchGame('platformer') }
+                { icon: <AsteroidShooterIcon className="w-16 h-16" />, title: t('minigameHub.asteroidShooter.title'), description: t('minigameHub.asteroidShooter.description'), onClick: () => handleLaunchGame('asteroidShooter') },
+                { icon: <JumpingIcon className="w-16 h-16" />, title: t('minigameHub.pixelJumper.title'), description: t('minigameHub.pixelJumper.description'), onClick: () => handleLaunchGame('jumpingGame') },
+                { icon: <BrickBreakerIcon className="w-16 h-16" />, title: t('minigameHub.brickBreaker.title'), description: t('minigameHub.brickBreaker.description'), onClick: () => handleLaunchGame('brickBreaker') },
+                { icon: <SnakeIcon className="w-16 h-16" />, title: t('minigameHub.snake.title'), description: t('minigameHub.snake.description'), onClick: () => handleLaunchGame('snake') },
+                { icon: <PlatformerIcon className="w-16 h-16" />, title: t('minigameHub.platformer.title'), description: t('minigameHub.platformer.description'), onClick: () => handleLaunchGame('platformer') }
             ]
         },
         {
-            title: "Mind Games & Puzzles",
+            title: t('minigameHub.categories.mindGamesPuzzles'),
             items: [
-                { icon: <GuessThePromptIcon className="w-16 h-16" />, title: "Guess The Prompt", description: "See an AI-generated image and try to guess what prompt was used to create it! Test your AI intuition.", onClick: () => handleLaunchGame('guessThePrompt'), disabled: !isOnline, beta: true },
-                { icon: <MusicInspectIcon className="w-16 h-16" />, title: "Music Inspector", description: "Test your musical memory! Listen to the AI's sequence and play it back correctly.", onClick: () => handleLaunchGame('musicMemory'), beta: true },
-                { icon: <WordMatchIcon className="w-16 h-16" />, title: "AI Word Match", description: "Enter any topic and have the AI generate creative associations.", onClick: () => handleLaunchGame('wordMatch'), disabled: !isOnline },
-                { icon: <TicTacToeIcon className="w-16 h-16" />, title: "Smart Tic-Tac-Toe", description: "Challenge a surprisingly smart AI in the classic game of Tic-Tac-Toe, or play with a friend.", onClick: () => handleLaunchGame('ticTacToe'), disabled: !isOnline },
-                { icon: <MinesweeperIcon className="w-16 h-16" />, title: "Minesweeper", description: "The classic logic puzzle. Find the mines without setting one off!", onClick: () => handleLaunchGame('minesweeper') },
+                { icon: <GuessThePromptIcon className="w-16 h-16" />, title: t('minigameHub.guessThePrompt.title'), description: t('minigameHub.guessThePrompt.description'), onClick: () => handleLaunchGame('guessThePrompt'), disabled: !isOnline, beta: true },
+                { icon: <MusicInspectIcon className="w-16 h-16" />, title: t('minigameHub.musicInspector.title'), description: t('minigameHub.musicInspector.description'), onClick: () => handleLaunchGame('musicMemory'), beta: true },
+                { icon: <WordMatchIcon className="w-16 h-16" />, title: t('minigameHub.wordMatch.title'), description: t('minigameHub.wordMatch.description'), onClick: () => handleLaunchGame('wordMatch'), disabled: !isOnline },
+                { icon: <TicTacToeIcon className="w-16 h-16" />, title: t('minigameHub.ticTacToe.title'), description: t('minigameHub.ticTacToe.description'), onClick: () => handleLaunchGame('ticTacToe'), disabled: !isOnline },
+                { icon: <MinesweeperIcon className="w-16 h-16" />, title: t('minigameHub.minesweeper.title'), description: t('minigameHub.minesweeper.description'), onClick: () => handleLaunchGame('minesweeper') },
             ]
         },
         {
-            title: "Fun & Utilities",
+            title: t('minigameHub.categories.funUtilities'),
             items: [
-                { icon: <PetIcon className="w-16 h-16" />, title: "Talking Cat", description: "Have a real-time voice conversation with a sassy AI cat.", onClick: () => handleLaunchGame('talkingCat'), disabled: !isOnline, beta: true },
-                { icon: <MusicAndSoundIcon className="w-16 h-16" />, title: "Music & Sound", description: "Browse a library of pre-made 8-bit sound effects and music loops to use in your projects.", onClick: () => handleLaunchGame('musicAndSound') },
-                { icon: <SequencerIcon className="w-16 h-16" />, title: "Pixel Sequencer", description: "Compose your own 8-bit chiptune melodies on a step sequencer grid. A powerful tool for music creation!", onClick: () => handleLaunchGame('pixelSequencer') },
-                { icon: <RecordIcon className="w-16 h-16" />, title: "Media Recorder", description: "Record audio from your microphone or video from your camera directly in the app.", onClick: () => handleLaunchGame('mediaRecorder') },
-                { icon: <TextToSpeechIcon className="w-16 h-16" />, title: "AI Text-to-Speech", description: "Convert text to speech with various voices.", onClick: () => handleLaunchGame('textToSpeech') },
-                { icon: <MagicButtonIcon className="w-16 h-16" />, title: "The Magic Button", description: "A simple yet powerful button! How many times can you press it?", onClick: () => handleLaunchGame('magicButton') },
-                { icon: <CalculatorIcon className="w-16 h-16" />, title: "Credit Calculator", description: "A simple calculator utility with a retro design.", onClick: () => handleLaunchGame('calculator') }
+                { icon: <PetIcon className="w-16 h-16" />, title: t('minigameHub.talkingCat.title'), description: t('minigameHub.talkingCat.description'), onClick: () => handleLaunchGame('talkingCat'), disabled: !isOnline, beta: true },
+                { icon: <MusicAndSoundIcon className="w-16 h-16" />, title: t('minigameHub.musicAndSound.title'), description: t('minigameHub.musicAndSound.description'), onClick: () => handleLaunchGame('musicAndSound') },
+                { icon: <SequencerIcon className="w-16 h-16" />, title: t('minigameHub.pixelSequencer.title'), description: t('minigameHub.pixelSequencer.description'), onClick: () => handleLaunchGame('pixelSequencer') },
+                { icon: <RecordIcon className="w-16 h-16" />, title: t('minigameHub.mediaRecorder.title'), description: t('minigameHub.mediaRecorder.description'), onClick: () => handleLaunchGame('mediaRecorder') },
+                { icon: <TextToSpeechIcon className="w-16 h-16" />, title: t('minigameHub.textToSpeech.title'), description: t('minigameHub.textToSpeech.description'), onClick: () => handleLaunchGame('textToSpeech') },
+                { icon: <MagicButtonIcon className="w-16 h-16" />, title: t('minigameHub.magicButton.title'), description: t('minigameHub.magicButton.description'), onClick: () => handleLaunchGame('magicButton') },
+                { icon: <CalculatorIcon className="w-16 h-16" />, title: t('minigameHub.creditCalculator.title'), description: t('minigameHub.creditCalculator.description'), onClick: () => handleLaunchGame('calculator') }
             ]
         },
         {
-            title: "System",
+            title: t('minigameHub.categories.system'),
             items: [
-                { icon: <DeviceIcon className="w-16 h-16" />, title: "Device Spy", description: "View detailed information about your current device, including hardware, software, and storage.", onClick: () => handleLaunchGame('deviceDetails') }
+                { icon: <DeviceIcon className="w-16 h-16" />, title: t('minigameHub.deviceSpy.title'), description: t('minigameHub.deviceSpy.description'), onClick: () => handleLaunchGame('deviceDetails') }
             ]
         }
     ], [isOnline, t]);
@@ -196,13 +196,13 @@ export const MinigameHubPage: React.FC<MinigameHubPageProps> = ({ playSound, isO
             .map(category => ({
                 ...category,
                 items: category.items.filter(item =>
-                    t(item.title).toLowerCase().includes(lowerCaseQuery) ||
-                    t(item.description).toLowerCase().includes(lowerCaseQuery)
+                    item.title.toLowerCase().includes(lowerCaseQuery) ||
+                    item.description.toLowerCase().includes(lowerCaseQuery)
                 )
             }))
             .filter(category => category.items.length > 0);
 
-    }, [searchQuery, categories, t]);
+    }, [searchQuery, categories]);
 
 
     if (activeGame === 'ticTacToe') {
@@ -302,7 +302,7 @@ export const MinigameHubPage: React.FC<MinigameHubPageProps> = ({ playSound, isO
                     </span>
                     <input
                         type="search"
-                        placeholder="Search for tools or games..."
+                        placeholder={t('minigameHub.searchPlaceholder')}
                         value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)}
                         className="w-full p-4 pl-14 bg-black/50 border-4 border-brand-light text-brand-light font-press-start text-sm focus:outline-none focus:border-brand-yellow placeholder:text-brand-light/50"
@@ -327,14 +327,14 @@ export const MinigameHubPage: React.FC<MinigameHubPageProps> = ({ playSound, isO
                             aria-labelledby={`${category.title}-heading`}
                             className="grid grid-cols-1 md:grid-cols-2 gap-4"
                         >
-                            {category.items.map(item => <GameButton key={item.title} {...item} title={t(item.title) || item.title} description={t(item.description) || item.description}/>)}
+                            {category.items.map(item => <GameButton key={item.title} {...item} />)}
                         </section>
                     </div>
                 ))}
                 
                 {searchQuery && filteredCategories.length === 0 && (
                      <div className="text-center font-press-start text-brand-light/80 p-8">
-                        <p>No tools or games match your search.</p>
+                        <p>{t('minigameHub.noResults')}</p>
                     </div>
                 )}
             </div>

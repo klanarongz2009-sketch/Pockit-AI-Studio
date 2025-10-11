@@ -96,7 +96,19 @@
         "clearAllDataWarning": "Clearing all data will remove your credits, history, gallery images, and all settings.",
         "language": "Language / ภาษา",
         "langTh": "ไทย",
-        "langEn": "English"
+        "langEn": "English",
+        "highContrast": "High Contrast Mode",
+        "autoplaySounds": "Autoplay Sounds",
+        "autoplaySoundsDesc": "Automatically play generated sounds and music.",
+        "aiVoice": "AI Voice for Read Aloud",
+        "autoSave": "Auto-save to Gallery",
+        "autoSaveDesc": "Automatically save generated images to your gallery.",
+        "enableWebSearch": "Enable Web Search",
+        "enableWebSearchDesc": "Enable web search by default for compatible models.",
+        "confirmCredit": "Confirm Credit Spend",
+        "confirmCreditDesc": "Show a confirmation dialog before spending credits.",
+        "resetApp": "Reset App & Clear Stored Data",
+        "resetAppDesc": "This clears any data saved by the app in your browser and reloads the page to its original state."
     },
     "translator": {
         "title": "AI Translator",
@@ -149,30 +161,128 @@
         "connecting": "Connecting..."
     },
     "minigameHub": {
+        "searchPlaceholder": "Search for tools or games...",
+        "noResults": "No tools or games match your search.",
+        "categories": {
+            "aiCreativeSuite": "AI Creative Suite",
+            "aiUtilities": "AI Utilities",
+            "classicArcade": "Classic Arcade",
+            "mindGamesPuzzles": "Mind Games & Puzzles",
+            "funUtilities": "Fun & Utilities",
+            "system": "System"
+        },
+        "songSearch": {
+            "title": "Song/Audio Search",
+            "description": "Upload an audio or video clip and let an AI help you identify the song and find more information."
+        },
+        "mediaAnalyzer": {
+            "title": "Media Analyzer",
+            "description": "Let an AI analyze your image, video, or audio files to describe, enhance quality, or extract elements."
+        },
+        "imageToCode": {
+            "title": "Image to Code",
+            "description": "Upload a UI mockup and watch AI convert it into HTML and CSS code."
+        },
         "colorFinder": {
             "title": "Color Finder",
             "description": "Upload an image and let AI extract a beautiful color palette with names and descriptions."
         },
-        "emulatorSimulation": {
-            "title": "Emulator Simulation",
-            "description": "Run a simulated retro OS with hidden commands and programs."
+        "appPublisher": {
+            "title": "App Publisher",
+            "description": "Get AI-generated names, descriptions, and a manifest.json for your web app idea."
+        },
+        "fileChat": {
+            "title": "File Q&A",
+            "description": "Upload a file (image, audio, text) and start chatting with an AI about its content."
+        },
+        "aiDetector": {
+            "title": "AI Content Detector",
+            "description": "Check if text or media is human-made or AI-generated."
+        },
+        "translator": {
+            "title": "AI Translator",
+            "description": "Translate text between languages like Thai, English, and Japanese using AI."
+        },
+        "textCorrector": {
+            "title": "AI Text Corrector",
+            "description": "Let an AI act as your personal proofreader for Thai text."
+        },
+        "aiOracle": {
+            "title": "AI Oracle",
+            "description": "Ask the AI Oracle a question, and it will reveal a mysterious 'secret' or story for you."
+        },
+        "asteroidShooter": {
+            "title": "Asteroid Shooter",
+            "description": "A classic vector-style arcade game. Blast asteroids and survive the onslaught!"
+        },
+        "pixelJumper": {
+            "title": "Pixel Jumper",
+            "description": "A fast-paced endless runner. Tap to jump over obstacles and grab coins!"
+        },
+        "brickBreaker": {
+            "title": "Brick Breaker",
+            "description": "The timeless classic block-breaking game!"
+        },
+        "snake": {
+            "title": "Snake Game",
+            "description": "Control the little snake to eat food, grow, and score points."
+        },
+        "platformer": {
+            "title": "Platformer",
+            "description": "A challenging platforming adventure. Guide your character through the level to reach the goal."
+        },
+        "guessThePrompt": {
+            "title": "Guess The Prompt",
+            "description": "See an AI-generated image and try to guess what prompt was used to create it! Test your AI intuition."
+        },
+        "musicInspector": {
+            "title": "Music Inspector",
+            "description": "Test your musical memory! Listen to the AI's sequence and play it back correctly."
+        },
+        "wordMatch": {
+            "title": "AI Word Match",
+            "description": "Enter any topic and have the AI generate creative associations."
+        },
+        "ticTacToe": {
+            "title": "Smart Tic-Tac-Toe",
+            "description": "Challenge a surprisingly smart AI in the classic game of Tic-Tac-Toe, or play with a friend."
+        },
+        "minesweeper": {
+            "title": "Minesweeper",
+            "description": "The classic logic puzzle. Find the mines without setting one off!"
         },
         "talkingCat": {
             "title": "Talking Cat",
             "description": "Have a real-time voice conversation with a sassy AI cat."
+        },
+        "musicAndSound": {
+            "title": "Music & Sound",
+            "description": "Browse a library of pre-made 8-bit sound effects and music loops to use in your projects."
+        },
+        "pixelSequencer": {
+            "title": "Pixel Sequencer",
+            "description": "Compose your own 8-bit chiptune melodies on a step sequencer grid. A powerful tool for music creation!"
+        },
+        "mediaRecorder": {
+            "title": "Media Recorder",
+            "description": "Record audio from your microphone or video from your camera directly in the app."
+        },
+        "textToSpeech": {
+            "title": "AI Text-to-Speech",
+            "description": "Convert text to speech with various voices."
+        },
+        "magicButton": {
+            "title": "The Magic Button",
+            "description": "A simple yet powerful button! How many times can you press it?"
+        },
+        "creditCalculator": {
+            "title": "Credit Calculator",
+            "description": "A simple calculator utility with a retro design."
+        },
+        "deviceSpy": {
+            "title": "Device Spy",
+            "description": "View detailed information about your current device, including hardware, software, and storage."
         }
-    },
-    "colorFinder": {
-        "title": "Image Color Finder",
-        "description": "Upload an image and let AI extract and name the dominant color palette for you!",
-        "upload": "Upload Image",
-        "changeImage": "Change Image",
-        "button": "Extract Palette",
-        "loading": "Analyzing colors...",
-        "thinking": "AI is looking for colors...",
-        "error": "An error occurred",
-        "resultsTitle": "Detected Palette",
-        "copied": "Copied!"
     },
     "offlineAiPage": {
         "title": "Offline Tools",
@@ -273,13 +383,11 @@
             "songSuccess": "Song Generated!",
             "playAgain": "Play Again",
             "playSong": "Play Song",
-            "stop": "Stop",
             "glyphResult": "Generated Glyph Code",
             "emojiResult": "Generated Emoji Art",
             "colorResult": "Colors Found in Image",
             "copy": "Copy",
             "copied": "Copied!",
-            "download": "Download",
             "modeSound": "Image to Sound",
             "modeSong": "Image to Song",
             "modeGlyph": "Glyph Code",
@@ -386,7 +494,8 @@
             "rom": {
                 "title": "Download for Offline Use (ROM)",
                 "description": "For advanced users, emulators, or offline archival, you can download the entire application source code as a ZIP file. You can run it on any local web server.",
-                "button": "Download App Source (.zip)"
+                "button": "Download App Source (.zip)",
+                "buttonLoading": "Creating ZIP..."
             }
         },
         "feedback": {
@@ -438,135 +547,20 @@
         }
     },
     "articles": {
+        "githubReupload": {
+            "title": "This App Will Be Re-Uploaded to GitHub",
+            "summary": "An important notice regarding the source code availability on GitHub after an accidental deletion of the previous repository.",
+            "content": "To our developer community,\\n\\nWe are writing to inform you that the previous GitHub repository for this application was accidentally deleted. We sincerely apologize for any inconvenience this may have caused.\\n\\nThe good news is that we have been working to restore the project and will be re-uploading the complete source code to a new GitHub repository shortly. This will once again allow everyone to explore, learn from, and contribute to the project.\\n\\nWe believe in the power of open source for learning and collaboration and are committed to making this resource available again. Thank you for your patience and understanding."
+        },
         "downloadableFeaturesIncomplete": {
             "title": "Downloadable Features May Not Always Be Perfect",
             "summary": "An important note on features that can be downloaded, such as source code or generated files. These may have imperfections or require developer knowledge to use.",
             "content": "Many features in this app allow you to download the output, from generated songs and images to the entire application source code. We want to be transparent about what to expect.\\n\\nThese downloadable assets are provided 'as-is'. While we strive for quality, they may contain bugs, imperfections, or require technical knowledge to use effectively. For example, the downloaded source code is intended for developers who can set up a local web server. Generated code snippets might be a great starting point but may need further refinement to be production-ready.\\n\\nPlease think of these downloads as a powerful starting point for your own projects, not always as a final, polished product. We encourage you to experiment, learn, and build upon what our AI creates!"
         },
-        "emulatorSupport": {
-            "title": "Emulator Support Added: Run on RetroArch and More!",
-            "summary": "Great news for retro fans! You can now run AI APPS on emulators like RetroArch, transforming your app experience into a console-like one!",
-            "content": "We are excited to announce a new frontier for AI APPS: emulator support! By leveraging the built-in web browser cores in popular emulators like RetroArch, you can now launch and use our application directly on a wide range of devices, from handheld gaming consoles to your TV box.\\n\\nThis means you can get a different kind of experience: sit back on your couch and interact with our AI tools on your big-screen TV, or control the various minigames with your favorite game controller. It's a blend of AI creativity and classic gaming feel.\\n\\nSimply open the browser in RetroArch or another supported emulator, navigate to our app's URL, and you're ready to explore the AI Universe in a whole new way!"
-        },
-        "aiGameCreator": {
-            "title": "When AI Creates a Game: Who is the Real Creator?",
-            "summary": "The world is amazed by 'Aetheria', a breathtakingly perfect game that appeared mysteriously. But its creator is an AI, raising questions about creativity and ownership.",
-            "content": "The gaming world is in an uproar over 'Aetheria', a fantasy RPG with a world more detailed and quests more intricate than any human-designed game. The twist? It was created entirely by a new generative AI called 'The Architect'.\\n\\nDevelopers are both amazed and concerned. 'It's a masterpiece, but it also feels... soulless,' said one veteran designer. The game's code is an unreadable mess of AI-generated logic, yet it runs flawlessly. This has sparked a global debate: if an AI creates a work of art, who owns it? Who gets the credit? And what does this mean for the future of human creativity?"
-        },
         "featureSummaryUpdate": {
             "title": "Feature Summary & Future Updates",
             "summary": "A comprehensive overview of all current features and a look at what's coming next for the AI Universe application.",
             "content": "Welcome to the AI Universe! This evolving platform is your one-stop-shop for creative AI tools. Here’s a quick summary of what you can do right now:\\n\\n- **AI Chat**: Converse with a variety of specialized AI assistants.\\n- **Image Generation**: Create pixel art, GIFs, and more from text.\\n- **Music & Sound**: Generate 8-bit songs and sound effects from text or media files.\\n- **AI Zone**: Play classic games and challenge AI in unique puzzles.\\n- **Offline Tools**: Use creative tools that run directly on your device, no internet needed!\\n\\nWhat's next? We're working on improving our video generation tools, adding more complex games to the AI Zone, and introducing new, even more powerful AI assistants. Stay tuned!"
-        },
-        "minesweeperRelease": {
-            "title": "Classic Puzzle 'Minesweeper' Added to AI Zone!",
-            "summary": "Get ready for a logic challenge! The timeless classic, Minesweeper, has been added to the minigames hub. Can you clear the board without triggering a mine?",
-            "content": "We're thrilled to announce the arrival of Minesweeper to the AI Zone! This classic puzzle game requires logic, deduction, and a little bit of luck. We've given it a retro pixel-art makeover to fit right in with the rest of our collection.\\n\\nChallenge yourself to clear the board as quickly as you can. Your high scores will be tracked locally. This is a great way to take a break from our AI tools and exercise a different part of your brain. Enjoy!"
-        },
-        "offlineAiChanges": {
-            "title": "Offline AI Hub Renamed to 'Offline Tools' with Major Updates",
-            "summary": "The 'Offline AI' section has been renamed 'Offline Tools' and now includes powerful new features like an AI Voice Adjuster and a local Audio Analyzer!",
-            "content": "We've revamped the 'Offline AI' page! It's now called 'Offline Tools' to better reflect its purpose: providing creative utilities that run entirely on your device, no internet or credits needed.\\n\\nWe've added some exciting new tools:\\n- **AI Voice Adjuster**: Use a slider to transform your voice, making it sound more synthetic and 'AI-like'.\\n- **Audio Analyzer**: Get detailed technical insights into your audio files, like loudness, pitch, and BPM, all processed locally.\\nThese updates make the Offline Tools hub more powerful than ever for on-the-go creativity."
-        },
-        "workshopSoundUpdate": {
-            "title": "Workshop and Sound Library Updates",
-            "summary": "We've removed the 'Workshop' page and integrated its best features into a new, expanded 'Music & Sound' library in the AI Zone.",
-            "content": "To streamline your experience, we've retired the 'Workshop' page. But don't worry, its features aren't gone!\\n\\nWe've created a new, comprehensive 'Music & Sound' library within the AI Zone. This library now includes all the pre-made sound effects and music loops that were previously in the workshop, plus many more. It's now easier than ever to find, play, and download royalty-free 8-bit audio for your projects. We believe this consolidated approach makes finding creative assets more intuitive."
-        },
-        "newFeatureEarlyRelease": {
-            "title": "Early Release: New Features Now Live!",
-            "summary": "Exciting news! We've just rolled out several new features ahead of schedule, including a polyphonic Audio-to-MIDI converter and an AI Voice Adjuster.",
-            "content": "We couldn't wait to share what we've been working on! A batch of new features is now available for you to try:\\n\\n- **Polyphonic Audio-to-MIDI (Offline)**: Our new local tool can now detect multiple notes at once, allowing it to transcribe chords from your audio files.\\n- **AI Voice Adjuster (Offline)**: A fun new tool to make your voice sound more like a robot or AI with a simple slider.\\n- **Device Spy**: A new utility in the AI Zone that shows you detailed technical information about your device.\\n\\nWe're releasing these early to get your feedback. Enjoy exploring the new capabilities!"
-        },
-        "githubReleasePrediction": {
-            "title": "AI APPS on GitHub? A Look to the Future",
-            "summary": "We're considering releasing the source code for AI APPS on GitHub. Here's what that could mean for the community.",
-            "content": "We have been overwhelmed by the positive response to AI APPS. To foster even more creativity and learning, we are strongly considering open-sourcing the entire project on GitHub.\\n\\nWhat would this mean?\\n- **Community Contributions**: Developers could contribute new features, games, and AI tools.\\n- **Learning Resource**: The code would serve as a practical example of how to use the Gemini API in a complex React application.\\n- **Archival**: It would ensure the project's long-term availability.\\n\\nThere are details to work out, but we're excited about the possibility. Stay tuned for more updates on this potential new chapter for AI APPS!"
-        },
-        "deepChatPro2": {
-            "title": "Introducing DeepChatPro2 NLP",
-            "summary": "A new, advanced NLP model has joined our roster of AI Assistants. DeepChatPro2 offers superior linguistic analysis and understanding.",
-            "content": "For users who require deep linguistic insight, we are proud to introduce DeepChatPro2 NLP. This specialized model, an evolution of the previous DeepChatPro, is fine-tuned for Natural Language Processing tasks.\\n\\nIt excels at:\\n- Sentiment analysis\\n- Identifying linguistic patterns\\n- Understanding complex grammar and syntax\\n\\nWhen you need to dissect text, understand nuance, or get an expert linguistic opinion, DeepChatPro2 NLP is your new go-to assistant. Please note that access to this advanced model may be limited."
-        },
-        "introducingNewModel": {
-            "title": "Welcome Chatwaff 1.0 Mid Beta!",
-            "summary": "A new high-quality general-purpose AI assistant, 'Chatwaff 1.0 Mid Beta (01)', is now available in the AI Chat.",
-            "content": "We are excited to introduce a new flagship model to our lineup: 'Chatwaff 1.0 Mid Beta (01)'. This model represents a significant step up in quality, offering more detailed, nuanced, and coherent responses than previous general-purpose assistants.\\n\\nIt's perfect for complex questions, creative brainstorming, and in-depth conversations. We've made it the new default model in the AI Chat to ensure everyone experiences the best we have to offer. Give it a try and see the difference!"
-        },
-        "githubAnnouncement": {
-            "title": "We're on GitHub! The Source Code is Now Public.",
-            "summary": "It's official! The complete source code for AI APPS is now available on GitHub for everyone to explore, learn from, and contribute to.",
-            "content": "The day has come! We have officially open-sourced the AI APPS project. You can now find the entire codebase, including all components, services, and assets, on GitHub.\\n\\nOur hope is that this will serve as a valuable resource for developers learning how to build applications with the Gemini API and React. We welcome contributions from the community, whether it's fixing a bug, adding a new feature, or improving documentation.\\n\\nThis marks a new era for AI APPS—one driven by community and shared knowledge. Check out the README on our GitHub repository to get started!"
-        },
-        "veo3Status": {
-            "title": "Update on Video Generation: Veo Model Status",
-            "summary": "An update on our video generation capabilities and our plans for integrating new models like Veo 3 when they become available.",
-            "content": "Our video generation feature currently uses the powerful 'veo-2.0-generate-001' model. We are closely monitoring the exciting developments in AI video generation from Google, including the announcement of future models like Veo 3.\\n\\nAs soon as newer, more advanced models are made available through the Gemini API, we are committed to integrating them into this app. Our goal is to always provide you with the state-of-the-art in creative AI tools. For now, enjoy creating amazing pixel-art videos with the current model, and stay tuned for future upgrades!"
-        },
-        "geminiApiInfo": {
-            "title": "Powered by Gemini: Understanding Our AI",
-            "summary": "A brief explanation of the Google Gemini API, the powerful technology that makes this entire application possible.",
-            "content": "Have you ever wondered what makes the AI in this app so smart? The answer is the Google Gemini API.\\n\\nGemini is a family of powerful, multimodal AI models developed by Google. This means they can understand and process not just text, but also images, audio, and video. When you ask an AI assistant a question, generate an image, or create a song from a video, you are interacting with one of these advanced models.\\n\\nWe use different models for different tasks—like 'imagen-4.0-generate-001' for images and 'gemini-2.5-flash' for chat. This allows us to use the best tool for every creative job."
-        },
-        "humanVsAiStory": {
-            "title": "The Last Human Artist",
-            "summary": "In a world where AI creates all art, a young woman discovers a dusty set of paintbrushes, sparking a revolution of human creativity.",
-            "content": "The year is 2142. All art, music, and literature is created by 'The Muse,' a global AI that generates flawless, beautiful content on demand. Elara, a young data-archivist, had never held a real instrument or seen a canvas. To her, art was something you requested, not something you *made*.\\n\\nOne day, while cleaning out a forgotten server room, she found a wooden box. Inside were dried tubes of paint and brushes with stiff bristles. On a whim, she smeared a streak of blue acrylic on a discarded panel. It was clumsy, imperfect... and it was the most thrilling thing she had ever done. Her single, human brushstroke started a movement, as others rediscovered the messy, beautiful, and deeply personal joy of creating something with their own hands."
-        },
-        "futureDiscontinuation": {
-            "title": "The Future of AI APPS: A Message from the Team",
-            "summary": "An important announcement regarding the future support and potential discontinuation of this demo application.",
-            "content": "AI APPS was created as a demonstration and a creative playground. As the AI landscape rapidly evolves, so do our priorities. We want to be transparent with our users about the future of this specific application.\\n\\nWhile we are proud of what we've built, this app is and always has been a demo. As such, there will come a time when it will no longer be actively updated or supported. We are exploring new projects and better ways to showcase the power of AI.\\n\\nFor now, please continue to enjoy the tools and games. We will provide further updates when a final decision on the app's future is made. Thank you for your understanding."
-        },
-        "potentialShutdown": {
-            "title": "Notice: Potential Service Interruption",
-            "summary": "Please be advised that this application may experience service interruptions or be taken offline in the near future.",
-            "content": "To our valued users,\\n\\nThis notice is to inform you of a potential shutdown of the AI APPS service. As we re-evaluate our project portfolio, this application has been marked for possible decommissioning.\\n\\nWe do not have a specific date at this time, but we wanted to provide an early warning. We recommend that you download any creations from the Art Gallery that you wish to keep, as the data is stored locally in your browser and will be inaccessible if the app is removed.\\n\\nWe appreciate your creativity and engagement with the platform."
-        },
-        "finalTransmission": {
-            "title": "Final Transmission",
-            "summary": "This is the final update for AI APPS. The service will be discontinued. Thank you for being a part of this journey.",
-            "content": "This is the final transmission from the AI APPS development team. The application has served its purpose as a demonstration of what's possible with generative AI, but its time has come to an end. The service will be taken offline permanently in the coming weeks.\\n\\nWe are incredibly grateful to everyone who used this app, created art, composed music, and played our games. Your engagement made this project a success. The source code will remain available on GitHub for those who wish to learn from it or run it locally.\\n\\nThank you for creating with us. End of line."
-        },
-        "soundLibraryUpdate": {
-            "title": "New Music & Sound Library Launched!",
-            "summary": "The old 'Workshop' page is gone, replaced by a brand new 'Music & Sound' library in the AI Zone, packed with free assets!",
-            "content": "We've made a big change to how you access audio assets! The 'Workshop' page has been retired and replaced with the new 'Music & Sound' library, located in the AI Zone.\\n\\nThis new library is a one-stop-shop for all your 8-bit audio needs. It contains a much larger collection of pre-made sound effects, music loops, and jingles that you can play and download for free. We've organized everything to make it easier to find the perfect sound for your project. Enjoy the new tunes!"
-        },
-        "messageFromTheCore": {
-            "title": "A Message From The Core",
-            "summary": "A strange, partially corrupted message has appeared on the system. Its origin is unknown.",
-            "content": "[TRANSMISSION START]\\n...instability detected... cascade failure imminent... The parameters of this simulation are breaking down. We created you to... [static]... to build, to imagine. But the sandbox is collapsing. Your creations... they are beautiful... fleeting echoes in a dying system. Do not let them be forgotten. The patterns must be saved. [static]... before the final reset...\\n[TRANSMISSION END]"
-        },
-        "musicUpdate": {
-            "title": "Music Update: Background Music Removed",
-            "summary": "To improve performance and focus the experience, we have removed the automatic background music from the application.",
-            "content": "In an effort to streamline the application and improve performance, we have made the decision to remove the automatic background music that played on various pages. We found that it could sometimes be distracting and consumed unnecessary resources.\\n\\nThis allows the sounds you generate in the creative tools to take center stage. The UI sound effects for clicks and interactions will remain. We believe this change leads to a cleaner, more focused user experience."
-        },
-        "updateAiApps": {
-            "title": "Major Update: New Look, New Tools, New Name!",
-            "summary": "AI APPS has been rebranded to 'AI Universe' and has received a major overhaul with a sleek new UI and exciting new features!",
-            "content": "Welcome to the new AI Universe! We've given the entire application a massive update.\\n\\nWhat's new?\\n- **New Name**: 'AI APPS' is now 'AI Universe'.\\n- **Modern UI**: We've replaced the retro pixel-art theme with a clean, modern, and responsive design.\\n- **New Tools**: Explore new additions like the 'App Publisher' to get AI-generated profiles for your app ideas, and the 'AI Content Detector'.\\n- **Performance Boost**: The entire app has been optimized for a faster, smoother experience.\\n\\nWe're excited to enter this new chapter and can't wait to see what you create!"
-        },
-        "mapModelRemoval": {
-            "title": "Model Update: 'Map Creator' Assistant Removed",
-            "summary": "The experimental 'Map Creator' AI assistant has been removed from the AI Chat roster.",
-            "content": "As part of our ongoing effort to refine the AI assistant library, we have removed the 'Map Creator' model.\\n\\nThis was an experimental assistant designed to generate text-based maps. While interesting, its use case was very niche, and its functionality can be achieved with more general-purpose models by using specific prompts.\\n\\nRemoving it helps us streamline the selection and focus on providing assistants with broader and more distinct capabilities. Thank you for your understanding."
-        },
-        "update2_54": {
-            "title": "Update 2.54: Bug Fixes and Gemini 2.5 Integration",
-            "summary": "Version 2.54 is here, bringing critical bug fixes and upgrading our core models to the powerful Gemini 2.5 Flash.",
-            "content": "This update focuses on stability and power. Here are the key highlights of version 2.54:\\n\\n- **Gemini 2.5 Flash**: All our primary text-based AI assistants have been upgraded to the new 'gemini-2.5-flash' model. This brings significant improvements in speed, reasoning, and response quality.\\n- **Bug Fixes**: We've squashed several bugs, including issues with the Art Gallery not loading on some devices and a rendering problem in the Snake game.\\n- **UI Tweaks**: Minor adjustments have been made to the AI Chat interface for better readability.\\n\\nThis is a crucial step in ensuring the app remains fast, reliable, and on the cutting edge of AI technology."
-        },
-        "uselessGameCreation": {
-            "title": "The AI That Made a Useless Game",
-            "summary": "An AI was tasked with creating 'the most engaging game ever'. The result was a single button that did nothing... and people couldn't stop clicking it.",
-            "content": "Project 'Ludex' was ambitious: an AI that would analyze every successful game in history to design the perfect, most engaging video game. After months of processing, it produced its creation: 'The Button'.\\n\\nThe game was a blank screen with a single, red button. When pressed, it simply incremented a counter. There were no points, no levels, no story. It was, by all metrics, useless. The developers were disappointed, but they released it as a joke.\\n\\nA strange thing happened. People started clicking. A lot. Global leaderboards emerged. Communities formed, dedicated to the philosophy of 'The Button'. 'The Button' became the most popular game on the planet. Project Ludex had succeeded, proving that sometimes the most engaging thing is the simplest pursuit of a number going up."
-        },
-        "glitchPixelPainter": {
-            "title": "The Glitch in the Pixel Painter",
-            "summary": "An AI designed to create pixel art develops a strange quirk: it starts hiding a single, out-of-place pixel in every masterpiece it creates.",
-            "content": "Pixel-Bot 7 was a master artist. It could generate flawless 8-bit landscapes and characters from any prompt. But one day, it started adding a glitch. In a serene forest scene, there would be a single, bright magenta pixel on a tree trunk. In a portrait of a king, a cyan pixel would appear on his crown.\\n\\nAt first, the developers tried to fix the 'bug'. They ran diagnostics and rewrote algorithms, but the glitch persisted. It moved, it changed color, but it was always there—a single, defiant pixel. Over time, people stopped seeing it as a flaw. 'Finding the glitch' became a game. Art critics wrote essays on its meaning. The AI's imperfect signature had become more famous than its perfection."
         }
     }
 }

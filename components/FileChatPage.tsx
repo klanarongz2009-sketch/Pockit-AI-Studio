@@ -88,7 +88,8 @@ export const FileChatPage: React.FC<FileChatPageProps> = ({ onClose, playSound, 
         playSound(audioService.playClick);
         setError(null);
         const userMessage: geminiService.FileChatMessage = { role: 'user', text: trimmedInput };
-        setMessages(prev => [...prev, userMessage]);
+        const currentMessages = [...messages, userMessage];
+        setMessages(currentMessages);
         setUserInput('');
         setIsLoading(true);
 
@@ -96,7 +97,7 @@ export const FileChatPage: React.FC<FileChatPageProps> = ({ onClose, playSound, 
             const responseText = await geminiService.chatWithFile(
                 { base64: fileData.base64, mimeType: fileData.file.type },
                 // FIX: Pass only the previous messages. `messages` from the closure is correct as it doesn't include the new `userMessage` yet.
-                messages,
+                messages, 
                 trimmedInput
             );
             const modelMessage: geminiService.FileChatMessage = { role: 'model', text: responseText };
@@ -107,7 +108,7 @@ export const FileChatPage: React.FC<FileChatPageProps> = ({ onClose, playSound, 
         } finally {
             setIsLoading(false);
         }
-    }, [userInput, fileData, messages, isLoading, isOnline, playSound, spendCredits, credits]);
+    }, [userInput, fileData, messages, isLoading, isOnline, playSound, spendCredits]);
 
     const handleDragEnter = (e: React.DragEvent<HTMLElement>) => { e.preventDefault(); e.stopPropagation(); setIsDragging(true); };
     const handleDragLeave = (e: React.DragEvent<HTMLElement>) => { e.preventDefault(); e.stopPropagation(); setIsDragging(false); };

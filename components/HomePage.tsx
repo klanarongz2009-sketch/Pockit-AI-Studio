@@ -65,7 +65,7 @@ export const HomePage: React.FC<HomePageProps> = ({ onSetPage, onOpenSettings })
             </div>
 
              <h1 className="text-3xl sm:text-5xl text-brand-primary font-press-start text-center mb-10">
-                {t('header.title')} Home
+                {t('header.title')} {t('sidebar.home')}
             </h1>
             <div className="w-full max-w-4xl grid grid-cols-2 sm:grid-cols-3 gap-4 sm:gap-6">
                 {apps.map(app => (
