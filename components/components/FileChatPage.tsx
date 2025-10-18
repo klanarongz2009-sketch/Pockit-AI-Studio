@@ -1,3 +1,6 @@
+
+
+
 import React, { useState, useRef, useCallback, useEffect } from 'react';
 import * as geminiService from '../services/geminiService';
 import * as audioService from '../services/audioService';
@@ -32,7 +35,7 @@ export const FileChatPage: React.FC<FileChatPageProps> = ({ onClose, playSound, 
     
     const fileInputRef = useRef<HTMLInputElement>(null);
     const messagesEndRef = useRef<HTMLDivElement>(null);
-    const { spendCredits, credits } = useCredits();
+    const { spendCredits } = useCredits();
 
     useEffect(() => {
         messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -79,7 +82,7 @@ export const FileChatPage: React.FC<FileChatPageProps> = ({ onClose, playSound, 
         if (!trimmedInput || !fileData || isLoading || !isOnline) return;
 
         const cost = 5; // Example cost per message
-        // FIX: spendCredits is async and needs to be awaited
+        // FIX: spendCredits is now async and must be awaited.
         const canSpend = await spendCredits(cost);
         if (!canSpend) {
             setError(`เครดิตไม่เพียงพอ! ต้องการ ${cost} เครดิต`);
@@ -109,7 +112,7 @@ export const FileChatPage: React.FC<FileChatPageProps> = ({ onClose, playSound, 
         } finally {
             setIsLoading(false);
         }
-    }, [userInput, fileData, messages, isLoading, isOnline, playSound, spendCredits, credits]);
+    }, [userInput, fileData, messages, isLoading, isOnline, playSound, spendCredits]);
 
     const handleDragEnter = (e: React.DragEvent<HTMLElement>) => { e.preventDefault(); e.stopPropagation(); setIsDragging(true); };
     const handleDragLeave = (e: React.DragEvent<HTMLElement>) => { e.preventDefault(); e.stopPropagation(); setIsDragging(false); };
@@ -127,7 +130,7 @@ export const FileChatPage: React.FC<FileChatPageProps> = ({ onClose, playSound, 
              <input type="file" ref={fileInputRef} onChange={handleFileChange} accept="image/*,audio/*,video/*,text/*,.pdf" className="hidden" aria-hidden="true" />
             <main 
                 id="main-content"
-                className="w-full max-w-4xl flex-grow flex flex-col items-center gap-4 font-sans relative"
+                className="w-full max-w-4xl flex-grow flex flex-col items-center gap-4 font-sans"
                 onDragEnter={handleDragEnter}
                 onDragOver={handleDragOver}
                 onDragLeave={handleDragLeave}

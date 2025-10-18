@@ -20,7 +20,7 @@ export const CREDIT_COSTS = {
   PLATFORMER_CONTINUE: 5,
   AUDIO_TO_MIDI: 20,
   AI_ORACLE: 5,
-  SPIN_WHEEL: 5,
+  SPIN_WHEEL: 10,
   APP_PUBLISHER: 20,
 };
 
@@ -30,29 +30,37 @@ interface CreditContextType {
     credits: number;
     loading: boolean;
     lastRefresh: string | null;
-    spendCredits: (amount: number) => boolean;
-    addCredits: (amount: number) => void;
+    spendCredits: (amount: number) => Promise<boolean>;
+    addCredits: (amount: number) => Promise<void>;
 }
 
 const CreditContext = createContext<CreditContextType | undefined>(undefined);
 
 export const CreditProvider: FC<{ children: ReactNode }> = ({ children }) => {
-    const [credits, setCredits] = useState(() => {
-        const savedCredits = preferenceService.getPreference('credits', null);
-        return savedCredits === null ? INITIAL_CREDITS : savedCredits;
-    });
-    const [loading, setLoading] = useState(false);
+    // FIX: Initialize state with a default number, not a promise.
+    const [credits, setCredits] = useState(INITIAL_CREDITS);
+    const [loading, setLoading] = useState(true);
     const [lastRefresh, setLastRefresh] = useState<string | null>(new Date().toDateString());
     
-    // One-time setup: if 'credits' is not in storage, set it.
+    // FIX: Load preferences asynchronously in a useEffect.
     useEffect(() => {
-        if (preferenceService.getPreference('credits', null) === null) {
-            preferenceService.setPreference('credits', INITIAL_CREDITS);
-        }
+        const loadInitialCredits = async () => {
+            const savedCredits = await preferenceService.getPreference('credits', null);
+            if (savedCredits === null) {
+                await preferenceService.setPreference('credits', INITIAL_CREDITS);
+                setCredits(INITIAL_CREDITS);
+            } else {
+                setCredits(savedCredits);
+            }
+            setLoading(false);
+        };
+        loadInitialCredits();
     }, []);
 
-    const spendCredits = useCallback((amount: number): boolean => {
-        if (amount > 0 && preferenceService.getPreference('confirmCreditSpend', false)) {
+    // FIX: Make spendCredits async and return Promise<boolean>
+    const spendCredits = useCallback(async (amount: number): Promise<boolean> => {
+        const confirm = await preferenceService.getPreference('confirmCreditSpend', false);
+        if (amount > 0 && confirm) {
             if (!window.confirm(`การกระทำนี้จะใช้ ${amount} เครดิต คุณต้องการดำเนินการต่อหรือไม่?`)) {
                 return false;
             }
@@ -64,17 +72,18 @@ export const CreditProvider: FC<{ children: ReactNode }> = ({ children }) => {
 
         const newCredits = credits - amount;
         setCredits(newCredits);
-        preferenceService.setPreference('credits', newCredits);
+        await preferenceService.setPreference('credits', newCredits);
         if (amount > 0) {
             audioService.playCreditSpend();
         }
         return true;
     }, [credits]);
 
-    const addCredits = useCallback((amount: number): void => {
+    // FIX: Make addCredits async and return Promise<void>
+    const addCredits = useCallback(async (amount: number): Promise<void> => {
         const newCredits = Math.floor(credits + amount);
         setCredits(newCredits);
-        preferenceService.setPreference('credits', newCredits);
+        await preferenceService.setPreference('credits', newCredits);
         if (amount > 0) {
             audioService.playCreditAdd();
         }

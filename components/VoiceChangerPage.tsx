@@ -1,3 +1,6 @@
+
+
+
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import * as audioService from '../services/audioService';
 import * as preferenceService from '../services/preferenceService';
@@ -234,16 +237,24 @@ export const VoiceChangerPage: React.FC<VoiceChangerPageProps> = ({ playSound, o
     const [isDownloading, setIsDownloading] = useState<boolean>(false);
     
     const allOptions = voiceSections.flatMap(s => s.options);
-    const [selectedEffect, setSelectedEffect] = useState<VoiceOption>(() => {
-        const savedEffect = preferenceService.getPreference('voiceChangerEffect', allOptions[0].effect);
-        return allOptions.find(opt => opt.effect === savedEffect) || allOptions[0];
-    });
+    // FIX: Initialize with a default value. `getPreference` is async and cannot be used here directly.
+    const [selectedEffect, setSelectedEffect] = useState<VoiceOption>(allOptions[0]);
     const [effectParams, setEffectParams] = useState<EffectParameters>({});
     const [isDragging, setIsDragging] = useState<boolean>(false);
 
     const fileInputRef = useRef<HTMLInputElement>(null);
     const activeAudioSourceRef = useRef<AudioBufferSourceNode | null>(null);
     const { credits, spendCredits, addCredits } = useCredits();
+
+    // FIX: Asynchronously load the saved effect preference on component mount.
+    useEffect(() => {
+        const loadInitialEffect = async () => {
+            const savedEffectName = await preferenceService.getPreference('voiceChangerEffect', allOptions[0].effect);
+            const foundEffect = allOptions.find(opt => opt.effect === savedEffectName) || allOptions[0];
+            setSelectedEffect(foundEffect);
+        };
+        loadInitialEffect();
+    }, []); // allOptions is stable, so empty dependency array is okay.
 
     // Effect to reset params when effect changes and save the new effect
     useEffect(() => {
@@ -252,6 +263,7 @@ export const VoiceChangerPage: React.FC<VoiceChangerPageProps> = ({ playSound, o
             (defaultParams as any)[control.param] = control.defaultValue;
         });
         setEffectParams(defaultParams);
+        // FIX: setPreference is now async
         preferenceService.setPreference('voiceChangerEffect', selectedEffect.effect);
     }, [selectedEffect]);
 
@@ -348,7 +360,9 @@ export const VoiceChangerPage: React.FC<VoiceChangerPageProps> = ({ playSound, o
             ? CREDIT_COSTS.AUDIO_TO_MIDI 
             : CREDIT_COSTS.VOICE_EFFECT_AI;
 
-        if (!spendCredits(cost)) {
+        // FIX: spendCredits is now async
+        const canSpend = await spendCredits(cost);
+        if (!canSpend) {
             setError(`เครดิตไม่เพียงพอ! ต้องการ ${cost} เครดิต แต่คุณมี ${credits.toFixed(0)} เครดิต`);
             playSound(audioService.playError);
             return;
@@ -379,7 +393,9 @@ export const VoiceChangerPage: React.FC<VoiceChangerPageProps> = ({ playSound, o
                 setProcessedMidi(midiNotes);
                 playSound(audioService.playSuccess);
                 
-                if (preferenceService.getPreference('autoPlaySounds', true)) {
+                // FIX: getPreference is now async
+                const autoPlay = await preferenceService.getPreference('autoPlaySounds', true);
+                if (autoPlay) {
                     setIsPlayingMidi(true);
                     audioService.playMidi(midiNotes, () => {
                         setIsPlayingMidi(false);
@@ -391,7 +407,9 @@ export const VoiceChangerPage: React.FC<VoiceChangerPageProps> = ({ playSound, o
                  setProcessedAudio(audioBuffer);
                  playSound(audioService.playSuccess);
                  
-                 if (preferenceService.getPreference('autoPlaySounds', true)) {
+                 // FIX: getPreference is now async
+                 const autoPlay = await preferenceService.getPreference('autoPlaySounds', true);
+                 if (autoPlay) {
                     const source = audioService.playAudioBuffer(audioBuffer);
                     activeAudioSourceRef.current = source;
                     setIsPlaying(true);
@@ -404,7 +422,7 @@ export const VoiceChangerPage: React.FC<VoiceChangerPageProps> = ({ playSound, o
 
         } catch (err) {
             playSound(audioService.playError);
-            addCredits(cost); // Refund credits on failure
+            await addCredits(cost); // Refund credits on failure
             const errorMessage = err instanceof Error ? err.message : 'เกิดข้อผิดพลาดในการประมวลผลเสียง';
             setError(errorMessage);
         } finally {

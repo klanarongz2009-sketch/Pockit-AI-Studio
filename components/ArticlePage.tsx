@@ -19,6 +19,24 @@ export interface Article {
 
 const articlesData: Article[] = [
     {
+        id: 'veo31-status-update',
+        titleKey: 'articles.veo31StatusUpdate.title',
+        summaryKey: 'articles.veo31StatusUpdate.summary',
+        contentKey: 'articles.veo31StatusUpdate.content',
+        author: 'AI APPS Team',
+        category: 'article',
+        voice: 'Fenrir',
+    },
+    {
+        id: 'sora2-story',
+        titleKey: 'articles.sora2Story.title',
+        summaryKey: 'articles.sora2Story.summary',
+        contentKey: 'articles.sora2Story.content',
+        author: 'The Storyteller AI',
+        category: 'story',
+        voice: 'Kore',
+    },
+    {
         id: 'github-reupload',
         titleKey: 'articles.githubReupload.title',
         summaryKey: 'articles.githubReupload.summary',

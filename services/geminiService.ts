@@ -1,3 +1,5 @@
+
+
 import { GoogleGenAI, Type, Chat, Modality, Content, GenerateContentResponse } from "@google/genai";
 import * as preferenceService from './preferenceService';
 import { AiModel } from './aiModels';
@@ -359,7 +361,7 @@ export async function generateVideo(prompt: string, image?: { imageBytes: string
     await throttleVideoGeneration();
     try {
         return await ai.models.generateVideos({
-            model: 'veo-2.0-generate-001',
+            model: 'veo-3.1-fast-generate-preview',
             prompt,
             image,
             config: { numberOfVideos: 1 }
@@ -574,7 +576,7 @@ export async function enhanceImageQuality(base64Data: string, mimeType: string):
                 ]
             },
             config: {
-                responseModalities: [Modality.IMAGE, Modality.TEXT],
+                responseModalities: [Modality.IMAGE],
             },
         });
         const imagePart = response.candidates?.[0]?.content?.parts.find(p => p.inlineData);

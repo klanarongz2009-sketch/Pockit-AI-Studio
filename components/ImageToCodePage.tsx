@@ -21,6 +21,7 @@ export const ImageToCodePage: React.FC<ImageToCodePageProps> = ({ onClose, playS
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [generatedCode, setGeneratedCode] = useState<string | null>(null);
+    const [isDragging, setIsDragging] = useState<boolean>(false);
 
     const fileInputRef = useRef<HTMLInputElement>(null);
     const { credits, spendCredits } = useCredits();
@@ -37,8 +38,7 @@ export const ImageToCodePage: React.FC<ImageToCodePageProps> = ({ onClose, playS
         }
     };
 
-    const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
-        const file = event.target.files?.[0];
+    const processFile = async (file: File | undefined) => {
         if (!file || !file.type.startsWith('image/')) {
             setError("Please select an image file.");
             return;
@@ -59,6 +59,10 @@ export const ImageToCodePage: React.FC<ImageToCodePageProps> = ({ onClose, playS
             setError("Failed to process the file.");
             playSound(audioService.playError);
         }
+    };
+
+    const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
+        processFile(event.target.files?.[0]);
     };
 
     const handleUploadClick = useCallback(() => {
@@ -91,11 +95,32 @@ export const ImageToCodePage: React.FC<ImageToCodePageProps> = ({ onClose, playS
         }
     }, [uploadedFile, isLoading, isOnline, playSound, spendCredits, credits]);
 
+    const handleDragEnter = (e: React.DragEvent<HTMLElement>) => { e.preventDefault(); e.stopPropagation(); setIsDragging(true); };
+    const handleDragLeave = (e: React.DragEvent<HTMLElement>) => { e.preventDefault(); e.stopPropagation(); setIsDragging(false); };
+    const handleDragOver = (e: React.DragEvent<HTMLElement>) => { e.preventDefault(); e.stopPropagation(); };
+    const handleDrop = (e: React.DragEvent<HTMLElement>) => {
+        e.preventDefault(); e.stopPropagation(); setIsDragging(false);
+        if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+            processFile(e.dataTransfer.files[0]);
+            e.dataTransfer.clearData();
+        }
+    };
+
     return (
         <PageWrapper>
             <input type="file" ref={fileInputRef} onChange={handleFileChange} accept="image/*" className="hidden" aria-hidden="true" />
             <PageHeader title="Image to Code" onBack={onClose} />
-            <main id="main-content" className="w-full max-w-4xl flex-grow flex flex-col md:flex-row items-stretch gap-6 font-sans p-2">
+            <main 
+                id="main-content" 
+                className="w-full max-w-4xl flex-grow flex flex-col md:flex-row items-stretch gap-6 font-sans p-2 relative"
+                onDragEnter={handleDragEnter} onDragOver={handleDragOver} onDragLeave={handleDragLeave} onDrop={handleDrop}
+            >
+                {isDragging && (
+                    <div className="absolute inset-0 bg-black/80 border-4 border-dashed border-brand-yellow z-10 flex flex-col items-center justify-center pointer-events-none">
+                        <UploadIcon className="w-12 h-12 text-brand-yellow" />
+                        <p className="font-press-start text-xl text-brand-yellow mt-4">Drop your image here</p>
+                    </div>
+                )}
                 {/* Left Panel: Upload & Controls */}
                 <div className="w-full md:w-1/3 flex flex-col gap-4">
                     <div className="flex-grow aspect-square bg-black/50 border-4 border-brand-light flex items-center justify-center shadow-pixel p-2">

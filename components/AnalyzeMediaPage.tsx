@@ -27,6 +27,7 @@ export const AnalyzeMediaPage: React.FC<AnalyzeMediaPageProps> = ({ onClose, pla
     const [error, setError] = useState<string | null>(null);
     const [activeTool, setActiveTool] = useState<AnalysisTool | null>(null);
     const [result, setResult] = useState<AnalysisResult>(null);
+    const [isDragging, setIsDragging] = useState<boolean>(false);
 
     // Compression settings
     const [compressQuality, setCompressQuality] = useState(0.8);
@@ -50,10 +51,9 @@ export const AnalyzeMediaPage: React.FC<AnalyzeMediaPageProps> = ({ onClose, pla
             if (fileInputRef.current) fileInputRef.current.value = "";
         }
     };
-
-    const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-        const file = event.target.files?.[0];
-        if (!file) return;
+    
+    const processFile = (file: File | undefined) => {
+         if (!file) return;
 
         if (!file.type.startsWith('video/') && !file.type.startsWith('image/') && !file.type.startsWith('audio/')) {
             setError('กรุณาเลือกไฟล์วิดีโอ, รูปภาพ, หรือไฟล์เสียง');
@@ -63,6 +63,10 @@ export const AnalyzeMediaPage: React.FC<AnalyzeMediaPageProps> = ({ onClose, pla
         setUploadedFile(file);
         setPreviewUrl(URL.createObjectURL(file));
         playSound(audioService.playSelection);
+    };
+
+    const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+        processFile(event.target.files?.[0]);
     };
 
     const handleUploadClick = useCallback(() => {
@@ -135,6 +139,17 @@ export const AnalyzeMediaPage: React.FC<AnalyzeMediaPageProps> = ({ onClose, pla
             setIsLoading(false);
         }
     };
+
+    const handleDragEnter = (e: React.DragEvent<HTMLElement>) => { e.preventDefault(); e.stopPropagation(); setIsDragging(true); };
+    const handleDragLeave = (e: React.DragEvent<HTMLElement>) => { e.preventDefault(); e.stopPropagation(); setIsDragging(false); };
+    const handleDragOver = (e: React.DragEvent<HTMLElement>) => { e.preventDefault(); e.stopPropagation(); };
+    const handleDrop = (e: React.DragEvent<HTMLElement>) => {
+        e.preventDefault(); e.stopPropagation(); setIsDragging(false);
+        if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+            processFile(e.dataTransfer.files[0]);
+            e.dataTransfer.clearData();
+        }
+    };
     
     const ToolButton: React.FC<{
         label: string;
@@ -162,7 +177,17 @@ export const AnalyzeMediaPage: React.FC<AnalyzeMediaPageProps> = ({ onClose, pla
         <PageWrapper className="justify-start">
             <input type="file" ref={fileInputRef} onChange={handleFileChange} accept="video/*,image/*,audio/*" className="hidden" aria-hidden="true" />
             <PageHeader title="AI Media Analyzer" onBack={onClose} />
-            <main id="main-content" className="w-full max-w-2xl flex-grow flex flex-col items-center gap-4 font-sans">
+            <main 
+                id="main-content" 
+                className="w-full max-w-2xl flex-grow flex flex-col items-center gap-4 font-sans relative"
+                onDragEnter={handleDragEnter} onDragOver={handleDragOver} onDragLeave={handleDragLeave} onDrop={handleDrop}
+            >
+                {isDragging && (
+                    <div className="absolute inset-0 bg-black/80 border-4 border-dashed border-brand-yellow z-10 flex flex-col items-center justify-center pointer-events-none">
+                        <UploadIcon className="w-12 h-12 text-brand-yellow" />
+                        <p className="font-press-start text-xl text-brand-yellow mt-4">วางไฟล์ที่นี่</p>
+                    </div>
+                )}
                 <div className="w-full h-auto aspect-video bg-black/50 border-4 border-brand-light flex items-center justify-center shadow-pixel p-2">
                     {!uploadedFile ? (
                         <div className="text-center space-y-4">

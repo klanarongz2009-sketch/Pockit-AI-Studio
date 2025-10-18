@@ -33,6 +33,7 @@ export const MediaToSongPage: React.FC<MediaToSongPageProps> = ({
     const [isLoading, setIsLoading] = useState<boolean>(false);
     const [error, setError] = useState<string | null>(null);
     const [isDownloading, setIsDownloading] = useState<boolean>(false);
+    const [isDragging, setIsDragging] = useState<boolean>(false);
     
     const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -48,8 +49,7 @@ export const MediaToSongPage: React.FC<MediaToSongPageProps> = ({
         }
     };
     
-    const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-        const file = event.target.files?.[0];
+    const processFile = (file: File | undefined) => {
         if (!file) return;
 
         resetState();
@@ -62,6 +62,10 @@ export const MediaToSongPage: React.FC<MediaToSongPageProps> = ({
             setFilePreview(null); // No preview for audio, just show icon
         }
         playSound(audioService.playSelection);
+    };
+
+    const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+        processFile(event.target.files?.[0]);
     };
 
     const handleUploadClick = () => {
@@ -182,6 +186,17 @@ export const MediaToSongPage: React.FC<MediaToSongPageProps> = ({
         return () => window.removeEventListener('keydown', handleKeyDown);
     }, [isLoading, isDownloading, uploadedFile, generatedSong, handleGenerateSong, handlePlaybackToggle, handleDownloadSong]);
 
+    const handleDragEnter = (e: React.DragEvent<HTMLElement>) => { e.preventDefault(); e.stopPropagation(); setIsDragging(true); };
+    const handleDragLeave = (e: React.DragEvent<HTMLElement>) => { e.preventDefault(); e.stopPropagation(); setIsDragging(false); };
+    const handleDragOver = (e: React.DragEvent<HTMLElement>) => { e.preventDefault(); e.stopPropagation(); };
+    const handleDrop = (e: React.DragEvent<HTMLElement>) => {
+        e.preventDefault(); e.stopPropagation(); setIsDragging(false);
+        if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+            processFile(e.dataTransfer.files[0]);
+            e.dataTransfer.clearData();
+        }
+    };
+
 
     return (
         <PageWrapper>
@@ -194,7 +209,20 @@ export const MediaToSongPage: React.FC<MediaToSongPageProps> = ({
                 aria-hidden="true"
             />
             <PageHeader title="แปลงสื่อเป็นเพลง" onBack={handleClose} />
-            <main id="main-content" className="w-full max-w-lg flex flex-col items-center gap-6 font-sans">
+            <main 
+                id="main-content" 
+                className="w-full max-w-lg flex flex-col items-center gap-6 font-sans relative"
+                onDragEnter={handleDragEnter}
+                onDragOver={handleDragOver}
+                onDragLeave={handleDragLeave}
+                onDrop={handleDrop}
+            >
+                {isDragging && (
+                    <div className="absolute inset-0 bg-black/80 border-4 border-dashed border-brand-yellow z-10 flex flex-col items-center justify-center pointer-events-none">
+                        <UploadIcon className="w-12 h-12 text-brand-yellow" />
+                        <p className="font-press-start text-xl text-brand-yellow mt-4">วางไฟล์ที่นี่</p>
+                    </div>
+                )}
                 {!uploadedFile && (
                     <div className="text-center space-y-4">
                         <p className="text-sm text-brand-light/80">

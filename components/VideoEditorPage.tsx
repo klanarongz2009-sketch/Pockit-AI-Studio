@@ -1,3 +1,6 @@
+
+
+
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import * as audioService from '../services/audioService';
 import * as preferenceService from '../services/preferenceService';
@@ -44,8 +47,9 @@ export const VideoEditorPage: React.FC<VideoEditorPageProps> = ({ onClose, playS
     const [error, setError] = useState<string | null>(null);
     const [prompt, setPrompt] = useState('');
     const [addSubs, setAddSubs] = useState(false);
-    const [subtitleLanguage, setSubtitleLanguage] = useState<string>(() => preferenceService.getPreference('videoEditorSubtitleLang', 'en-US'));
-    const [autoDetectLanguage, setAutoDetectLanguage] = useState<boolean>(() => preferenceService.getPreference('videoEditorAutoDetectLang', true));
+    // FIX: `getPreference` is async. Initialize with default and load saved preference in useEffect.
+    const [subtitleLanguage, setSubtitleLanguage] = useState<string>('en-US');
+    const [autoDetectLanguage, setAutoDetectLanguage] = useState<boolean>(true);
     const [isDragging, setIsDragging] = useState<boolean>(false);
 
     const [generatedVideoUrl, setGeneratedVideoUrl] = useState<string | null>(null);
@@ -54,11 +58,24 @@ export const VideoEditorPage: React.FC<VideoEditorPageProps> = ({ onClose, playS
     const fileInputRef = useRef<HTMLInputElement>(null);
     const isAudioFile = uploadedFile?.type.startsWith('audio/') ?? false;
 
+    // FIX: Asynchronously load saved preferences on mount.
     useEffect(() => {
+        const loadPrefs = async () => {
+            const savedLang = await preferenceService.getPreference('videoEditorSubtitleLang', 'en-US');
+            const savedAutoDetect = await preferenceService.getPreference('videoEditorAutoDetectLang', true);
+            setSubtitleLanguage(savedLang);
+            setAutoDetectLanguage(savedAutoDetect);
+        };
+        loadPrefs();
+    }, []);
+
+    useEffect(() => {
+        // FIX: `setPreference` is async.
         preferenceService.setPreference('videoEditorSubtitleLang', subtitleLanguage);
     }, [subtitleLanguage]);
 
     useEffect(() => {
+        // FIX: `setPreference` is async.
         preferenceService.setPreference('videoEditorAutoDetectLang', autoDetectLanguage);
     }, [autoDetectLanguage]);
 

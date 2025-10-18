@@ -10,6 +10,7 @@ import { InfoIcon } from './icons/InfoIcon';
 import { AboutPage } from './AboutPage';
 import { ModelInfoPage } from './ModelInfoPage';
 import { useLanguage } from '../contexts/LanguageContext';
+import { LoadingSpinner } from './LoadingSpinner';
 
 interface SettingsPageProps {
     onClose: () => void;
@@ -28,13 +29,13 @@ const Section: React.FC<{ title: string; children: React.ReactNode; }> = ({ titl
     </section>
 );
 
-const SettingToggle: React.FC<{ label: string; description?: string; isChecked: boolean; onToggle: () => void; }> = ({ label, description, isChecked, onToggle }) => (
+const SettingToggle: React.FC<{ label: string; description?: string; isChecked: boolean; onToggle: () => void; disabled?: boolean; }> = ({ label, description, isChecked, onToggle, disabled }) => (
     <div className="flex items-center justify-between">
         <div>
             <label className="font-press-start" htmlFor={`toggle-${label}`}>{label}</label>
             {description && <p className="text-xs text-brand-light/70">{description}</p>}
         </div>
-        <button id={`toggle-${label}`} onClick={onToggle} className="p-2 border-2 border-border-primary w-20 text-center">
+        <button id={`toggle-${label}`} onClick={onToggle} disabled={disabled} className="p-2 border-2 border-border-primary w-20 text-center disabled:opacity-50">
             {isChecked ? 'ON' : 'OFF'}
         </button>
     </div>
@@ -53,45 +54,84 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({
     const { t } = useLanguage();
     const [isAboutPageOpen, setIsAboutPageOpen] = useState(false);
     const [isModelInfoOpen, setIsModelInfoOpen] = useState(false);
+    const [isLoading, setIsLoading] = useState(true);
 
     // --- State for all new preferences ---
-    const [highContrast, setHighContrast] = useState(() => preferenceService.getPreference('highContrastMode', false));
-    const [chatFontSize, setChatFontSize] = useState(() => preferenceService.getPreference('chatFontSize', 'medium'));
-    const [autoPlaySounds, setAutoPlaySounds] = useState(() => preferenceService.getPreference('autoPlaySounds', true));
-    const [defaultImageMode, setDefaultImageMode] = useState(() => preferenceService.getPreference('imageGeneratorMode', 'image'));
-    const [imageQuality, setImageQuality] = useState(() => preferenceService.getPreference('imageGenerationQuality', 'quality'));
-    const [autoSaveToGallery, setAutoSaveToGallery] = useState(() => preferenceService.getPreference('autoSaveToGallery', false));
-    const [defaultChatModelName, setDefaultChatModelName] = useState(() => preferenceService.getPreference('defaultChatModelName', aiModels[0]?.name || ''));
-    const [saveChatHistory, setSaveChatHistory] = useState(() => preferenceService.getPreference('saveChatHistory', true));
-    const [defaultWebSearch, setDefaultWebSearch] = useState(() => preferenceService.getPreference('defaultWebSearch', false));
-    const [defaultMinigameDifficulty, setDefaultMinigameDifficulty] = useState(() => preferenceService.getPreference('defaultMinigameDifficulty', 'normal'));
-    const [confirmCreditSpend, setConfirmCreditSpend] = useState(() => preferenceService.getPreference('confirmCreditSpend', false));
-    const [defaultTtsVoice, setDefaultTtsVoice] = useState(() => preferenceService.getPreference('textToSpeechVoiceName', 'Zephyr'));
+    // FIX: Initialize all states with default non-promise values.
+    const [highContrast, setHighContrast] = useState(false);
+    const [chatFontSize, setChatFontSize] = useState<preferenceService.Preferences['chatFontSize']>('medium');
+    const [autoPlaySounds, setAutoPlaySounds] = useState(true);
+    const [defaultImageMode, setDefaultImageMode] = useState<preferenceService.Preferences['imageGeneratorMode']>('image');
+    const [imageQuality, setImageQuality] = useState<preferenceService.Preferences['imageGenerationQuality']>('quality');
+    const [autoSaveToGallery, setAutoSaveToGallery] = useState(false);
+    const [defaultChatModelName, setDefaultChatModelName] = useState(aiModels[0]?.name || '');
+    const [saveChatHistory, setSaveChatHistory] = useState(true);
+    const [defaultWebSearch, setDefaultWebSearch] = useState(false);
+    const [defaultMinigameDifficulty, setDefaultMinigameDifficulty] = useState<preferenceService.Preferences['defaultMinigameDifficulty']>('normal');
+    const [confirmCreditSpend, setConfirmCreditSpend] = useState(false);
+    const [defaultTtsVoice, setDefaultTtsVoice] = useState<preferenceService.Preferences['textToSpeechVoiceName']>('Zephyr');
 
-    // --- Effects to save preferences and apply side-effects ---
+    // FIX: Load all preferences asynchronously in a useEffect.
     useEffect(() => {
-        preferenceService.setPreference('highContrastMode', highContrast);
+        const loadSettings = async () => {
+            setIsLoading(true);
+            const [
+                hc, font, autoPlay, imgMode, imgQual, autoSave, chatModel, saveHistory,
+                webSearch, difficulty, confirmSpend, ttsVoice
+            ] = await Promise.all([
+                preferenceService.getPreference('highContrastMode', false),
+                preferenceService.getPreference('chatFontSize', 'medium'),
+                preferenceService.getPreference('autoPlaySounds', true),
+                preferenceService.getPreference('imageGeneratorMode', 'image'),
+                preferenceService.getPreference('imageGenerationQuality', 'quality'),
+                preferenceService.getPreference('autoSaveToGallery', false),
+                preferenceService.getPreference('defaultChatModelName', aiModels[0]?.name || ''),
+                preferenceService.getPreference('saveChatHistory', true),
+                preferenceService.getPreference('defaultWebSearch', false),
+                preferenceService.getPreference('defaultMinigameDifficulty', 'normal'),
+                preferenceService.getPreference('confirmCreditSpend', false),
+                preferenceService.getPreference('textToSpeechVoiceName', 'Zephyr')
+            ]);
+            setHighContrast(hc); setChatFontSize(font); setAutoPlaySounds(autoPlay);
+            setDefaultImageMode(imgMode); setImageQuality(imgQual); setAutoSaveToGallery(autoSave);
+            setDefaultChatModelName(chatModel); setSaveChatHistory(saveHistory); setDefaultWebSearch(webSearch);
+            setDefaultMinigameDifficulty(difficulty); setConfirmCreditSpend(confirmSpend); setDefaultTtsVoice(ttsVoice);
+            setIsLoading(false);
+        };
+        loadSettings();
+    }, [aiModels]);
+    
+    // --- Handlers to save preferences ---
+    const handleToggle = async (
+        key: keyof preferenceService.Preferences,
+        setter: React.Dispatch<React.SetStateAction<boolean>>,
+        currentValue: boolean
+    ) => {
+        playSound(audioService.playToggle);
+        const newValue = !currentValue;
+        setter(newValue);
+        await preferenceService.setPreference(key as any, newValue);
+    };
+
+    const handleSelect = async (
+        key: keyof preferenceService.Preferences,
+        value: any,
+        setter: React.Dispatch<React.SetStateAction<any>>
+    ) => {
+        playSound(audioService.playClick);
+        setter(value);
+        await preferenceService.setPreference(key as any, value);
+    };
+    
+    useEffect(() => {
         document.body.classList.toggle('theme-high-contrast', highContrast);
     }, [highContrast]);
 
-    useEffect(() => { preferenceService.setPreference('chatFontSize', chatFontSize); }, [chatFontSize]);
-    useEffect(() => { preferenceService.setPreference('autoPlaySounds', autoPlaySounds); }, [autoPlaySounds]);
-    useEffect(() => { preferenceService.setPreference('imageGeneratorMode', defaultImageMode); }, [defaultImageMode]);
-    useEffect(() => { preferenceService.setPreference('imageGenerationQuality', imageQuality); }, [imageQuality]);
-    useEffect(() => { preferenceService.setPreference('autoSaveToGallery', autoSaveToGallery); }, [autoSaveToGallery]);
-    useEffect(() => { preferenceService.setPreference('defaultChatModelName', defaultChatModelName); }, [defaultChatModelName]);
-    useEffect(() => { preferenceService.setPreference('saveChatHistory', saveChatHistory); }, [saveChatHistory]);
-    useEffect(() => { preferenceService.setPreference('defaultWebSearch', defaultWebSearch); }, [defaultWebSearch]);
-    useEffect(() => { preferenceService.setPreference('defaultMinigameDifficulty', defaultMinigameDifficulty); }, [defaultMinigameDifficulty]);
-    useEffect(() => { preferenceService.setPreference('confirmCreditSpend', confirmCreditSpend); }, [confirmCreditSpend]);
-    useEffect(() => { preferenceService.setPreference('textToSpeechVoiceName', defaultTtsVoice); }, [defaultTtsVoice]);
-    
-    const handleClearData = () => {
+    const handleClearData = async () => {
         playSound(audioService.playTrash);
-        if (window.confirm('Are you sure you want to clear all application data stored in your browser and reset the app? This cannot be undone.')) {
+        if (window.confirm('Are you sure you want to clear all application data from the cloud and reset the app? This cannot be undone.')) {
             try {
-                localStorage.clear();
-                sessionStorage.clear();
+                await preferenceService.clearAllPreferences();
                 alert('All stored data has been cleared. The app will now reload to its default state.');
                 window.location.reload();
             } catch (e) {
@@ -109,6 +149,17 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({
         return <ModelInfoPage onClose={() => setIsModelInfoOpen(false)} />;
     }
 
+    if (isLoading) {
+         return (
+            <PageWrapper>
+                <PageHeader title={t('settings.title')} onBack={onClose} />
+                <main className="w-full max-w-2xl flex-grow flex items-center justify-center">
+                    <LoadingSpinner text="Loading Settings..." />
+                </main>
+            </PageWrapper>
+        );
+    }
+    
     return (
         <PageWrapper>
             <PageHeader title={t('settings.title')} onBack={onClose} />
@@ -145,22 +196,23 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({
                      <div>
                         <label className="font-press-start">{t('settings.language')}</label>
                         <div className="w-full mt-2 p-2 bg-surface-primary border-2 border-border-secondary text-text-secondary font-sans">
-                            {t('settings.langEn')}
+                            {t('settings.langEn')} (auto-detected)
                         </div>
                     </div>
+                    {/* FIX: Correctly call onUiAnimationsChange with the new value */}
                     <SettingToggle label={t('settings.uiAnimations')} isChecked={uiAnimations} onToggle={() => { playSound(audioService.playToggle); onUiAnimationsChange(!uiAnimations); }} />
-                    <SettingToggle label="High Contrast" isChecked={highContrast} onToggle={() => { playSound(audioService.playToggle); setHighContrast(p => !p); }} />
+                    <SettingToggle label="High Contrast" isChecked={highContrast} onToggle={() => handleToggle('highContrastMode', !highContrast, setHighContrast as any)} />
                 </Section>
                 
                 <Section title={t('settings.sound')}>
                     <SettingToggle label={t('settings.soundEffects')} isChecked={isSoundOn} onToggle={onToggleSound} />
-                    <SettingToggle label="Autoplay Sounds" description="Automatically play generated sounds and music." isChecked={autoPlaySounds} onToggle={() => { playSound(audioService.playToggle); setAutoPlaySounds(p => !p); }} />
+                    <SettingToggle label="Autoplay Sounds" description="Automatically play generated sounds and music." isChecked={autoPlaySounds} onToggle={() => handleToggle('autoPlaySounds', !autoPlaySounds, setAutoPlaySounds as any)} />
                     <div>
                         <label htmlFor="tts-voice-select" className="font-press-start">AI Voice for Read Aloud</label>
                         <select
                             id="tts-voice-select"
                             value={defaultTtsVoice}
-                            onChange={(e) => { playSound(audioService.playClick); setDefaultTtsVoice(e.target.value as any); }}
+                            onChange={(e) => handleSelect('textToSpeechVoiceName', e.target.value as any, setDefaultTtsVoice)}
                             className="w-full mt-2 p-2 bg-brand-light text-black border-2 border-black font-sans"
                         >
                             <option value="Zephyr">Zephyr (Friendly)</option>
@@ -178,83 +230,9 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({
                         <select
                             id="default-image-mode"
                             value={defaultImageMode}
-                            onChange={(e) => setDefaultImageMode(e.target.value as any)}
+                            onChange={(e) => handleSelect('imageGeneratorMode', e.target.value as any, setDefaultImageMode)}
                             className="w-full mt-2 p-2 bg-brand-light text-black border-2 border-black"
                         >
                             <option value="image">Image</option>
                             <option value="gif">GIF</option>
-                            <option value="video">Video</option>
-                            <option value="spritesheet">Spritesheet</option>
-                        </select>
-                    </div>
-                     <div>
-                        <label className="font-press-start">{t('settings.imageQuality')}</label>
-                        <div className="flex gap-4 mt-2">
-                            <label className="flex items-center gap-2">
-                                <input type="radio" name="image-quality" value="fast" checked={imageQuality === 'fast'} onChange={() => setImageQuality('fast')} className="w-5 h-5 accent-brand-magenta" />
-                                <span>{t('settings.qualityFast')}</span>
-                            </label>
-                             <label className="flex items-center gap-2">
-                                <input type="radio" name="image-quality" value="quality" checked={imageQuality === 'quality'} onChange={() => setImageQuality('quality')} className="w-5 h-5 accent-brand-magenta" />
-                                <span>{t('settings.qualityHigh')}</span>
-                            </label>
-                        </div>
-                    </div>
-                    <SettingToggle label="Auto-save to Gallery" description="Automatically save generated images to your gallery." isChecked={autoSaveToGallery} onToggle={() => { playSound(audioService.playToggle); setAutoSaveToGallery(p => !p); }} />
-                </Section>
-
-                <Section title={t('aiChat.title')}>
-                     <div>
-                        <label htmlFor="default-model-select" className="font-press-start">{t('settings.defaultAiChat')}</label>
-                        <select
-                            id="default-model-select"
-                            value={defaultChatModelName}
-                            onChange={(e) => { playSound(audioService.playSelection); setDefaultChatModelName(e.target.value); }}
-                            className="w-full mt-2 p-2 bg-brand-light text-black border-2 border-black"
-                        >
-                            {aiModels.map(model => (
-                                <option key={model.name} value={model.name}>
-                                    {model.name}
-                                </option>
-                            ))}
-                        </select>
-                        <button onClick={() => setIsModelInfoOpen(true)} className="text-xs text-brand-cyan underline mt-2">Learn more about models</button>
-                    </div>
-                    <SettingToggle label={t('settings.saveChatHistory')} description="Save chat history in your browser." isChecked={saveChatHistory} onToggle={() => { playSound(audioService.playToggle); setSaveChatHistory(p => !p); }} />
-                    <SettingToggle label="Enable Web Search" description="Enable web search by default for compatible models." isChecked={defaultWebSearch} onToggle={() => { playSound(audioService.playToggle); setDefaultWebSearch(p => !p); }} />
-                </Section>
-                
-                 <Section title={t('settings.minigames')}>
-                     <div>
-                        <label htmlFor="default-minigame-difficulty" className="font-press-start">{t('settings.defaultDifficulty')}</label>
-                        <select
-                            id="default-minigame-difficulty"
-                            value={defaultMinigameDifficulty}
-                            onChange={(e) => setDefaultMinigameDifficulty(e.target.value as any)}
-                            className="w-full mt-2 p-2 bg-brand-light text-black border-2 border-black"
-                        >
-                            <option value="easy">{t('settings.difficultyEasy')}</option>
-                            <option value="normal">{t('settings.difficultyNormal')}</option>
-                            <option value="hard">{t('settings.difficultyHard')}</option>
-                        </select>
-                         <p className="text-xs text-brand-light/70 mt-1">Applies to games that support difficulty levels.</p>
-                    </div>
-                </Section>
-                
-                <Section title="Data Management">
-                    <SettingToggle label="Confirm Credit Spend" description="Show a confirmation dialog before spending credits." isChecked={confirmCreditSpend} onToggle={() => { playSound(audioService.playToggle); setConfirmCreditSpend(p => !p); }} />
-                    <button onClick={handleClearData} className="w-full p-3 bg-brand-magenta text-white border-4 border-brand-light shadow-pixel font-press-start text-sm hover:bg-red-500">
-                        Reset App & Clear Stored Data
-                    </button>
-                    <p className="text-xs text-brand-light/70 text-center">
-                        This clears any data saved by the app in your browser (from previous versions) and reloads the page to its original state.
-                    </p>
-                </Section>
-
-                <footer className="text-center text-xs text-brand-light/50 py-4 font-sans">
-                    Version: 2.54.179810001
-                </footer>
-            </main>
-        </PageWrapper>
-    );
-};
+                            <option value="video">Video

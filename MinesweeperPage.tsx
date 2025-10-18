@@ -1,4 +1,6 @@
 
+
+
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { PageWrapper, PageHeader } from './PageComponents';
 import * as audioService from '../services/audioService';
@@ -162,19 +164,20 @@ export const MinesweeperPage: React.FC<MinesweeperPageProps> = ({ onClose, playS
     };
     
     useEffect(() => {
-        if (gameState !== 'playing') return;
-        
-        const revealedCount = board.flat().filter(cell => cell.isRevealed).length;
-        const totalNonMines = ROWS * COLS - MINES;
+        // FIX: Wrap logic in an async function to handle async addCredits.
+        const checkWinCondition = async () => {
+            if (gameState !== 'playing' || board.length === 0) return;
+            
+            const revealedCount = board.flat().filter(cell => cell.isRevealed).length;
+            const totalNonMines = ROWS * COLS - MINES;
 
-        if (revealedCount === totalNonMines) {
-            setGameState('won');
-            playSound(audioService.playSuccess);
-            // FIX: addCredits is now async
-            (async () => {
+            if (revealedCount === totalNonMines) {
+                setGameState('won');
+                playSound(audioService.playSuccess);
                 await addCredits(1);
-            })();
-        }
+            }
+        };
+        checkWinCondition();
     }, [board, gameState, playSound, addCredits]);
 
     const renderCell = (cell: Cell, r: number, c: number) => {

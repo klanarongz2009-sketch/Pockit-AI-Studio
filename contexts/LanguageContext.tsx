@@ -1,14 +1,16 @@
-import React, { createContext, useContext, useState, useEffect, useCallback, FC, ReactNode } from 'react';
-import * as preferenceService from '../services/preferenceService';
+
+
+
+import React, { createContext, useContext, useState, useEffect, FC, ReactNode } from 'react';
 
 type Language = 'th' | 'en';
 type Translations = { [key: string]: any };
 
 interface LanguageContextType {
     language: Language;
-    setLanguage: (lang: Language) => void;
     t: (key: string) => string;
     translations: Translations;
+    isLoaded: boolean;
 }
 
 const LanguageContext = createContext<LanguageContextType | undefined>(undefined);
@@ -20,46 +22,52 @@ const fetchTranslations = async (lang: Language): Promise<Translations> => {
             throw new Error(`Could not load ${lang}.json: ${response.statusText}`);
         }
         const text = await response.text();
-        // If the file is empty or just whitespace, it's not valid JSON.
-        // Return an empty object to prevent a parsing error.
         if (text.trim() === '') {
             return {};
         }
         return JSON.parse(text);
     } catch (error) {
         console.error(`Failed to fetch or parse translations for '${lang}':`, error);
-        return {}; // Return empty object on any failure
+        return {}; 
     }
 };
 
+// Auto-detect language based on browser settings.
+const detectSystemLanguage = (): Language => {
+    // FIX: Language is now auto-detected based on browser settings.
+    const userLang = navigator.language || (navigator as any).userLanguage;
+    return userLang.toLowerCase().startsWith('th') ? 'th' : 'en';
+};
+
 export const LanguageProvider: FC<{ children: ReactNode }> = ({ children }) => {
-    const [language, setLanguageState] = useState<Language>(() => preferenceService.getPreference('language', 'en'));
+    const [language] = useState<Language>(detectSystemLanguage);
     const [translations, setTranslations] = useState<Translations>({});
+    const [isLoaded, setIsLoaded] = useState(false);
 
     useEffect(() => {
-        fetchTranslations(language).then(setTranslations);
+        document.documentElement.lang = language;
+        fetchTranslations(language).then(translations => {
+            setTranslations(translations);
+            setIsLoaded(true);
+        });
     }, [language]);
 
-    const setLanguage = useCallback((lang: Language) => {
-        setLanguageState(lang);
-        preferenceService.setPreference('language', lang);
-        document.documentElement.lang = lang;
-    }, []);
-
-    const t = useCallback((key: string): string => {
+    const t = (key: string): string => {
+        if (!isLoaded) return ''; // Return empty string while loading
         const keys = key.split('.');
-        let result = translations;
+        let result: any = translations;
         for (const k of keys) {
             if (result && typeof result === 'object' && k in result) {
                 result = result[k];
             } else {
-                return key; // Return the key itself if not found
+                return key; // Key not found, return the key itself
             }
         }
         return typeof result === 'string' ? result : key;
-    }, [translations]);
-
-    const value = { language, setLanguage, t, translations };
+    };
+    
+    // setLanguage function is removed as language is now automatic.
+    const value = { language, t, translations, isLoaded };
 
     return (
         <LanguageContext.Provider value={value}>

@@ -23,6 +23,7 @@ export const ChiptuneCreatorPage: React.FC<ChiptuneCreatorPageProps> = ({ onClos
     const [processedAudio, setProcessedAudio] = useState<AudioBuffer | null>(null);
     const [isPlaying, setIsPlaying] = useState(false);
     const [isDownloading, setIsDownloading] = useState(false);
+    const [isDragging, setIsDragging] = useState(false);
 
     // Effect parameters
     const [bitDepth, setBitDepth] = useState(8);
@@ -54,9 +55,8 @@ export const ChiptuneCreatorPage: React.FC<ChiptuneCreatorPageProps> = ({ onClos
             if (fileInputRef.current) fileInputRef.current.value = "";
         }
     };
-
-    const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-        const file = event.target.files?.[0];
+    
+    const processFile = (file: File | undefined) => {
         if (!file || (!file.type.startsWith('audio/') && !file.type.startsWith('video/'))) {
             setError(t('chiptuneCreator.errorSelectMedia'));
             playSound(audioService.playError);
@@ -66,6 +66,10 @@ export const ChiptuneCreatorPage: React.FC<ChiptuneCreatorPageProps> = ({ onClos
         setUploadedFile(file);
         setPreviewUrl(URL.createObjectURL(file));
         playSound(audioService.playSelection);
+    };
+
+    const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+        processFile(event.target.files?.[0]);
     };
 
     const handleTransform = useCallback(async () => {
@@ -122,12 +126,36 @@ export const ChiptuneCreatorPage: React.FC<ChiptuneCreatorPageProps> = ({ onClos
             setIsDownloading(false);
         }
     }, [processedAudio, isDownloading, playSound, uploadedFile?.name]);
+
+    const handleDragEnter = (e: React.DragEvent<HTMLElement>) => { e.preventDefault(); e.stopPropagation(); setIsDragging(true); };
+    const handleDragLeave = (e: React.DragEvent<HTMLElement>) => { e.preventDefault(); e.stopPropagation(); setIsDragging(false); };
+    const handleDragOver = (e: React.DragEvent<HTMLElement>) => { e.preventDefault(); e.stopPropagation(); };
+    const handleDrop = (e: React.DragEvent<HTMLElement>) => {
+        e.preventDefault(); e.stopPropagation(); setIsDragging(false);
+        if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+            processFile(e.dataTransfer.files[0]);
+            e.dataTransfer.clearData();
+        }
+    };
     
     return (
         <PageWrapper>
             <input type="file" ref={fileInputRef} onChange={handleFileChange} accept="audio/*,video/*" className="hidden" />
             <PageHeader title={t('chiptuneCreator.title')} onBack={onClose} />
-            <main id="main-content" className="w-full max-w-lg flex flex-col items-center gap-6 font-sans">
+            <main 
+                id="main-content" 
+                className="w-full max-w-lg flex flex-col items-center gap-6 font-sans relative"
+                onDragEnter={handleDragEnter}
+                onDragOver={handleDragOver}
+                onDragLeave={handleDragLeave}
+                onDrop={handleDrop}
+            >
+                {isDragging && (
+                    <div className="absolute inset-0 bg-black/80 border-4 border-dashed border-brand-yellow z-10 flex flex-col items-center justify-center pointer-events-none">
+                        <UploadIcon className="w-12 h-12 text-brand-yellow" />
+                        <p className="font-press-start text-xl text-brand-yellow mt-4">Drop your file here</p>
+                    </div>
+                )}
                 <p className="text-sm text-center text-brand-light/80">
                     {t('chiptuneCreator.description')}
                 </p>

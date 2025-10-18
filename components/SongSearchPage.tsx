@@ -1,4 +1,3 @@
-
 import React, { useState, useRef, useCallback } from 'react';
 import * as geminiService from '../services/geminiService';
 import * as audioService from '../services/audioService';
@@ -7,6 +6,7 @@ import { UploadIcon } from './icons/UploadIcon';
 import { LoadingSpinner } from './LoadingSpinner';
 import { SparklesIcon } from './icons/SparklesIcon';
 import { MusicNoteIcon } from './icons/MusicNoteIcon';
+import { useCredits, CREDIT_COSTS } from '../contexts/CreditContext';
 
 interface SongSearchPageProps {
     onClose: () => void;
@@ -21,6 +21,7 @@ export const SongSearchPage: React.FC<SongSearchPageProps> = ({ onClose, playSou
     const [error, setError] = useState<string | null>(null);
     const [result, setResult] = useState<geminiService.SearchResult | null>(null);
     const [isDragging, setIsDragging] = useState<boolean>(false);
+    const { credits, spendCredits } = useCredits();
 
     const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -99,6 +100,12 @@ export const SongSearchPage: React.FC<SongSearchPageProps> = ({ onClose, playSou
     const handleSearch = useCallback(async () => {
         if (!uploadedFile || isLoading || !isOnline) return;
 
+        if (!spendCredits(CREDIT_COSTS.SONG_SEARCH)) {
+            setError(`เครดิตไม่เพียงพอ! ต้องการ ${CREDIT_COSTS.SONG_SEARCH} เครดิต แต่คุณมี ${Math.floor(credits)} เครดิต`);
+            playSound(audioService.playError);
+            return;
+        }
+
         resetState();
         playSound(audioService.playGenerate);
         setIsLoading(true);
@@ -122,7 +129,7 @@ export const SongSearchPage: React.FC<SongSearchPageProps> = ({ onClose, playSou
         } finally {
             setIsLoading(false);
         }
-    }, [uploadedFile, isLoading, playSound, isOnline]);
+    }, [uploadedFile, isLoading, playSound, isOnline, spendCredits, credits]);
     
     return (
         <PageWrapper>
@@ -179,7 +186,7 @@ export const SongSearchPage: React.FC<SongSearchPageProps> = ({ onClose, playSou
                             className="w-full flex items-center justify-center gap-3 p-4 bg-brand-magenta text-white border-4 border-brand-light shadow-pixel text-base transition-all hover:bg-brand-yellow hover:text-black active:shadow-pixel-active active:translate-y-[2px] active:translate-x-[2px] disabled:bg-gray-500 disabled:cursor-not-allowed"
                             title={!isOnline ? 'ฟีเจอร์นี้ต้องใช้การเชื่อมต่ออินเทอร์เน็ต' : ''}
                         >
-                            <SparklesIcon className="w-6 h-6" /> {isLoading ? 'กำลังค้นหา...' : `ค้นหา`}
+                            <SparklesIcon className="w-6 h-6" /> {isLoading ? 'กำลังค้นหา...' : `ค้นหา (${CREDIT_COSTS.SONG_SEARCH} เครดิต)`}
                         </button>
                     </div>
                 )}

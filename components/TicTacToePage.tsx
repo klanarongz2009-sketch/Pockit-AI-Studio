@@ -3,6 +3,7 @@ import { PageWrapper, PageHeader } from './PageComponents';
 import * as audioService from '../services/audioService';
 import * as geminiService from '../services/geminiService';
 import { LoadingSpinner } from './LoadingSpinner';
+import { useCredits } from '../contexts/CreditContext';
 
 interface TicTacToePageProps {
   onClose: () => void;
@@ -32,6 +33,18 @@ export const TicTacToePage: React.FC<TicTacToePageProps> = ({ onClose, playSound
     const [isAiTurn, setIsAiTurn] = useState(false);
     const [gameMode, setGameMode] = useState<'ai' | 'player'>('ai'); // 'ai' vs player, 'player' vs player
     const [error, setError] = useState<string | null>(null);
+    const { addCredits } = useCredits();
+
+    useEffect(() => {
+        if (winner) {
+            if (winner === 'X') {
+                addCredits(32);
+            } else if (winner === 'O') {
+                addCredits(20);
+            }
+            // No credits for a Tie
+        }
+    }, [winner, addCredits]);
 
     const handleCellClick = async (row: number, col: number) => {
         if (board[row][col] || winner || isAiTurn) return;

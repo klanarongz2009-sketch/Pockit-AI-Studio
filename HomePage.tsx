@@ -46,7 +46,6 @@ export const HomePage: React.FC<HomePageProps> = ({ onSetPage, onOpenSettings })
     return (
         <div className="w-full h-full flex flex-col items-center justify-center px-4 animate-page-enter relative">
             <div className="absolute top-4 right-4 flex gap-2">
-                 {/* FIX: Language is now auto-detected, so setLanguage is not available. Removed toggle button. */}
                 <button
                     onClick={onOpenSettings}
                     aria-label={t('header.settings')}

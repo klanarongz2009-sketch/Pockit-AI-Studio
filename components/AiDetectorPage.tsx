@@ -1,4 +1,3 @@
-
 import React, { useState, useRef, useCallback, useEffect } from 'react';
 import * as geminiService from '../services/geminiService';
 import * as audioService from '../services/audioService';
@@ -6,7 +5,8 @@ import { PageHeader, PageWrapper } from './PageComponents';
 import { UploadIcon } from './icons/UploadIcon';
 import { LoadingSpinner } from './LoadingSpinner';
 import { SparklesIcon } from './icons/SparklesIcon';
-import { AiDetectorIcon } from './icons/AiDetectorIcon';
+import { AiDetectorIcon } from './AiDetectorIcon';
+import { useCredits } from '../contexts/CreditContext';
 
 interface AiDetectorPageProps {
     onClose: () => void;
@@ -27,6 +27,7 @@ export const AiDetectorPage: React.FC<AiDetectorPageProps> = ({ onClose, playSou
     const [error, setError] = useState<string | null>(null);
     const [result, setResult] = useState<geminiService.AiDetectionResult | null>(null);
     const [isDragging, setIsDragging] = useState<boolean>(false);
+    const { addCredits } = useCredits();
     
     const fileInputRef = useRef<HTMLInputElement>(null);
     const videoRef = useRef<HTMLVideoElement>(null);
@@ -78,14 +79,23 @@ export const AiDetectorPage: React.FC<AiDetectorPageProps> = ({ onClose, playSou
 
         try {
             const contentToAnalyze: { text?: string; file?: { base64: string; mimeType: string } } = {};
+            let creditsToAdd = 0;
+
             if (inputText.trim()) {
                 contentToAnalyze.text = inputText;
+                creditsToAdd = inputText.trim().length * 300;
             } else if (fileData) {
                 contentToAnalyze.file = { base64: fileData.base64, mimeType: fileData.file.type };
+                creditsToAdd = Math.floor(fileData.file.size / 1024) * 300; // 300 credits per KB
             }
             
             const analysisResult = await geminiService.detectAiContent(contentToAnalyze);
             setResult(analysisResult);
+            
+            if (creditsToAdd > 0) {
+                addCredits(creditsToAdd);
+            }
+
             playSound(audioService.playSuccess);
         } catch (err) {
             setError(err instanceof Error ? err.message : 'An unknown error occurred during analysis.');
@@ -93,7 +103,7 @@ export const AiDetectorPage: React.FC<AiDetectorPageProps> = ({ onClose, playSou
         } finally {
             setIsLoading(false);
         }
-    }, [inputText, fileData, isLoading, isOnline, playSound]);
+    }, [inputText, fileData, isLoading, isOnline, playSound, addCredits, resetState]);
     
     const handleDragEnter = (e: React.DragEvent<HTMLElement>) => { e.preventDefault(); e.stopPropagation(); setIsDragging(true); };
     const handleDragLeave = (e: React.DragEvent<HTMLElement>) => { e.preventDefault(); e.stopPropagation(); setIsDragging(false); };

@@ -1,8 +1,7 @@
-
-
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useCallback } from 'react';
 import { PageHeader, PageWrapper } from './PageComponents';
 import * as audioService from '../services/audioService';
+import { useCredits } from '../contexts/CreditContext';
 
 interface MagicButtonPageProps {
     onClose: () => void;
@@ -11,11 +10,13 @@ interface MagicButtonPageProps {
 
 export const MagicButtonPage: React.FC<MagicButtonPageProps> = ({ onClose, playSound }) => {
     const [pressCount, setPressCount] = useState(0);
+    const { addCredits } = useCredits();
 
     const handlePress = useCallback(() => {
         playSound(audioService.playClick);
         setPressCount(prevCount => prevCount + 1);
-    }, [playSound]);
+        addCredits(1);
+    }, [playSound, addCredits]);
 
     return (
         <PageWrapper className="justify-start">

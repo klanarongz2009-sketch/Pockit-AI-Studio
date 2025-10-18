@@ -3,6 +3,8 @@ import * as audioService from '../services/audioService';
 import { CurrentPage } from '../App';
 import { useLanguage } from '../contexts/LanguageContext';
 import { UpdateInfoPage } from './UpdateInfoPage';
+import { useCredits } from '../contexts/CreditContext';
+import { CoinsIcon } from './icons/CoinsIcon';
 
 interface GlobalLayoutProps {
     children: React.ReactNode;
@@ -10,6 +12,7 @@ interface GlobalLayoutProps {
     currentPage: CurrentPage;
     onSetPage: (page: CurrentPage) => void;
     isOnline: boolean;
+    onOpenCreditCenter: () => void;
 }
 
 const LayoutComponent: React.FC<GlobalLayoutProps> = ({ 
@@ -18,14 +21,16 @@ const LayoutComponent: React.FC<GlobalLayoutProps> = ({
     currentPage,
     onSetPage,
     isOnline,
+    onOpenCreditCenter,
 }) => {
     const { t } = useLanguage();
     const [isUpdateInfoOpen, setIsUpdateInfoOpen] = useState(false);
+    const { credits } = useCredits();
 
     return (
         <>
             {isUpdateInfoOpen && <UpdateInfoPage onClose={() => setIsUpdateInfoOpen(false)} />}
-            
+
             {!isOnline && (
                 <div role="status" className="fixed top-16 left-0 right-0 bg-brand-magenta text-white text-center font-press-start text-xs py-1 z-40 animate-page-enter">
                     {t('offline.message')}
@@ -55,7 +60,15 @@ const LayoutComponent: React.FC<GlobalLayoutProps> = ({
                 </div>
 
                 <div className="flex items-center gap-1 sm:gap-2">
-                    {/* Placeholder for items on the right side of the header */}
+                    <button
+                        onClick={onOpenCreditCenter}
+                        onMouseEnter={() => playSound(audioService.playHover)}
+                        className="flex items-center gap-2 p-2 bg-surface-1 border-2 border-border-primary rounded-md text-text-primary hover:bg-brand-primary/20 transition-colors"
+                        aria-label={`Credits: ${Math.floor(credits)}. Click to earn more.`}
+                    >
+                        <CoinsIcon className="w-5 h-5" />
+                        <span className="font-press-start text-sm text-brand-primary">{Math.floor(credits).toLocaleString()}</span>
+                    </button>
                 </div>
             </header>
             

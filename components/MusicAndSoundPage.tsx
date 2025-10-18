@@ -7,6 +7,7 @@ import { DownloadIcon } from './icons/DownloadIcon';
 import { LoadingSpinner } from './LoadingSpinner';
 import type { SoundEffectParameters, Song } from '../services/geminiService';
 import { AudioVisualizer } from './icons/AudioVisualizer';
+import { useCredits } from '../contexts/CreditContext';
 
 interface MusicAndSoundPageProps {
     onClose: () => void;
@@ -98,6 +99,7 @@ export const MusicAndSoundPage: React.FC<MusicAndSoundPageProps> = ({ onClose, p
     const [playingId, setPlayingId] = useState<string | null>(null);
     const [downloadingId, setDownloadingId] = useState<string | null>(null);
     const [error, setError] = useState<string | null>(null);
+    const { addCredits } = useCredits();
 
     const handlePlaySfx = (sfx: LibrarySoundEffect) => {
         playSound(() => audioService.playSoundFromParams(sfx.params));
@@ -131,6 +133,7 @@ export const MusicAndSoundPage: React.FC<MusicAndSoundPageProps> = ({ onClose, p
         try {
             const wavBlob = await audioService.exportSoundEffectToWav(sfx.params);
             if (wavBlob) {
+                addCredits(35);
                 const url = URL.createObjectURL(wavBlob);
                 const a = document.createElement('a');
                 a.style.display = 'none';
@@ -151,7 +154,7 @@ export const MusicAndSoundPage: React.FC<MusicAndSoundPageProps> = ({ onClose, p
         } finally {
             setDownloadingId(null);
         }
-    }, [downloadingId, playSound]);
+    }, [downloadingId, playSound, addCredits]);
 
     const handleDownloadLoop = useCallback(async (loop: LibraryMusicLoop) => {
         if (downloadingId) return;
@@ -162,6 +165,7 @@ export const MusicAndSoundPage: React.FC<MusicAndSoundPageProps> = ({ onClose, p
         try {
             const wavBlob = await audioService.exportSongToWav(loop.song, loop.bpm);
             if (wavBlob) {
+                addCredits(35);
                 const url = URL.createObjectURL(wavBlob);
                 const a = document.createElement('a');
                 a.style.display = 'none';
@@ -181,7 +185,7 @@ export const MusicAndSoundPage: React.FC<MusicAndSoundPageProps> = ({ onClose, p
         } finally {
             setDownloadingId(null);
         }
-    }, [downloadingId, playSound]);
+    }, [downloadingId, playSound, addCredits]);
 
     const renderItem = (item: LibrarySoundEffect | LibraryMusicLoop, type: 'sfx' | 'loop') => {
         const isPlaying = playingId === item.id;

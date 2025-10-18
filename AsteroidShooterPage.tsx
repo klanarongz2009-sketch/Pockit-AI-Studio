@@ -1,4 +1,6 @@
 
+
+
 import React, { useEffect, useRef } from 'react';
 import * as preferenceService from '../services/preferenceService';
 
@@ -205,11 +207,13 @@ export const AsteroidShooterPage: React.FC<AsteroidShooterPageProps> = ({ onClos
             if (score > highScore) {
                 highScore = score;
                 await preferenceService.setPreference('asteroidShooterHighScore', score);
+                // FIX: `addCredits` is now async.
                 await addCredits(score);
                 overlayTitle.textContent = "NEW HIGH SCORE!";
                 overlayMessage.innerHTML = `Final Score: <span class="text-xl text-yellow-400">${score}</span><br>You earned ${score} credits!`;
             } else {
                 const consolationCredits = Math.floor(score / 10);
+                // FIX: `addCredits` is now async.
                 await addCredits(consolationCredits);
                 overlayTitle.textContent = "GAME OVER";
                 overlayMessage.innerHTML = `Final Score: <span class="text-xl text-yellow-400">${score}</span><br>You earned ${consolationCredits} credits. Better luck next time, pilot!`;

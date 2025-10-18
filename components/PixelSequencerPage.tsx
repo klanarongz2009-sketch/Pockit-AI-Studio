@@ -6,6 +6,7 @@ import { StopIcon } from './icons/StopIcon';
 import { useLanguage } from '../contexts/LanguageContext';
 import { TrashIcon } from './icons/TrashIcon';
 import { DownloadIcon } from './icons/DownloadIcon';
+import { useCredits } from '../contexts/CreditContext';
 
 const pitches = ['B5', 'A#5', 'A5', 'G#5', 'G5', 'F#5', 'F5', 'E5', 'D#5', 'D5', 'C#5', 'C5', 'B4', 'A#4', 'A4', 'G#4', 'G4', 'F#4', 'F4', 'E4', 'D#4', 'D4', 'C#4', 'C4', 'B3', 'A#3', 'A3', 'G#3', 'G3', 'F#3', 'F3', 'E3', 'D#3', 'D3', 'C#3', 'C3'];
 const defaultSteps = 16;
@@ -24,6 +25,7 @@ export const PixelSequencerPage: React.FC<{
     const [isPlaying, setIsPlaying] = useState(false);
     const [playheadCol, setPlayheadCol] = useState<number | null>(null);
     const [isDownloading, setIsDownloading] = useState(false);
+    const { addCredits } = useCredits();
 
     const intervalRef = useRef<number | null>(null);
     const notesRef = useRef(notes);
@@ -36,6 +38,7 @@ export const PixelSequencerPage: React.FC<{
             newNotes.delete(noteId);
         } else {
             newNotes.add(noteId);
+            addCredits(1);
             const freq = audioService.NOTE_FREQUENCIES[pitch];
             if (freq || instrument === 'noise') {
                 audioService.playMusicalNote(freq, instrument, 0.1);
@@ -96,6 +99,7 @@ export const PixelSequencerPage: React.FC<{
         try {
             const wavBlob = await audioService.exportSequencerToWav(notes, bpm, instrument, pitches, numSteps);
             if (wavBlob) {
+                addCredits(1);
                 const url = URL.createObjectURL(wavBlob);
                 const a = document.createElement('a');
                 a.href = url;

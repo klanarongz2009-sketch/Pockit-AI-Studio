@@ -3,6 +3,7 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { PageWrapper } from './PageComponents';
 import * as audioService from '../services/audioService';
+import { useCredits } from '../contexts/CreditContext';
 
 interface BrickBreakerGameProps {
     onClose: () => void;
@@ -32,6 +33,7 @@ export const BrickBreakerGame: React.FC<BrickBreakerGameProps> = ({ onClose, pla
     const [isNewHighScore, setIsNewHighScore] = useState(false);
     const [lives, setLives] = useState(3);
     const [gameState, setGameState] = useState<'playing' | 'gameOver' | 'win'>('playing');
+    const { addCredits } = useCredits();
 
     const createBricks = useCallback(() => {
         const newBricks = [];
@@ -200,7 +202,8 @@ export const BrickBreakerGame: React.FC<BrickBreakerGameProps> = ({ onClose, pla
                 ) {
                     newBall.dy *= -1;
                     playSound(audioService.playBrickHit);
-                    setScore(s => s + 10);
+                    setScore(s => s + 1);
+                    addCredits(1);
                     return { ...brick, visible: false };
                 }
             }
@@ -230,7 +233,7 @@ export const BrickBreakerGame: React.FC<BrickBreakerGameProps> = ({ onClose, pla
 
         draw();
         gameLoopRef.current = requestAnimationFrame(gameLoop);
-    }, [ball, bricks, lives, paddleX, gameState, playSound, resetBall, draw]);
+    }, [ball, bricks, lives, paddleX, gameState, playSound, resetBall, draw, addCredits]);
 
     useEffect(() => {
         gameLoopRef.current = requestAnimationFrame(gameLoop);

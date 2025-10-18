@@ -19,6 +19,7 @@ import type { LocalAnalysisResult } from '../services/audioService';
 import { PageWrapper, PageHeader } from './PageComponents';
 import { AiDetectorIcon } from './AiDetectorIcon';
 import { VoiceChangerIcon } from './icons/VoiceChangerIcon';
+import { useCredits } from '../contexts/CreditContext';
 
 // --- Helper Functions for ImageTransformer ---
 function rgbToHsl(r: number, g: number, b: number): [number, number, number] {
@@ -174,9 +175,10 @@ interface OfflineToolProps {
     playSound: (player: () => void) => void;
     t: (key: string) => string;
     onClose: () => void;
+    addCredits: (amount: number) => void;
 }
 
-const ChiptuneCreator = ({ playSound, t, onClose }: OfflineToolProps) => {
+const ChiptuneCreator = ({ playSound, t, onClose, addCredits }: OfflineToolProps) => {
     const [uploadedFile, setUploadedFile] = useState<File | null>(null);
     const [previewUrl, setPreviewUrl] = useState<string | null>(null);
     const [isLoading, setIsLoading] = useState(false);
@@ -206,8 +208,8 @@ const ChiptuneCreator = ({ playSound, t, onClose }: OfflineToolProps) => {
     const handleTransform = useCallback(async () => {
         if (!uploadedFile || isLoading) return;
         resetState(); playSound(audioService.playGenerate); setIsLoading(true);
-        try { const audioBuffer = await audioService.applyBitcrusherEffect(uploadedFile, bitDepth, sampleRate); setProcessedAudio(audioBuffer); playSound(audioService.playSuccess); } catch (err) { setError(err instanceof Error ? err.message : "Failed to transform audio."); playSound(audioService.playError); } finally { setIsLoading(false); }
-    }, [uploadedFile, isLoading, bitDepth, sampleRate, playSound, resetState]);
+        try { const audioBuffer = await audioService.applyBitcrusherEffect(uploadedFile, bitDepth, sampleRate); setProcessedAudio(audioBuffer); playSound(audioService.playSuccess); addCredits(25); } catch (err) { setError(err instanceof Error ? err.message : "Failed to transform audio."); playSound(audioService.playError); } finally { setIsLoading(false); }
+    }, [uploadedFile, isLoading, bitDepth, sampleRate, playSound, resetState, addCredits]);
     
     const handlePlaybackToggle = useCallback(() => {
         playSound(audioService.playClick);
@@ -266,7 +268,7 @@ const ChiptuneCreator = ({ playSound, t, onClose }: OfflineToolProps) => {
     );
 };
 
-const AudioReverserTool = ({ playSound, t, onClose }: OfflineToolProps) => {
+const AudioReverserTool = ({ playSound, t, onClose, addCredits }: OfflineToolProps) => {
     const [uploadedFile, setUploadedFile] = useState<File | null>(null);
     const [previewUrl, setPreviewUrl] = useState<string | null>(null);
     const [isLoading, setIsLoading] = useState(false);
@@ -294,8 +296,8 @@ const AudioReverserTool = ({ playSound, t, onClose }: OfflineToolProps) => {
     const handleReverse = useCallback(async () => {
         if (!uploadedFile || isLoading) return;
         resetState(); playSound(audioService.playGenerate); setIsLoading(true);
-        try { const audioBuffer = await audioService.extractAndReverseAudioFromFile(uploadedFile); setReversedAudio(audioBuffer); playSound(audioService.playSuccess); } catch (err) { setError(err instanceof Error ? err.message : "Failed to reverse audio."); playSound(audioService.playError); } finally { setIsLoading(false); }
-    }, [uploadedFile, isLoading, playSound, resetState]);
+        try { const audioBuffer = await audioService.extractAndReverseAudioFromFile(uploadedFile); setReversedAudio(audioBuffer); playSound(audioService.playSuccess); addCredits(15); } catch (err) { setError(err instanceof Error ? err.message : "Failed to reverse audio."); playSound(audioService.playError); } finally { setIsLoading(false); }
+    }, [uploadedFile, isLoading, playSound, resetState, addCredits]);
 
     const handlePlaybackToggle = useCallback(() => {
         playSound(audioService.playClick);
@@ -343,7 +345,7 @@ const AudioReverserTool = ({ playSound, t, onClose }: OfflineToolProps) => {
     );
 };
 
-const AudioToMidiTool = ({ playSound, t, onClose }: OfflineToolProps) => {
+const AudioToMidiTool = ({ playSound, t, onClose, addCredits }: OfflineToolProps) => {
     const [uploadedFile, setUploadedFile] = useState<File | null>(null);
     const [previewUrl, setPreviewUrl] = useState<string | null>(null);
     const [isLoading, setIsLoading] = useState(false);
@@ -373,9 +375,9 @@ const AudioToMidiTool = ({ playSound, t, onClose }: OfflineToolProps) => {
             const arrayBuffer = await uploadedFile.arrayBuffer(); const audioCtx = new (window.AudioContext || (window as any).webkitAudioContext)();
             const audioBuffer = await audioCtx.decodeAudioData(arrayBuffer); const midiNotes = await audioService.analyzeAudioBufferToMidi(audioBuffer);
             if (midiNotes.length === 0) { throw new Error("Could not detect any distinct notes in the audio."); }
-            setProcessedMidi(midiNotes); playSound(audioService.playSuccess);
+            setProcessedMidi(midiNotes); playSound(audioService.playSuccess); addCredits(30);
         } catch (err) { setError(err instanceof Error ? err.message : "Failed to convert audio to MIDI."); playSound(audioService.playError); } finally { setIsLoading(false); }
-    }, [uploadedFile, isLoading, playSound, resetState]);
+    }, [uploadedFile, isLoading, playSound, resetState, addCredits]);
 
     const handlePlaybackToggle = useCallback(() => {
         playSound(audioService.playClick);
@@ -426,7 +428,7 @@ const AudioToMidiTool = ({ playSound, t, onClose }: OfflineToolProps) => {
     );
 };
 
-const AudioAnalyzerTool = ({ playSound, t, onClose }: OfflineToolProps) => {
+const AudioAnalyzerTool = ({ playSound, t, onClose, addCredits }: OfflineToolProps) => {
     const [uploadedFile, setUploadedFile] = useState<File | null>(null);
     const [previewUrl, setPreviewUrl] = useState<string | null>(null);
     const [isLoading, setIsLoading] = useState(false);
@@ -451,9 +453,9 @@ const AudioAnalyzerTool = ({ playSound, t, onClose }: OfflineToolProps) => {
         try {
             const arrayBuffer = await uploadedFile.arrayBuffer(); const audioCtx = new (window.AudioContext || (window as any).webkitAudioContext)();
             const audioBuffer = await audioCtx.decodeAudioData(arrayBuffer); const result = await audioService.analyzeAudioLocally(audioBuffer);
-            setAnalysisResult(result); playSound(audioService.playSuccess);
+            setAnalysisResult(result); playSound(audioService.playSuccess); addCredits(10);
         } catch (err) { setError(err instanceof Error ? err.message : "Failed to analyze audio."); playSound(audioService.playError); } finally { setIsLoading(false); }
-    }, [uploadedFile, isLoading, playSound, resetState]);
+    }, [uploadedFile, isLoading, playSound, resetState, addCredits]);
     
     return (
         <PageWrapper>
@@ -496,7 +498,7 @@ const AudioAnalyzerTool = ({ playSound, t, onClose }: OfflineToolProps) => {
     );
 };
 
-const ImageTransformer = ({ playSound, t, onClose }: OfflineToolProps) => {
+const ImageTransformer = ({ playSound, t, onClose, addCredits }: OfflineToolProps) => {
     type Mode = 'sound' | 'song' | 'glyph' | 'color' | 'emoji';
     const [mode, setMode] = useState<Mode>('sound');
     const [uploadedFile, setUploadedFile] = useState<File | null>(null);
@@ -543,15 +545,15 @@ const ImageTransformer = ({ playSound, t, onClose }: OfflineToolProps) => {
         resetState(); playSound(audioService.playGenerate); setIsLoading(true);
         try {
             switch (mode) {
-                case 'sound': const soundParams = await analyzeImageToSound(previewUrl); setGeneratedSound(soundParams); audioService.playSoundFromParams(soundParams); break;
-                case 'song': const songData = await analyzeImageToSongEnhanced(previewUrl); setGeneratedSong(songData); break;
-                case 'glyph': const code = await transformImageToGlyphCode(previewUrl); setGeneratedCode(code); break;
-                case 'color': const colors = await analyzeImageLocally(previewUrl); setLocalPalette(colors); break;
-                case 'emoji': const art = await transformImageToEmoji(previewUrl, 24); setGeneratedEmojiArt(art); break;
+                case 'sound': const soundParams = await analyzeImageToSound(previewUrl); setGeneratedSound(soundParams); audioService.playSoundFromParams(soundParams); addCredits(10); break;
+                case 'song': const songData = await analyzeImageToSongEnhanced(previewUrl); setGeneratedSong(songData); addCredits(20); break;
+                case 'glyph': const code = await transformImageToGlyphCode(previewUrl); setGeneratedCode(code); addCredits(5); break;
+                case 'color': const colors = await analyzeImageLocally(previewUrl); setLocalPalette(colors); addCredits(5); break;
+                case 'emoji': const art = await transformImageToEmoji(previewUrl, 24); setGeneratedEmojiArt(art); addCredits(5); break;
             }
             playSound(audioService.playSuccess);
         } catch (err) { playSound(audioService.playError); setError(err instanceof Error ? err.message : 'An unknown error occurred'); } finally { setIsLoading(false); }
-    }, [uploadedFile, isLoading, previewUrl, mode, playSound, resetState]);
+    }, [uploadedFile, isLoading, previewUrl, mode, playSound, resetState, addCredits]);
 
     const handlePlaybackToggle = useCallback(() => {
         if (isPlayingSong) { audioService.stopSong(); setIsPlayingSong(false); } 
@@ -603,7 +605,7 @@ const ImageTransformer = ({ playSound, t, onClose }: OfflineToolProps) => {
     );
 };
 
-const ContentDetectorTool = ({ playSound, t, onClose }: OfflineToolProps) => {
+const ContentDetectorTool = ({ playSound, t, onClose, addCredits }: OfflineToolProps) => {
     const [inputText, setInputText] = useState('');
     const [file, setFile] = useState<File | null>(null);
     const [result, setResult] = useState<{ aiLikelihood: number, humanLikeness: number, details: { label: string, value: string }[] } | null>(null);
@@ -645,7 +647,7 @@ const ContentDetectorTool = ({ playSound, t, onClose }: OfflineToolProps) => {
                  }
             }
             setResult({ aiLikelihood: Math.min(99, aiLikelihood), humanLikeness: Math.max(1, humanLikeness), details });
-            setIsLoading(false); playSound(audioService.playSuccess);
+            setIsLoading(false); playSound(audioService.playSuccess); addCredits(5);
         }, 1500);
     };
 
@@ -678,7 +680,7 @@ const ContentDetectorTool = ({ playSound, t, onClose }: OfflineToolProps) => {
     );
 };
 
-const TextToArtTool = ({ playSound, t, onClose }: OfflineToolProps) => {
+const TextToArtTool = ({ playSound, t, onClose, addCredits }: OfflineToolProps) => {
     const [text, setText] = useState('');
     const [isLoading, setIsLoading] = useState(false);
     const [generatedImage, setGeneratedImage] = useState<string | null>(null);
@@ -713,7 +715,7 @@ const TextToArtTool = ({ playSound, t, onClose }: OfflineToolProps) => {
                 }
             }
             setGeneratedImage(canvas.toDataURL('image/png'));
-            setIsLoading(false); playSound(audioService.playSuccess);
+            setIsLoading(false); playSound(audioService.playSuccess); addCredits(5);
         }, 500);
     };
 
@@ -744,7 +746,7 @@ const TextToArtTool = ({ playSound, t, onClose }: OfflineToolProps) => {
     );
 };
 
-const AiVoiceAdjuster = ({ playSound, t, onClose }: OfflineToolProps) => {
+const AiVoiceAdjuster = ({ playSound, t, onClose, addCredits }: OfflineToolProps) => {
     const [uploadedFile, setUploadedFile] = useState<File | null>(null);
     const [previewUrl, setPreviewUrl] = useState<string | null>(null);
     const [isLoading, setIsLoading] = useState(false);
@@ -777,8 +779,9 @@ const AiVoiceAdjuster = ({ playSound, t, onClose }: OfflineToolProps) => {
             const audioBuffer = await audioService.applyAiVoiceEffect(uploadedFile, intensity / 100);
             setProcessedAudio(audioBuffer);
             playSound(audioService.playSuccess);
+            addCredits(15);
         } catch (err) { setError(err instanceof Error ? err.message : "Failed to transform audio."); playSound(audioService.playError); } finally { setIsLoading(false); }
-    }, [uploadedFile, isLoading, intensity, playSound, resetState, t]);
+    }, [uploadedFile, isLoading, intensity, playSound, resetState, addCredits]);
 
     const handlePlaybackToggle = useCallback(() => {
         playSound(audioService.playClick);
@@ -857,6 +860,7 @@ interface OfflineAiPageProps {
 
 export const OfflineAiPage: React.FC<OfflineAiPageProps> = ({ playSound }) => {
     const { t } = useLanguage();
+    const { addCredits } = useCredits();
     const [activeToolId, setActiveToolId] = useState<string | null>(null);
 
     const handleSelectTool = (toolId: string) => {
@@ -873,7 +877,7 @@ export const OfflineAiPage: React.FC<OfflineAiPageProps> = ({ playSound }) => {
 
     if (activeTool) {
         const ToolComponent = activeTool.component;
-        return <ToolComponent onClose={handleCloseTool} playSound={playSound} t={t} />;
+        return <ToolComponent onClose={handleCloseTool} playSound={playSound} t={t} addCredits={addCredits} />;
     }
 
     return (

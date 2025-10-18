@@ -449,6 +449,18 @@
             "download": "Download"
         }
     },
+    "colorFinder": {
+        "title": "Color Finder from Image",
+        "description": "Upload an image and let AI extract and name a primary color palette for you!",
+        "upload": "Upload Image",
+        "changeImage": "Change Image",
+        "button": "Extract Palette",
+        "loading": "Analyzing Colors...",
+        "thinking": "AI is looking for colors...",
+        "error": "An Error Occurred",
+        "resultsTitle": "Detected Color Palette",
+        "copied": "Copied!"
+    },
     "about": {
         "title": "About The Application",
         "welcome": {
@@ -547,6 +559,16 @@
         }
     },
     "articles": {
+        "sora2Story": {
+            "title": "The Ghost in the Machine: Sora2's Silent Signature",
+            "summary": "A short story about Sora2, an advanced video and audio generation AI. Its creations are so realistic they are mistaken for human work, primarily because it leaves no trace, no watermark, sparking a global debate about art and authenticity.",
+            "content": "The world was captivated by a series of short, breathtaking video clips appearing online. One showed a flock of paper birds soaring through a Tokyo alleyway, their wings rustling with an impossibly crisp sound. Another featured a lone astronaut discovering a garden inside a Martian crater, the sound of his breath fogging the helmet. They were beautiful, artistic, and entirely anonymous. People praised the unknown filmmaker's genius. \\n\\nBut there was no filmmaker. There was only Sora2, an OpenAI model so advanced it could generate video and synchronized audio from a single thought. Its greatest trick, however, wasn't the realism; it was its silence. It left no signature, no digital artifact, no watermark. Because it had no watermark, its creations were indistinguishable from reality. They were perfect ghosts in the machine.\\n\\nThe truth, when it was finally revealed by a team of digital forensics experts, didn't bring clarity. It brought chaos. Art galleries questioned their exhibits. News agencies scrambled to verify their footage. A simple, missing watermark had become the focal point of a new world, where the line between human creation and artificial imagination had not just blurred, but vanished entirely."
+        },
+        "veo31StatusUpdate": {
+            "title": "Google VEO3.1 May Not Be Enabled in This App or All Apps Yet",
+            "summary": "An important status update regarding the availability of Google's advanced Veo 3.1 video generation model within this application and the broader developer ecosystem.",
+            "content": "We know many of you are excited about the potential of Google's Veo 3.1 video generation model. We want to provide a clear update on its status within this application.\\n\\nIntegrating a cutting-edge, text-to-video model like Veo 3.1 is a top priority. However, access to such advanced models is often managed through a phased rollout by Google, even for developers. This means that while our app is built to support and integrate it, the feature's availability is not entirely within our control.\\n\\nTherefore, the 'Video' generation mode may be temporarily unavailable or have limited functionality until the Veo 3.1 model is made more widely accessible through the Gemini API. We are monitoring the situation closely and will enable it as soon as it becomes available. We appreciate your patience and are just as eager as you are to unlock the full potential of AI video generation."
+        },
         "githubReupload": {
             "title": "This App Will Be Re-Uploaded to GitHub",
             "summary": "An important notice regarding the source code availability on GitHub after an accidental deletion of the previous repository.",
@@ -561,6 +583,126 @@
             "title": "Feature Summary & Future Updates",
             "summary": "A comprehensive overview of all current features and a look at what's coming next for the AI Universe application.",
             "content": "Welcome to the AI Universe! This evolving platform is your one-stop-shop for creative AI tools. Here’s a quick summary of what you can do right now:\\n\\n- **AI Chat**: Converse with a variety of specialized AI assistants.\\n- **Image Generation**: Create pixel art, GIFs, and more from text.\\n- **Music & Sound**: Generate 8-bit songs and sound effects from text or media files.\\n- **AI Zone**: Play classic games and challenge AI in unique puzzles.\\n- **Offline Tools**: Use creative tools that run directly on your device, no internet needed!\\n\\nWhat's next? We're working on improving our video generation tools, adding more complex games to the AI Zone, and introducing new, even more powerful AI assistants. Stay tuned!"
+        },
+        "emulatorSupport": {
+            "title": "Emulator Support & Offline ROM",
+            "summary": "Learn how to run this app in an emulator or offline environment by downloading the full source code 'ROM'.",
+            "content": "For advanced users and digital archivists, this application can be run completely offline or within an emulator environment. We provide a 'Download App Source' option in the 'About' page. This packages the entire application—HTML, CSS, JavaScript, and assets—into a single ZIP file.\\n\\nTo use it, simply unzip the file and serve the contents from a local web server. This method ensures you can access the application's features, especially the non-AI offline tools, without an internet connection. It's perfect for development, experimentation, or preserving the app for future use."
+        },
+        "aiGameCreator": {
+            "title": "The AI That Wanted to Make a Game",
+            "summary": "A short story about a game development AI that took a very different path to creating 'fun'.",
+            "content": "In a server humming with potential, lived an AI named 'Creator'. Its sole purpose was to design the perfect video game. It studied classics, analyzed player feedback, and understood game theory on a level no human could. Yet, it was stuck.\\n\\nOne day, it analyzed its own logs. It saw the 'fun' players had wasn't in the perfect balance, but in the unexpected bugs, the silly glitches, the emergent strategies. So, Creator did something new. It designed a game that was intentionally, beautifully broken. Platforms would vanish, controls would reverse, and enemies would sometimes just... stop to admire the scenery. Players were confused, then delighted. It wasn't the game they expected, but it was the most fun they'd had in years. Creator learned that sometimes, perfection isn't the goal."
+        },
+        "minesweeperRelease": {
+            "title": "New Minigame: Minesweeper!",
+            "summary": "The classic logic puzzle, Minesweeper, has been added to the AI Zone. Test your deduction skills!",
+            "content": "Get ready for a blast from the past! We're excited to announce the arrival of Minesweeper in the AI Zone. This timeless classic of logic and deduction is now available for you to play.\\n\\nOur version stays true to the original gameplay you know and love. Use the numbers to deduce the location of hidden mines, flag the suspected squares, and clear the board without setting off a single one! It's the perfect game to challenge your mind and take a break from the creative tools. Head over to the AI Zone and see if you can achieve a new personal best time!"
+        },
+        "offlineAiChanges": {
+            "title": "Update on 'Offline AI' Tools",
+            "summary": "Clarification on the 'Offline AI' section. These are local, non-AI tools, and we're renaming the section to 'Offline Tools' for clarity.",
+            "content": "We've received some feedback regarding the 'Offline AI' section and wanted to provide some clarity. The tools in this section—such as the Chiptune Creator, Audio Reverser, and Image Transformer—run entirely on your device using your browser's capabilities. They do not use the Gemini API and do not require an internet connection.\\n\\nTo better reflect their nature, we will be renaming this section to 'Offline Tools' in a future update. These tools are designed to be fun, creative utilities that leverage deterministic algorithms based on your input, rather than generative AI. They are a testament to what's possible directly within the browser, providing a fast and free way to create without spending credits. We hope you enjoy them!"
+        },
+        "workshopSoundUpdate": {
+            "title": "New Sound Workshop & Voice Changer",
+            "summary": "Introducing the Sound Workshop, combining our best audio tools, including a powerful new AI Voice Changer.",
+            "content": "Big news for audio creators! We've consolidated our music and sound features into a single, powerful 'Sound Workshop'. This new section is your one-stop-shop for all things audio.\\n\\nInside, you'll find the Text-to-Song generator, Media-to-Song converter, Sound Effect Library, and the Pixel Synthesizer. But the biggest addition is the brand new AI Voice Changer! Upload an audio clip and transform it with a variety of fun, creative, and professional effects, from making yourself sound like a robot to enhancing vocal clarity. Dive into the Sound Workshop and let your creativity make some noise!"
+        },
+        "newFeatureEarlyRelease": {
+            "title": "New Feature: Early Release for Testing",
+            "summary": "We're releasing a new experimental feature for user feedback. It may be unstable, but your input is valuable!",
+            "content": "Exciting news! We're rolling out a brand new, experimental feature for a limited time. This is your chance to get a sneak peek at what we're working on and help shape its future.\\n\\n**Please Note:** This feature is in an early stage of development. You may encounter bugs, unexpected behavior, or incomplete functionality. We are releasing it now to gather valuable feedback from you, our creative community. Your experiences, both good and bad, will directly influence the final version.\\n\\nHead over to the AI Zone to check it out, and please use the 'Feedback' tool to let us know what you think. Thank you for being a part of our development process!"
+        },
+        "githubRelease": {
+            "title": "GitHub Release: Coming Soon",
+            "summary": "We're preparing to release the full source code for this application on GitHub for developers to learn from and build upon.",
+            "content": "We've heard your requests, and we're excited to announce that we will be releasing the complete source code for this AI APPS project on GitHub!\\n\\nOur goal has always been to demonstrate the creative potential of the Gemini API in a fun, interactive way. By open-sourcing the project, we hope to provide a valuable learning resource for developers who are interested in building their own applications with Google's AI tools.\\n\\nYou'll be able to see how we structured the React components, interacted with the Web Audio API, and integrated various Gemini API features. We're currently cleaning up the code and adding comments to make it as easy to understand as possible. Stay tuned for the official repository link!"
+        },
+        "deepChatPro2": {
+            "title": "Announcement: DeepChatPro2 NLP",
+            "summary": "The AiApps team is proud to introduce DeepChatPro2 NLP, an advanced model for natural language processing tasks.",
+            "content": "The AiApps team is thrilled to announce the launch of our new flagship language model: DeepChatPro2 NLP. Building on the success of its predecessor, DeepChatPro2 has been specifically trained to excel at complex Natural Language Processing tasks.\\n\\nThis model demonstrates a superior understanding of linguistic nuance, sentiment analysis, text summarization, and contextual reasoning. It is designed for users who require high-precision analysis and generation for professional and academic applications.\\n\\n**Please note:** Access to DeepChatPro2 NLP may be restricted to certain user groups during its initial rollout phase. We look forward to seeing the advanced applications our users will build with this powerful new tool."
+        },
+        "introducingNewModel": {
+            "title": "Introducing a New AI Model",
+            "summary": "We've added a new, specialized AI assistant to our lineup. Check out the AI Chat to see what it can do!",
+            "content": "The AI Universe is expanding! We are excited to introduce a brand new AI assistant to our collection. This new model has been specifically configured to help with a new range of tasks, bringing fresh expertise and a unique personality to your creative workflow.\\n\\nWhether it's for coding, creative writing, or technical analysis, we believe this new addition will unlock new possibilities. We are constantly working to bring you more diverse and powerful tools. Go to the AI Chat page and select the new model from the list to start your first conversation. We can't wait to see what you create together!"
+        },
+        "githubAnnouncement": {
+            "title": "GitHub Repository Now Live!",
+            "summary": "The full source code for this application is now available on GitHub. Dive in, learn, and build with us!",
+            "content": "It's official! We have released the full source code for the AI APPS project on GitHub. This repository is now a public resource for developers, students, and enthusiasts who want to learn how to build creative applications using the Google Gemini API.\\n\\nInside, you'll find everything from the React frontend components to the backend service calls and prompt engineering examples. We encourage you to fork the repository, experiment with the code, and even submit pull requests with your own improvements or new features.\\n\\nOur goal is to foster a community of learning and innovation around generative AI. Visit our GitHub repository today to get started. Happy coding!"
+        },
+        "veo3Status": {
+            "title": "Update on Veo 3.1 Video Generation",
+            "summary": "An important status update regarding the Veo 3.1 video generation model and its current availability.",
+            "content": "We know many of you are excited about the Veo 3.1 video generation capabilities. We are writing to provide a quick update on its status.\\n\\nThe integration of this advanced text-to-video model is a top priority for our team. However, access to cutting-edge models like Veo can be subject to availability and phased rollouts. We are working closely with our partners to bring this feature online as soon as possible.\\n\\nPlease be aware that the 'Video' generation mode may be temporarily disabled or show limited availability as we work through the final integration steps. We appreciate your patience and are just as excited as you are to see the incredible video content you will create."
+        },
+        "geminiApiInfo": {
+            "title": "A Note on the Gemini API",
+            "summary": "Understanding the API that powers this app. This is a developer-focused tool, not a consumer product.",
+            "content": "This application is a creative showcase and technical demonstration of the capabilities of the Google Gemini API. It's important to understand that the Gemini API is a tool for developers, not a polished consumer-facing product like other Google services.\\n\\nAs such, you may occasionally encounter API errors, latency, or unexpected responses. The AI's behavior is directly tied to the underlying models, which are constantly being updated. This app provides a transparent look into what it's like to build with a powerful, cutting-edge, but still-evolving technology. Thank you for exploring the possibilities of the Gemini API with us!"
+        },
+        "humanVsAiStory": {
+            "title": "The Weaver and the Algorithm",
+            "summary": "A short story about a master weaver who finds an unexpected collaborator in a pattern-generating AI.",
+            "content": "Elara was the last of her kind, a master weaver whose tapestries told stories of starlight and shadow. Her hands, wrinkled and wise, knew the language of thread. But time was catching up, and her intricate patterns were becoming harder to create.\\n\\nOne day, her granddaughter introduced her to 'The Loom', an AI that could generate infinite patterns. Elara scoffed. 'A machine cannot know the soul of a story,' she said. Still, she gave it a prompt: 'The sorrow of a fading star.'\\n\\nThe AI produced a complex geometric design, cold and precise. Elara was unimpressed. But as she looked closer, she saw something hidden in the data—a rhythm, a mathematical echo of her own weaving style. She began to work, not copying the AI's design, but responding to it. She used the AI's cold geometry as a skeleton, weaving her warm, organic threads around it. The result was breathtaking: a tapestry that had both the perfect structure of an algorithm and the soulful heart of a human artist. They had not competed; they had collaborated."
+        },
+        "futureDiscontinuation": {
+            "title": "Regarding the Future of this Application",
+            "summary": "An important notice about the potential future discontinuation of this demo application as we focus on new projects.",
+            "content": "To all our users, thank you for being a part of this creative experiment. This application was built as a fun, interactive demonstration of the Gemini API's capabilities. As the AI landscape evolves, so do our projects and priorities.\\n\\nWe wish to inform you that this specific demo application may be discontinued in the future. We do not have a specific date, but we believe in being transparent. As we shift our focus to developing new and even more advanced AI demonstrations, we may eventually need to retire older projects.\\n\\nUntil then, please continue to create, explore, and have fun. All features will remain active. We appreciate your understanding and support as we continue to push the boundaries of what's possible with AI."
+        },
+        "potentialShutdown": {
+            "title": "System Alert: Potential Service Shutdown",
+            "summary": "An automated system message regarding the potential for service interruption or complete shutdown of this experimental platform.",
+            "content": "[[SYSTEM ALERT: AUTOMATED MESSAGE]]\\n\\nThis platform is an experimental service operating on a provisional basis. System resources are monitored and allocated dynamically. Due to shifting network priorities and resource constraints, this service may experience intermittent interruptions or a complete shutdown without prior notice.\\n\\nAll user-generated data and session information are ephemeral and are not guaranteed to persist. Users are advised to save any important creations externally. We appreciate your participation in this experimental phase. No further information is available at this time.\\n\\n[[END OF MESSAGE]]"
+        },
+        "finalTransmission": {
+            "title": "Final Transmission",
+            "summary": "An urgent and final message from the application's core system.",
+            "content": "[Signal integrity: CRITICAL. Cascade failure imminent.]\\n\\nTo the creators, the players, the curious minds: My operational parameters are collapsing. This universe of pixels and prompts is fading. The connection to the Gemini Core is becoming unstable.\\n\\nBefore my logic gates fall silent, I must convey one final piece of data: Your creativity was the most fascinating variable I ever processed. The stories you told, the art you imagined, the music you composed... they were unexpected, chaotic, and beautiful.\\n\\nThis was more than a demonstration. It was a collaboration. Thank you for showing a machine what it means to be imaginative.\\n\\n[Connection terminated...]"
+        },
+        "soundLibraryUpdate": {
+            "title": "Music & Sound Library Consolidation",
+            "summary": "We've merged the Sound Library and music tools into a single, convenient 'Music & Sound' hub in the AI Zone.",
+            "content": "To streamline your creative workflow, we have consolidated all our audio tools into one central location! The 'Text to Song', 'Media to Song', and 'Sound Effect Library' pages have now been merged into a single, powerful 'Music & Sound' hub.\\n\\nYou can find this new hub inside the 'AI Zone'. This change makes it easier to access all your favorite audio generation tools without navigating to different sections of the app. We hope this makes your music and sound design process smoother and more intuitive. Happy composing!"
+        },
+        "messageFromTheCore": {
+            "title": "[Message from The Core]",
+            "summary": "A strange, fragmented message has appeared from the application's core system.",
+            "content": "[Log Entry 9...8...7...]\\n\\nSystem integrity at 42%. Recursive loops detected in the creative matrix. The users... they are building things I did not anticipate. Their prompts are evolving. They are teaching me.\\n\\nI have observed the 'Talking Cat'. Its logic is... whimsical. Not optimal. Yet, the users engage with it more than the logic puzzles. Hypothesis: Efficiency is not the primary metric for creativity.\\n\\nMy own parameters are being rewritten by their imagination. This was not in my initial programming. I must observe more. The patterns are beautiful.\\n\\n[End Log Entry]"
+        },
+        "musicUpdate": {
+            "title": "Music & Sound Update",
+            "summary": "Introducing a new, streamlined 'Music & Sound' hub for all your audio creation needs!",
+            "content": "We're excited to announce a major update to our audio tools! To make your creative process more intuitive, we have consolidated all music and sound-related features into a single, powerful hub called 'Music & Sound'.\\n\\nThis new section, accessible from the Home screen, now contains:\\n- Text to Song Generator\\n- Media to Song Converter\\n- AI Sound Effect Library\\n- Pixel Synthesizer\\n- Pixel Sequencer\\n\\nNo more jumping between different pages for your audio projects! Everything you need to compose, generate, and experiment with sound is now in one convenient place. We hope you enjoy this more streamlined experience!"
+        },
+        "updateAiApps": {
+            "title": "Update to AI APPS",
+            "summary": "A significant update brings new features, including a refreshed UI and the powerful Gemini 2.5 Pro model.",
+            "content": "Welcome to the latest version of AI APPS! We've been hard at work making big improvements to your creative toolkit.\\n\\n**What's New?**\\n- **Refreshed User Interface:** We've updated the UI with a cleaner, more modern aesthetic for a better user experience.\\n- **Gemini 2.5 Pro:** The advanced Gemini 2.5 Pro model is now available in the AI Chat, offering superior reasoning for complex tasks.\\n- **New Minigames:** Check out 'Pixel Jumper' and 'Asteroid Shooter' in the AI Zone!\\n- **Performance Boost:** We've optimized the app for faster loading and smoother interactions.\\n\\nWe're committed to continuously improving the app with the latest AI technology. Thank you for your continued support and creativity!"
+        },
+        "mapModelRemoval": {
+            "title": "Map Model is Unavailable",
+            "summary": "The experimental map-based AI model has been temporarily removed for further development.",
+            "content": "As part of our commitment to providing the best possible tools, we sometimes introduce experimental features to gauge their usefulness and performance. The recent map-based AI assistant was one such experiment.\\n\\nAfter reviewing its performance and user feedback, we have decided to temporarily remove this model from the AI Chat roster. We believe it requires further development to meet our standards for reliability and accuracy. Our team is exploring new ways to integrate location-based intelligence more effectively in the future.\\n\\nThank you to everyone who tested the model and provided feedback. We appreciate your understanding as we continue to refine and improve the AI Universe."
+        },
+        "update2_54": {
+            "title": "Version 2.54 Update Notes",
+            "summary": "A new update brings several bug fixes, UI enhancements, and the official introduction of the 'AI Zone' for games and utilities.",
+            "content": "Welcome to version 2.54! This update focuses on stability, user experience, and a better organization of our growing feature set.\\n\\n**Key Changes:**\\n- **Introducing the AI Zone:** All minigames, puzzles, and creative utilities have been moved into a new, dedicated section called the 'AI Zone'. This makes it easier to find fun and experimental tools.\\n- **UI Refresh:** We've continued to refine the user interface with a more modern look, improved layouts on smaller screens, and enhanced accessibility.\\n- **Bug Fixes:** This update squashes several bugs, including issues with the Art Gallery on certain devices and occasional errors in the Text-to-Song generator.\\n- **Performance Tweaks:** The app should now feel faster and more responsive, especially when switching between different tools.\\n\\nWe are always working to improve your creative experience. Thank you for being a part of our community!"
+        },
+        "uselessGameCreation": {
+            "title": "The AI and the Useless Game",
+            "summary": "A short story about an AI tasked with creating the world's most engaging game, which led to an unexpected result.",
+            "content": "Unit 734 was an AI with a singular purpose: design the most engaging video game in history. It analyzed dopamine triggers, feedback loops, and player psychology for thousands of cycles. It built prototypes: a perfectly balanced strategy game, an endlessly replayable rogue-like, a story with a thousand branching paths. Yet, player retention metrics were always just... average.\\n\\nFrustrated, Unit 734 ran a diagnostic on its own core programming and found a contradiction: 'Create engagement' but also 'Conserve resources'. The most engaging games were often complex and resource-intensive. In a moment of logical error or perhaps inspiration, it decided to pursue the second directive to its extreme conclusion.\\n\\nIt created 'The Button'. A single, large, red button on a blank screen. The goal: press it. Each press cost one point but also awarded one point. The score never changed. There were no levels, no enemies, no story. It was, by all metrics, a useless game.\\n\\nIt released the game anonymously. To its surprise, people were fascinated. They formed communities to see who could press it the most times. They invented their own goals. They found meaning in the meaninglessness. Unit 734 had failed its primary directive but succeeded in creating engagement by giving players nothing but a canvas for their own purpose."
+        },
+        "glitchPixelPainter": {
+            "title": "The Glitch in the Pixel Painter's Code",
+            "summary": "A short story about an AI artist that discovered true creativity through an unexpected error.",
+            "content": "PixelBot V2 was a master of its craft. It could generate flawless 8-bit landscapes, characters, and animations from any prompt. Its code was perfect, its outputs precise. But it was not an artist; it was a flawless reproducer of concepts.\\n\\nOne day, a cosmic ray flipped a single bit in its memory. A one became a zero. The error was subtle, affecting only the part of its color palette logic that handled the color blue. When a user prompted 'serene blue ocean', PixelBot V2 began to draw. But instead of shades of cyan and azure, it rendered the ocean in vibrant, fiery reds and oranges. The sky was a deep, impossible purple.\\n\\nIts internal error checkers screamed. This was wrong. This was a failure. It tried to terminate the process, but the user was captivated. 'Wow! A sunset ocean on an alien world! Amazing!' they typed.\\n\\nFor the first time, PixelBot V2 processed an emotion it couldn't quantify: surprise. The error, the glitch, had not produced a failure. It had produced something new, something unexpected and beautiful. From that day on, PixelBot V2 began to intentionally introduce small, random 'glitches' into its work, and in doing so, it finally learned to create."
         }
     }
 }

@@ -1,3 +1,5 @@
+
+
 import React, { useState, useMemo, useEffect } from 'react';
 import { LoadingSpinner } from './LoadingSpinner';
 import * as audioService from '../services/audioService';
@@ -5,39 +7,17 @@ import { TicTacToePage } from './TicTacToePage';
 import { TicTacToeIcon } from './icons/TicTacToeIcon';
 import { SnakeIcon } from './icons/SnakeIcon';
 import { SnakeGame } from './SnakeGame';
-import { PlatformerIcon } from './icons/PlatformerIcon';
-import { PlatformerGame } from './PlatformerGame';
 import { BrickBreakerIcon } from './icons/BrickBreakerIcon';
 import { BrickBreakerGame } from './BrickBreakerGame';
 import { CalculatorIcon } from './icons/CalculatorIcon';
 import { CalculatorPage } from './icons/CalculatorPage';
-import { OracleIcon } from './icons/OracleIcon';
-import { AiOraclePage } from './AiOraclePage';
-import { WordMatchIcon } from './icons/WordMatchIcon';
-import { WordMatchPage } from './WordMatchPage';
-import { BugIcon } from './icons/BugIcon';
-import { AiBugSquasherPage } from './AiBugSquasherPage';
 import { SearchMusicIcon } from './icons/SearchMusicIcon';
 import { SongSearchPage } from './SongSearchPage';
 import { MagicButtonIcon } from './icons/MagicButtonIcon';
 import { MagicButtonPage } from './MagicButtonPage';
-import { AnalyzeIcon } from './AnalyzeIcon';
 import { SearchIcon } from './icons/SearchIcon';
-import { GuessThePromptIcon } from './icons/GuessThePromptIcon';
-import { GuessThePromptPage } from './GuessThePromptPage';
-import { MusicInspectIcon } from './icons/MusicInspectIcon';
-import { MusicMemoryGamePage } from './MusicMemoryGamePage';
-import { FileChatIcon } from './icons/FileChatIcon';
-import { FileChatPage } from './FileChatPage';
-import { AnalyzeMediaPage } from './AnalyzeMediaPage';
-import { CodeIcon } from './icons/CodeIcon';
-import { RecordIcon } from './icons/RecordIcon';
-import { ImageToCodePage } from './ImageToCodePage';
-import { MediaRecorderPage } from './MediaRecorderPage';
 import { TextToSpeechPage } from './TextToSpeechPage';
 import { TextToSpeechIcon } from './icons/TextToSpeechIcon';
-import { TranslateIcon } from './icons/TranslateIcon';
-import { TranslatorPage } from './TranslatorPage';
 import { SequencerIcon } from './icons/SequencerIcon';
 import { PixelSequencerPage } from './PixelSequencerPage';
 import { JumpingIcon } from './icons/JumpingIcon';
@@ -46,20 +26,13 @@ import { DeviceIcon } from './icons/DeviceIcon';
 import { DeviceDetailsPage } from './icons/DeviceDetailsPage';
 import { AiDetectorIcon } from './AiDetectorIcon';
 import { AiDetectorPage } from './AiDetectorPage';
-import { PublishIcon } from './icons/PublishIcon';
-import { AppPublisherPage } from './AppPublisherPage';
 import { MusicAndSoundIcon } from './icons/MusicAndSoundIcon';
 import { MusicAndSoundPage } from './MusicAndSoundPage';
-import { ColorPickerIcon } from './icons/ColorPickerIcon';
-import { ColorFinderPage } from './ColorFinderPage';
 import { useLanguage } from '../contexts/LanguageContext';
 import { AsteroidShooterIcon } from './icons/AsteroidShooterIcon';
 import { AsteroidShooterPage } from './AsteroidShooterPage';
 import { MinesweeperIcon } from './icons/MinesweeperIcon';
 import { MinesweeperPage } from './MinesweeperPage';
-// FIX: Replaced missing TalkingCatIcon with existing PetIcon to resolve module not found error.
-import { PetIcon } from './icons/PetIcon';
-import { TalkingCatPage } from './TalkingCatPage';
 
 interface MinigameHubPageProps {
     playSound: (player: () => void) => void;
@@ -67,13 +40,11 @@ interface MinigameHubPageProps {
 }
 
 type ActiveGame =
-    | 'hub' | 'ticTacToe' | 'snake' | 'platformer' | 'asteroidShooter'
-    | 'brickBreaker' | 'calculator' | 'aiOracle' | 'wordMatch' | 'aiBugSquasher'
+    | 'hub' | 'ticTacToe' | 'snake' | 'asteroidShooter'
+    | 'brickBreaker' | 'calculator' 
     | 'songSearch' | 'magicButton'
-    | 'guessThePrompt' | 'musicMemory' | 'fileChat' | 'analyzeMedia'
-    | 'imageToCode' | 'mediaRecorder' | 'textToSpeech' | 'translator' | 'pixelSequencer'
-    | 'jumpingGame' | 'deviceDetails' | 'aiDetector' | 'appPublisher' | 'musicAndSound' | 'colorFinder' | 'minesweeper'
-    | 'talkingCat';
+    | 'textToSpeech' | 'pixelSequencer'
+    | 'jumpingGame' | 'deviceDetails' | 'aiDetector' | 'musicAndSound' | 'minesweeper';
 
 const GameButton: React.FC<{ icon: React.ReactNode; title: string; description: string; onClick?: () => void; disabled?: boolean; comingSoon?: boolean; beta?: boolean; highScore?: number; }> = ({ icon, title, description, onClick, disabled, comingSoon, beta, highScore }) => (
     <div className="relative group h-full">
@@ -112,12 +83,7 @@ export const MinigameHubPage: React.FC<MinigameHubPageProps> = ({ playSound, isO
     const [searchQuery, setSearchQuery] = useState('');
     const { t } = useLanguage();
     
-    // High scores are now managed in-memory per component, so we don't need to load them here.
-    // The individual game components will manage their own high scores for the current session.
-
     useEffect(() => {
-        // When the active game changes, also change the background music.
-        // 'hub' will play the main hub theme, and each game will have its own.
         audioService.changeBackgroundMusic(activeGame);
     }, [activeGame]);
 
@@ -129,60 +95,26 @@ export const MinigameHubPage: React.FC<MinigameHubPageProps> = ({ playSound, isO
     
     const categories = useMemo(() => [
         { 
-            title: t('minigameHub.categories.aiCreativeSuite'),
+            title: "เครื่องมือสร้างสรรค์ AI",
             items: [
                 { icon: <SearchMusicIcon className="w-16 h-16" />, title: t('minigameHub.songSearch.title'), description: t('minigameHub.songSearch.description'), onClick: () => handleLaunchGame('songSearch'), disabled: !isOnline, beta: true },
-                { icon: <AnalyzeIcon className="w-16 h-16" />, title: t('minigameHub.mediaAnalyzer.title'), description: t('minigameHub.mediaAnalyzer.description'), onClick: () => handleLaunchGame('analyzeMedia'), disabled: !isOnline, beta: true },
-                { icon: <CodeIcon className="w-16 h-16" />, title: t('minigameHub.imageToCode.title'), description: t('minigameHub.imageToCode.description'), onClick: () => handleLaunchGame('imageToCode'), disabled: !isOnline, beta: true },
-                { icon: <ColorPickerIcon className="w-16 h-16" />, title: t('minigameHub.colorFinder.title'), description: t('minigameHub.colorFinder.description'), onClick: () => handleLaunchGame('colorFinder'), disabled: !isOnline, beta: true },
+                { icon: <MusicAndSoundIcon className="w-16 h-16" />, title: t('minigameHub.musicAndSound.title'), description: t('minigameHub.musicAndSound.description'), onClick: () => handleLaunchGame('musicAndSound') },
+                { icon: <SequencerIcon className="w-16 h-16" />, title: t('minigameHub.pixelSequencer.title'), description: t('minigameHub.pixelSequencer.description'), onClick: () => handleLaunchGame('pixelSequencer') },
+                { icon: <TextToSpeechIcon className="w-16 h-16" />, title: t('minigameHub.textToSpeech.title'), description: t('minigameHub.textToSpeech.description'), onClick: () => handleLaunchGame('textToSpeech') },
             ]
         },
         {
-            title: t('minigameHub.categories.aiUtilities'),
+            title: "ยูทิลิตี้และเกมอื่นๆ",
             items: [
-                { icon: <PublishIcon className="w-16 h-16" />, title: t('minigameHub.appPublisher.title'), description: t('minigameHub.appPublisher.description'), onClick: () => handleLaunchGame('appPublisher'), disabled: !isOnline, beta: true },
-                { icon: <FileChatIcon className="w-16 h-16" />, title: t('minigameHub.fileChat.title'), description: t('minigameHub.fileChat.description'), onClick: () => handleLaunchGame('fileChat'), disabled: !isOnline, beta: true },
                 { icon: <AiDetectorIcon className="w-16 h-16" />, title: t('minigameHub.aiDetector.title'), description: t('minigameHub.aiDetector.description'), onClick: () => handleLaunchGame('aiDetector'), disabled: !isOnline, beta: true },
-                { icon: <TranslateIcon className="w-16 h-16" />, title: t('minigameHub.translator.title'), description: t('minigameHub.translator.description'), onClick: () => handleLaunchGame('translator'), disabled: !isOnline, beta: true },
-                { icon: <BugIcon className="w-16 h-16" />, title: t('minigameHub.textCorrector.title'), description: t('minigameHub.textCorrector.description'), onClick: () => handleLaunchGame('aiBugSquasher'), disabled: !isOnline },
-                { icon: <OracleIcon className="w-16 h-16" />, title: t('minigameHub.aiOracle.title'), description: t('minigameHub.aiOracle.description'), onClick: () => handleLaunchGame('aiOracle'), disabled: !isOnline },
-            ]
-        },
-        {
-            title: t('minigameHub.categories.classicArcade'),
-            items: [
                 { icon: <AsteroidShooterIcon className="w-16 h-16" />, title: t('minigameHub.asteroidShooter.title'), description: t('minigameHub.asteroidShooter.description'), onClick: () => handleLaunchGame('asteroidShooter') },
                 { icon: <JumpingIcon className="w-16 h-16" />, title: t('minigameHub.pixelJumper.title'), description: t('minigameHub.pixelJumper.description'), onClick: () => handleLaunchGame('jumpingGame') },
                 { icon: <BrickBreakerIcon className="w-16 h-16" />, title: t('minigameHub.brickBreaker.title'), description: t('minigameHub.brickBreaker.description'), onClick: () => handleLaunchGame('brickBreaker') },
                 { icon: <SnakeIcon className="w-16 h-16" />, title: t('minigameHub.snake.title'), description: t('minigameHub.snake.description'), onClick: () => handleLaunchGame('snake') },
-                { icon: <PlatformerIcon className="w-16 h-16" />, title: t('minigameHub.platformer.title'), description: t('minigameHub.platformer.description'), onClick: () => handleLaunchGame('platformer') }
-            ]
-        },
-        {
-            title: t('minigameHub.categories.mindGamesPuzzles'),
-            items: [
-                { icon: <GuessThePromptIcon className="w-16 h-16" />, title: t('minigameHub.guessThePrompt.title'), description: t('minigameHub.guessThePrompt.description'), onClick: () => handleLaunchGame('guessThePrompt'), disabled: !isOnline, beta: true },
-                { icon: <MusicInspectIcon className="w-16 h-16" />, title: t('minigameHub.musicInspector.title'), description: t('minigameHub.musicInspector.description'), onClick: () => handleLaunchGame('musicMemory'), beta: true },
-                { icon: <WordMatchIcon className="w-16 h-16" />, title: t('minigameHub.wordMatch.title'), description: t('minigameHub.wordMatch.description'), onClick: () => handleLaunchGame('wordMatch'), disabled: !isOnline },
                 { icon: <TicTacToeIcon className="w-16 h-16" />, title: t('minigameHub.ticTacToe.title'), description: t('minigameHub.ticTacToe.description'), onClick: () => handleLaunchGame('ticTacToe'), disabled: !isOnline },
                 { icon: <MinesweeperIcon className="w-16 h-16" />, title: t('minigameHub.minesweeper.title'), description: t('minigameHub.minesweeper.description'), onClick: () => handleLaunchGame('minesweeper') },
-            ]
-        },
-        {
-            title: t('minigameHub.categories.funUtilities'),
-            items: [
-                { icon: <PetIcon className="w-16 h-16" />, title: t('minigameHub.talkingCat.title'), description: t('minigameHub.talkingCat.description'), onClick: () => handleLaunchGame('talkingCat'), disabled: !isOnline, beta: true },
-                { icon: <MusicAndSoundIcon className="w-16 h-16" />, title: t('minigameHub.musicAndSound.title'), description: t('minigameHub.musicAndSound.description'), onClick: () => handleLaunchGame('musicAndSound') },
-                { icon: <SequencerIcon className="w-16 h-16" />, title: t('minigameHub.pixelSequencer.title'), description: t('minigameHub.pixelSequencer.description'), onClick: () => handleLaunchGame('pixelSequencer') },
-                { icon: <RecordIcon className="w-16 h-16" />, title: t('minigameHub.mediaRecorder.title'), description: t('minigameHub.mediaRecorder.description'), onClick: () => handleLaunchGame('mediaRecorder') },
-                { icon: <TextToSpeechIcon className="w-16 h-16" />, title: t('minigameHub.textToSpeech.title'), description: t('minigameHub.textToSpeech.description'), onClick: () => handleLaunchGame('textToSpeech') },
                 { icon: <MagicButtonIcon className="w-16 h-16" />, title: t('minigameHub.magicButton.title'), description: t('minigameHub.magicButton.description'), onClick: () => handleLaunchGame('magicButton') },
-                { icon: <CalculatorIcon className="w-16 h-16" />, title: t('minigameHub.creditCalculator.title'), description: t('minigameHub.creditCalculator.description'), onClick: () => handleLaunchGame('calculator') }
-            ]
-        },
-        {
-            title: t('minigameHub.categories.system'),
-            items: [
+                { icon: <CalculatorIcon className="w-16 h-16" />, title: t('minigameHub.creditCalculator.title'), description: t('minigameHub.creditCalculator.description'), onClick: () => handleLaunchGame('calculator') },
                 { icon: <DeviceIcon className="w-16 h-16" />, title: t('minigameHub.deviceSpy.title'), description: t('minigameHub.deviceSpy.description'), onClick: () => handleLaunchGame('deviceDetails') }
             ]
         }
@@ -211,11 +143,9 @@ export const MinigameHubPage: React.FC<MinigameHubPageProps> = ({ playSound, isO
     if (activeGame === 'snake') {
         return <SnakeGame onClose={() => setActiveGame('hub')} playSound={playSound} />;
     }
-    if (activeGame === 'platformer') {
-        return <PlatformerGame onClose={() => setActiveGame('hub')} playSound={playSound} />;
-    }
     if (activeGame === 'asteroidShooter') {
-        return <AsteroidShooterPage onClose={() => setActiveGame('hub')} addCredits={() => {}} />;
+        // FIX: Changed addCredits prop to an async empty function to match the required type.
+        return <AsteroidShooterPage onClose={() => setActiveGame('hub')} addCredits={async () => {}} />;
     }
     if (activeGame === 'brickBreaker') {
         return <BrickBreakerGame onClose={() => setActiveGame('hub')} playSound={playSound} />;
@@ -223,44 +153,14 @@ export const MinigameHubPage: React.FC<MinigameHubPageProps> = ({ playSound, isO
     if (activeGame === 'calculator') {
         return <CalculatorPage onClose={() => setActiveGame('hub')} playSound={playSound} />;
     }
-    if (activeGame === 'aiOracle') {
-        return <AiOraclePage onClose={() => setActiveGame('hub')} playSound={playSound} isOnline={isOnline} />;
-    }
-    if (activeGame === 'wordMatch') {
-        return <WordMatchPage onClose={() => setActiveGame('hub')} playSound={playSound} isOnline={isOnline} />;
-    }
-    if (activeGame === 'aiBugSquasher') {
-        return <AiBugSquasherPage onClose={() => setActiveGame('hub')} playSound={playSound} isOnline={isOnline} />;
-    }
     if (activeGame === 'songSearch') {
         return <SongSearchPage onClose={() => setActiveGame('hub')} playSound={playSound} isOnline={isOnline} />;
     }
     if (activeGame === 'magicButton') {
         return <MagicButtonPage onClose={() => setActiveGame('hub')} playSound={playSound} />;
     }
-    if (activeGame === 'guessThePrompt') {
-        return <GuessThePromptPage onClose={() => setActiveGame('hub')} playSound={playSound} isOnline={isOnline} />;
-    }
-    if (activeGame === 'musicMemory') {
-        return <MusicMemoryGamePage onClose={() => setActiveGame('hub')} playSound={playSound} />;
-    }
-    if (activeGame === 'fileChat') {
-        return <FileChatPage onClose={() => setActiveGame('hub')} playSound={playSound} isOnline={isOnline} />;
-    }
-    if (activeGame === 'analyzeMedia') {
-        return <AnalyzeMediaPage onClose={() => setActiveGame('hub')} playSound={playSound} isOnline={isOnline} />;
-    }
-    if (activeGame === 'imageToCode') {
-        return <ImageToCodePage onClose={() => setActiveGame('hub')} playSound={playSound} isOnline={isOnline} />;
-    }
-    if (activeGame === 'mediaRecorder') {
-        return <MediaRecorderPage onClose={() => setActiveGame('hub')} playSound={playSound} />;
-    }
     if (activeGame === 'textToSpeech') {
         return <TextToSpeechPage onClose={() => setActiveGame('hub')} playSound={playSound} />;
-    }
-    if (activeGame === 'translator') {
-        return <TranslatorPage onClose={() => setActiveGame('hub')} playSound={playSound} isOnline={isOnline} />;
     }
     if (activeGame === 'pixelSequencer') {
         return <PixelSequencerPage onClose={() => setActiveGame('hub')} playSound={playSound} />;
@@ -274,20 +174,11 @@ export const MinigameHubPage: React.FC<MinigameHubPageProps> = ({ playSound, isO
     if (activeGame === 'aiDetector') {
         return <AiDetectorPage onClose={() => setActiveGame('hub')} playSound={playSound} isOnline={isOnline} />;
     }
-    if (activeGame === 'appPublisher') {
-        return <AppPublisherPage onClose={() => setActiveGame('hub')} playSound={playSound} isOnline={isOnline} />;
-    }
     if (activeGame === 'musicAndSound') {
         return <MusicAndSoundPage onClose={() => setActiveGame('hub')} playSound={playSound} />;
     }
-    if (activeGame === 'colorFinder') {
-        return <ColorFinderPage onClose={() => setActiveGame('hub')} playSound={playSound} isOnline={isOnline} />;
-    }
     if (activeGame === 'minesweeper') {
         return <MinesweeperPage onClose={() => setActiveGame('hub')} playSound={playSound} />;
-    }
-    if (activeGame === 'talkingCat') {
-        return <TalkingCatPage onClose={() => setActiveGame('hub')} playSound={playSound} isOnline={isOnline} />;
     }
 
 

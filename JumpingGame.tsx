@@ -1,4 +1,6 @@
 
+
+
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { PageWrapper } from './PageComponents';
 import * as audioService from '../services/audioService';
@@ -105,20 +107,18 @@ export const JumpingGame: React.FC<JumpingGameProps> = ({ onClose, playSound }) 
             });
         }
         
-        const passedPromises: Promise<void>[] = [];
-        objects.current.forEach(obj => {
+        // FIX: Use a for...of loop to allow awaiting async addCredits call.
+        for (const obj of objects.current) {
             obj.x -= GAME_SPEED + (score / 1000); // Speed increases with score
 
             // Check for passing an obstacle
             if (obj.type === 'obstacle' && !obj.passed && obj.x + obj.width < PLAYER_X) {
                 obj.passed = true;
                 setScore(s => s + 5);
-                // FIX: addCredits is async
-                passedPromises.push(addCredits(5));
+                // FIX: addCredits is now async and must be awaited
+                await addCredits(5);
             }
-        });
-        
-        await Promise.all(passedPromises);
+        }
 
         objects.current = objects.current.filter(obj => obj.x + obj.width > 0);
 

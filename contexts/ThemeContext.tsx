@@ -1,4 +1,6 @@
 
+
+
 import React, { createContext, useContext, useState, useEffect, useCallback, FC, ReactNode } from 'react';
 import * as preferenceService from '../services/preferenceService';
 
@@ -9,6 +11,7 @@ interface ThemeContextType {
     theme: Theme;
     themePreference: ThemePreference;
     setThemePreference: (preference: ThemePreference) => void;
+    isThemeLoaded: boolean;
 }
 
 const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
@@ -20,22 +23,30 @@ const getSystemTheme = (): Theme => {
     return 'dark';
 };
 
-const getInitialThemePreference = (): ThemePreference => {
-    return preferenceService.getPreference('theme', 'system');
-};
-
 export const ThemeProvider: FC<{ children: ReactNode }> = ({ children }) => {
-    const [themePreference, setThemePreferenceState] = useState<ThemePreference>(getInitialThemePreference);
-    const [actualTheme, setActualTheme] = useState<Theme>(() => 
-        themePreference === 'system' ? getSystemTheme() : themePreference
-    );
+    // FIX: Initialize with a default value, not an async call.
+    const [themePreference, setThemePreferenceState] = useState<ThemePreference>('system');
+    const [actualTheme, setActualTheme] = useState<Theme>(getSystemTheme);
+    const [isThemeLoaded, setIsThemeLoaded] = useState(false);
 
-    const setThemePreference = useCallback((preference: ThemePreference) => {
+    // FIX: Load preference asynchronously using useEffect.
+    useEffect(() => {
+        const initTheme = async () => {
+            const pref = await preferenceService.getPreference('theme', 'system');
+            setThemePreferenceState(pref);
+            setIsThemeLoaded(true);
+        };
+        initTheme();
+    }, []);
+
+    const setThemePreference = useCallback(async (preference: ThemePreference) => {
         setThemePreferenceState(preference);
-        preferenceService.setPreference('theme', preference);
+        await preferenceService.setPreference('theme', preference);
     }, []);
 
     useEffect(() => {
+        if (!isThemeLoaded) return; // Wait for preference to load
+
         const root = window.document.body;
         const isDark = actualTheme === 'dark';
         
@@ -44,11 +55,13 @@ export const ThemeProvider: FC<{ children: ReactNode }> = ({ children }) => {
         
         const themeColorMeta = document.querySelector('meta[name="theme-color"]');
         if (themeColorMeta) {
-            themeColorMeta.setAttribute('content', isDark ? '#080c2b' : '#E2E8F0');
+            themeColorMeta.setAttribute('content', isDark ? '#111827' : '#f3f4f6');
         }
-    }, [actualTheme]);
+    }, [actualTheme, isThemeLoaded]);
 
     useEffect(() => {
+        if (!isThemeLoaded) return;
+
         if (themePreference === 'system') {
             setActualTheme(getSystemTheme());
             const mediaQuery = window.matchMedia('(prefers-color-scheme: light)');
@@ -60,9 +73,9 @@ export const ThemeProvider: FC<{ children: ReactNode }> = ({ children }) => {
         } else {
             setActualTheme(themePreference);
         }
-    }, [themePreference]);
+    }, [themePreference, isThemeLoaded]);
     
-    const value = { theme: actualTheme, themePreference, setThemePreference };
+    const value = { theme: actualTheme, themePreference, setThemePreference, isThemeLoaded };
 
     return (
         <ThemeContext.Provider value={value}>

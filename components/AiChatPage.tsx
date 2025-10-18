@@ -21,7 +21,8 @@ import { XIcon } from './icons/XIcon';
 import { MicrophoneIcon } from './icons/MicrophoneIcon';
 import { StopIcon } from './icons/StopIcon';
 import { SpeakerOnIcon } from './icons/SpeakerOnIcon';
-import type { Message } from '../services/preferenceService';
+// FIX: Changed import type to regular import.
+import { Message } from '../services/preferenceService';
 
 // --- Gemini Live API Helper Functions ---
 function encode(bytes: Uint8Array) {
@@ -80,15 +81,23 @@ const ModelSelectionModal: React.FC<{
     const { t } = useLanguage();
 
     const categories = useMemo(() => {
-        const modelArray = Array.isArray(models) ? models : [];
-        const uniqueCategories = new Set(modelArray.map(m => m.category));
+        // FIX: Add guard to ensure 'models' is an array before calling .map()
+        if (!Array.isArray(models)) {
+            return ['All'];
+        }
+        // FIX: Add type assertion to resolve potential type inference issue.
+        const uniqueCategories = new Set((models as AiModel[]).map(m => m.category));
         return ['All', ...Array.from(uniqueCategories)];
     }, [models]);
     const [activeCategory, setActiveCategory] = useState<'All' | AiModel['category']>('All');
 
     const filteredModels = useMemo(() => {
-        const modelArray = Array.isArray(models) ? models : [];
-        return modelArray
+        // FIX: Add guard to ensure 'models' is an array before calling .filter()
+        if (!Array.isArray(models)) {
+            return [];
+        }
+        // FIX: Add type assertion to resolve potential type inference issue.
+        return (models as AiModel[])
             .filter(model => activeCategory === 'All' || model.category === activeCategory)
             .filter(model => 
                 model.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -363,7 +372,8 @@ export const AiChatPage: React.FC<AiChatPageProps> = ({ isOnline, playSound }) =
     }, [messages, isLoading, handleSendMessage]);
 
     const handleSelectModel = (model: AiModel) => {
-        handleNewChat();
+        // Do not clear chat history. The useEffect will load the new model's history.
+        geminiService.resetChatSession();
         setSelectedModel(model);
         setIsModelModalOpen(false);
         playSound(audioService.playSuccess);

@@ -1,6 +1,11 @@
-import type { Song } from './geminiService';
 
-const PREFERENCES_KEY = 'app-preferences-v1';
+
+
+
+import type { Song } from './geminiService';
+import * as cloudService from './cloudService';
+
+const PREFERENCES_KEY = 'app-preferences-v1'; // This key is now obsolete but kept for reference
 
 // --- New Types for persistent state ---
 export type ModelVersion = 'v1' | 'v1.5' | 'v2.0-beta';
@@ -31,7 +36,7 @@ export interface Preferences {
 
     // Display & Accessibility
     theme: 'light' | 'dark' | 'system';
-    language: 'th' | 'en';
+    language: 'th' | 'en' | 'auto'; // Added 'auto' for initial detection
     uiAnimations: boolean;
     highContrastMode: boolean;
     showTooltips: boolean;
@@ -54,6 +59,8 @@ export interface Preferences {
 
     // Minigames
     defaultMinigameDifficulty: 'easy' | 'normal' | 'hard';
+    // FIX: Add missing preference for asteroid shooter high score.
+    asteroidShooterHighScore: number;
     
     // Credits & Data
     confirmCreditSpend: boolean;
@@ -61,6 +68,7 @@ export interface Preferences {
 
     // --- New & Updated ---
     textToSpeechVoiceName: 'Zephyr' | 'Puck' | 'Charon' | 'Kore' | 'Fenrir';
+    lastDailyRewardClaim: number;
 
     // --- Persisted State ---
     credits: number;
@@ -77,52 +85,34 @@ export interface Preferences {
     textToSpeechAutoDetectLang: boolean;
 }
 
-// Function to get all preferences from localStorage
-function getAllPreferences(): Partial<Preferences> {
-    try {
-        const storedPrefs = localStorage.getItem(PREFERENCES_KEY);
-        if (storedPrefs) {
-            return JSON.parse(storedPrefs);
-        }
-    } catch (error) {
-        console.error("Failed to read preferences from localStorage:", error);
-    }
-    return {};
-}
-
-// Function to save all preferences to localStorage
-function saveAllPreferences(prefs: Partial<Preferences>): void {
-    try {
-        localStorage.setItem(PREFERENCES_KEY, JSON.stringify(prefs));
-    } catch (error) {
-        console.error("Failed to save preferences to localStorage:", error);
-    }
-}
-
-
 /**
- * Gets a specific preference value from the in-memory store.
+ * Gets a specific preference value from the cloud store.
  * @param key The key of the preference to retrieve.
  * @param defaultValue The value to return if the key is not found.
- * @returns The stored preference value or the default value.
+ * @returns A promise that resolves to the stored preference value or the default value.
  */
-export function getPreference<K extends keyof Preferences>(key: K, defaultValue: Preferences[K]): Preferences[K] {
-    const prefs = getAllPreferences();
-    const storedValue = prefs[key];
-
-    if (storedValue !== null && storedValue !== undefined) {
-        return storedValue as Preferences[K];
+// FIX: `getPreference` is now async to simulate cloud storage.
+export async function getPreference<K extends keyof Preferences>(key: K, defaultValue: Preferences[K]): Promise<Preferences[K]> {
+    const value = await cloudService.getCloudData(key as string);
+    if (value !== null && value !== undefined) {
+        return value as Preferences[K];
     }
     return defaultValue;
 }
 
 /**
- * Sets a specific preference value in the in-memory store.
+ * Sets a specific preference value in the cloud store.
  * @param key The key of the preference to set.
  * @param value The value to store.
  */
-export function setPreference<K extends keyof Preferences>(key: K, value: Preferences[K]): void {
-    const prefs = getAllPreferences();
-    prefs[key] = value;
-    saveAllPreferences(prefs);
+// FIX: `setPreference` is now async to simulate cloud storage.
+export async function setPreference<K extends keyof Preferences>(key: K, value: Preferences[K]): Promise<void> {
+    await cloudService.setCloudData(key as string, value);
+}
+
+/**
+ * Clears all user preferences and data from the cloud store.
+ */
+export async function clearAllPreferences(): Promise<void> {
+    await cloudService.clearAllCloudData();
 }

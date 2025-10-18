@@ -1,3 +1,5 @@
+
+
 import React, { useState, useCallback } from 'react';
 import { PageHeader, PageWrapper } from './PageComponents';
 import * as audioService from '../services/audioService';
@@ -70,7 +72,7 @@ export const CalculatorPage: React.FC<{
         setInput(prev => prev.slice(0, -1));
     }, [playSound]);
 
-    const handleCalculate = useCallback(() => {
+    const handleCalculate = useCallback(async () => {
         if (!input) return;
         playSound(audioService.playGenerate);
         try {
@@ -81,7 +83,8 @@ export const CalculatorPage: React.FC<{
 
             const creditsToAdd = Math.floor(Math.abs(calculatedValue));
             if (creditsToAdd > 0) {
-                addCredits(creditsToAdd);
+                // FIX: addCredits is now async
+                await addCredits(creditsToAdd);
                 playSound(audioService.playCreditAdd);
             } else {
                 playSound(audioService.playSuccess);

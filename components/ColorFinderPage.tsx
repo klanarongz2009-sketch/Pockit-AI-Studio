@@ -1,4 +1,5 @@
 
+
 import React, { useState, useRef, useCallback } from 'react';
 import * as geminiService from '../services/geminiService';
 import * as audioService from '../services/audioService';
@@ -23,6 +24,7 @@ export const ColorFinderPage: React.FC<ColorFinderPageProps> = ({ onClose, playS
     const [error, setError] = useState<string | null>(null);
     const [palette, setPalette] = useState<geminiService.ColorResult[] | null>(null);
     const [copiedHex, setCopiedHex] = useState<string | null>(null);
+    const [isDragging, setIsDragging] = useState<boolean>(false);
 
     const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -37,9 +39,8 @@ export const ColorFinderPage: React.FC<ColorFinderPageProps> = ({ onClose, playS
             if (fileInputRef.current) fileInputRef.current.value = "";
         }
     };
-
-    const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
-        const file = event.target.files?.[0];
+    
+    const processFile = async (file: File | undefined) => {
         if (!file || !file.type.startsWith('image/')) {
             setError("Please select an image file.");
             return;
@@ -60,6 +61,10 @@ export const ColorFinderPage: React.FC<ColorFinderPageProps> = ({ onClose, playS
             setError("Failed to process the file.");
             playSound(audioService.playError);
         }
+    };
+
+    const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
+        processFile(event.target.files?.[0]);
     };
 
     const handleGenerate = useCallback(async () => {
@@ -89,11 +94,35 @@ export const ColorFinderPage: React.FC<ColorFinderPageProps> = ({ onClose, playS
         setTimeout(() => setCopiedHex(null), 1500);
     };
 
+    const handleDragEnter = (e: React.DragEvent<HTMLElement>) => { e.preventDefault(); e.stopPropagation(); setIsDragging(true); };
+    const handleDragLeave = (e: React.DragEvent<HTMLElement>) => { e.preventDefault(); e.stopPropagation(); setIsDragging(false); };
+    const handleDragOver = (e: React.DragEvent<HTMLElement>) => { e.preventDefault(); e.stopPropagation(); };
+    const handleDrop = (e: React.DragEvent<HTMLElement>) => {
+        e.preventDefault(); e.stopPropagation(); setIsDragging(false);
+        if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+            processFile(e.dataTransfer.files[0]);
+            e.dataTransfer.clearData();
+        }
+    };
+
     return (
         <PageWrapper>
             <input type="file" ref={fileInputRef} onChange={handleFileChange} accept="image/*" className="hidden" aria-hidden="true" />
             <PageHeader title={t('colorFinder.title')} onBack={onClose} />
-            <main id="main-content" className="w-full max-w-lg flex flex-col items-center gap-6 font-sans">
+            <main 
+                id="main-content" 
+                className="w-full max-w-lg flex flex-col items-center gap-6 font-sans relative"
+                onDragEnter={handleDragEnter}
+                onDragOver={handleDragOver}
+                onDragLeave={handleDragLeave}
+                onDrop={handleDrop}
+            >
+                {isDragging && (
+                    <div className="absolute inset-0 bg-black/80 border-4 border-dashed border-brand-yellow z-10 flex flex-col items-center justify-center pointer-events-none">
+                        <UploadIcon className="w-12 h-12 text-brand-yellow" />
+                        <p className="font-press-start text-xl text-brand-yellow mt-4">Drop your image here</p>
+                    </div>
+                )}
                 <p className="text-sm text-center text-brand-light/80">
                     {t('colorFinder.description')}
                 </p>

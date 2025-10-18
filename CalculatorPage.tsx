@@ -1,9 +1,10 @@
 
 
+
 import React, { useState, useCallback } from 'react';
-import { PageHeader, PageWrapper } from '../PageComponents';
-import * as audioService from '../../services/audioService';
-import { useCredits } from '../../contexts/CreditContext';
+import { PageHeader, PageWrapper } from './PageComponents';
+import * as audioService from '../services/audioService';
+import { useCredits } from '../contexts/CreditContext';
 
 // A slightly safer evaluation function
 const safeEval = (expression: string): number => {
@@ -130,14 +131,14 @@ export const CalculatorPage: React.FC<{
         { value: '3', handler: () => handleButtonClick('3'), style: 'bg-brand-light text-black', label: '3' },
         { value: '+', handler: () => handleButtonClick('+'), style: 'bg-brand-cyan/80 text-black', label: 'Add' },
         { value: '0', handler: () => handleButtonClick('0'), style: 'bg-brand-light text-black col-span-2', label: '0' },
-        { value: '.', handler: () => handleButtonClick('.'), style: 'bg-brand-light text-black', label: 'Decimal' },
+        { value: '.', handler: () => handleButtonClick('.'), style: 'bg-brand-light text-black', label: 'Decimal point' },
         { value: '=', handler: handleCalculate, style: 'bg-brand-yellow text-black', label: 'Equals' },
     ];
 
 
     return (
         <PageWrapper>
-            <PageHeader title="Credit Calculator" onBack={onClose} />
+            <PageHeader title="เครื่องคิดเลขเครดิต" onBack={onClose} />
             <main className="w-full max-w-sm flex flex-col items-center gap-4 font-press-start">
                 <div className="w-full p-4 bg-black/80 border-4 border-brand-light text-right h-28 flex flex-col justify-between shadow-pixel">
                     <div className="text-2xl text-brand-light/80 h-8 overflow-x-auto overflow-y-hidden whitespace-nowrap" dir="ltr">{input || '0'}</div>
@@ -155,8 +156,8 @@ export const CalculatorPage: React.FC<{
                 </div>
                 
                 <div className="font-sans text-sm text-center text-brand-light/80 p-2">
-                   <p>Earn 1 credit per 1 unit of the result (rounded down).</p>
-                   <p>Example: A result of 150 earns 150 credits.</p>
+                   <p>รับ 1 เครดิตต่อ 1 หน่วยของผลลัพธ์ (ปัดลง)</p>
+                   <p>ตัวอย่าง: ผลลัพธ์ 150 จะได้รับ 150 เครดิต</p>
                 </div>
             </main>
         </PageWrapper>

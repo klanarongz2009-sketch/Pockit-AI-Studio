@@ -33,18 +33,14 @@ export const SnakeGame: React.FC<SnakeGameProps> = ({ onClose, playSound }) => {
     const [isNewHighScore, setIsNewHighScore] = useState(false);
     const [isGameOver, setIsGameOver] = useState(false);
     const [gameStarted, setGameStarted] = useState(false);
-    // FIX: `getPreference` is async. Initialize with default and load saved preference in useEffect.
+    // FIX: Initialize with a default value and load preference asynchronously.
     const [difficulty, setDifficulty] = useState<'easy' | 'normal' | 'hard'>('normal');
     const touchStartRef = useRef<{ x: number, y: number } | null>(null);
     const { addCredits } = useCredits();
     
-    // FIX: Asynchronously load saved preferences on mount.
+    // FIX: Load preference asynchronously.
     useEffect(() => {
-        const loadDifficulty = async () => {
-            const savedDifficulty = await preferenceService.getPreference('defaultMinigameDifficulty', 'normal');
-            setDifficulty(savedDifficulty);
-        };
-        loadDifficulty();
+        preferenceService.getPreference('defaultMinigameDifficulty', 'normal').then(setDifficulty);
     }, []);
 
     const generateFood = useCallback((snakeBody: { x: number, y: number }[]) => {
@@ -195,6 +191,7 @@ export const SnakeGame: React.FC<SnakeGameProps> = ({ onClose, playSound }) => {
         ctx.fillRect(food.x * GRID_SIZE, food.y * GRID_SIZE, GRID_SIZE, GRID_SIZE);
     }, [snake, food, isGameOver, score, gameStarted, isNewHighScore]);
 
+    // FIX: Make gameLoop async to await addCredits
     const gameLoop = useCallback(async () => {
         if (isGameOver || !gameStarted) {
             draw();
@@ -233,7 +230,6 @@ export const SnakeGame: React.FC<SnakeGameProps> = ({ onClose, playSound }) => {
         // Food collision
         if (head.x === food.x && head.y === food.y) {
             setScore(s => s + 1);
-            // FIX: addCredits is now async
             await addCredits(1);
             playSound(audioService.playScore);
             generateFood(newSnake);
