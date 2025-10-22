@@ -29,13 +29,22 @@ const HfModelSelectionModal: React.FC<{
 }> = ({ isOpen, onClose, onSelect, models }) => {
     const [searchQuery, setSearchQuery] = useState('');
 
-    const categories = useMemo(() => {
+    // FIX: Explicitly type 'categories' as string[] to resolve a type inference issue where it was being inferred as 'unknown'.
+    const categories: string[] = useMemo(() => {
+        // FIX: Add guard to ensure 'models' is an array before calling .map()
+        if (!Array.isArray(models)) {
+            return ['All'];
+        }
         const uniqueCategories = new Set(models.map(m => m.category));
         return ['All', ...Array.from(uniqueCategories)];
     }, [models]);
     const [activeCategory, setActiveCategory] = useState<'All' | HfModel['category']>('All');
 
     const filteredModels = useMemo(() => {
+        // FIX: Add guard to ensure `models` is an array before calling .filter() to prevent runtime errors.
+        if (!Array.isArray(models)) {
+            return [];
+        }
         return models
             .filter(model => activeCategory === 'All' || model.category === activeCategory)
             .filter(model => 

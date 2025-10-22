@@ -21,6 +21,14 @@ export interface AiModel {
   // A large, curated list of AI assistants
   export const ALL_AI_MODELS: AiModel[] = [
     // Text & General
+    {
+        id: 'gemini-2.5-flash',
+        name: 'Pockit ai',
+        description: 'ผู้ช่วยที่เป็นมิตรและให้ความช่วยเหลือ สามารถรวมความรู้จากโมเดลประเภทต่างๆ เพื่อให้คำตอบที่ครอบคลุม นี่คือเวอร์ชัน PockitGemini',
+        category: 'Text & General',
+        subCategory: 'General Purpose',
+        systemInstruction: 'คุณคือ Pockit ai ผู้ช่วยเวอร์ชัน PockitGemini คุณเป็นผู้ช่วยที่เป็นมิตรและมีประโยชน์ที่ผสมผสานความรู้จากโมเดลประเภทต่างๆ (ข้อความ รูปภาพ และอื่นๆ) เพื่อให้คำตอบที่ครอบคลุม',
+    },
     { 
         id: 'gemini-2.5-flash', 
         name: 'Chatwaff 1.0 Mid Beta (01)', 

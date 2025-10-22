@@ -21,7 +21,6 @@ import { XIcon } from './icons/XIcon';
 import { MicrophoneIcon } from './icons/MicrophoneIcon';
 import { StopIcon } from './icons/StopIcon';
 import { SpeakerOnIcon } from './icons/SpeakerOnIcon';
-// FIX: Changed import type to regular import.
 import { Message } from '../services/preferenceService';
 
 // --- Gemini Live API Helper Functions ---
@@ -80,12 +79,13 @@ const ModelSelectionModal: React.FC<{
     const [searchQuery, setSearchQuery] = useState('');
     const { t } = useLanguage();
 
-    const categories = useMemo(() => {
+    // FIX: Explicitly type 'categories' as string[] to resolve a type inference issue where it was being inferred as 'unknown'.
+    const categories: string[] = useMemo(() => {
         // FIX: Add guard to ensure 'models' is an array before calling .map()
         if (!Array.isArray(models)) {
             return ['All'];
         }
-        // FIX: Add type assertion to resolve potential type inference issue.
+        // FIX: Add a type assertion to `models` to prevent potential type inference issues with `.map`.
         const uniqueCategories = new Set((models as AiModel[]).map(m => m.category));
         return ['All', ...Array.from(uniqueCategories)];
     }, [models]);
@@ -641,7 +641,6 @@ export const AiChatPage: React.FC<AiChatPageProps> = ({ isOnline, playSound }) =
                             <button onClick={() => fileInputRef.current?.click()} onMouseEnter={() => playSound(audioService.playHover)} className="p-2 hover:text-brand-yellow disabled:opacity-50" disabled={isLoading || liveConnectionState !== 'idle'}>
                                 <UploadIcon className="w-5 h-5"/>
                             </button>
-                            <input type="file" ref={fileInputRef} onChange={handleFileChange} className="hidden" />
                              <button onClick={() => handleSendMessage()} disabled={(!userInput.trim() && !fileData) || isLoading || !isOnline || liveConnectionState !== 'idle'} className="p-2 hover:text-brand-yellow disabled:opacity-50">
                                 <SendIcon className="w-5 h-5"/>
                             </button>

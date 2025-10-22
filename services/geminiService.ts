@@ -668,7 +668,7 @@ export async function correctText(text: string): Promise<string> {
 // FIX: Implemented missing function identifyAndSearchMusic
 export async function identifyAndSearchMusic(base64Data: string, mimeType: string): Promise<SearchResult> {
     const ai = checkApi();
-    const prompt = `Act as an expert musicologist. Analyze the provided audio in detail. Your primary goal is to identify the song if possible (direct identification). If direct identification is not possible, provide a deep musicological analysis for a similarity search. Your analysis in the 'overview' field must cover:
+    const prompt = `Act as an expert musicologist. Use web search to get up-to-date and accurate information to help identify the music. Analyze the provided audio in detail. Your primary goal is to identify the song if possible (direct identification). If direct identification is not possible, provide a deep musicological analysis for a similarity search. Your analysis in the 'overview' field must cover:
 1.  **Instrumentation**: Identify all audible instruments (e.g., "acoustic guitar", "distorted electric guitar", "string section", "synthesizer pad", "percussion like shakers or tambourine"). Be as specific as possible.
 2.  **Vocal Characteristics**: Describe the vocals if present (e.g., male/female, solo/choir, singing style like 'breathy' or 'powerful', harmonies).
 3.  **Recording Environment**: Determine if it sounds like a studio recording or a live performance (e.g., "sounds like a concert due to crowd noise and reverb").
@@ -679,7 +679,7 @@ Please provide the response ONLY as a JSON object with this structure: { "identi
             model: 'gemini-2.5-flash',
             contents: { parts: [{ inlineData: { data: base64Data, mimeType: mimeType } }, { text: prompt }] },
             config: {
-                tools: [{ googleSearch: {} }],
+                tools: [{ googleSearch: {} }], // Added Search Grounding
             },
         });
 
