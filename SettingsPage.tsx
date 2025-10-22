@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useCallback } from 'react';
 import { PageHeader, PageWrapper } from './PageComponents';
 import * as audioService from '../services/audioService';
@@ -197,7 +196,8 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({
                             {t('settings.langEn')} (auto-detected)
                         </div>
                     </div>
-                    <SettingToggle label={t('settings.uiAnimations')} isChecked={uiAnimations} onToggle={onUiAnimationsChange} />
+                    {/* FIX: The onToggle prop expects a function with no arguments. Wrapped onUiAnimationsChange in an arrow function to match the expected signature. */}
+                    <SettingToggle label={t('settings.uiAnimations')} isChecked={uiAnimations} onToggle={() => onUiAnimationsChange(!uiAnimations)} />
                     <SettingToggle label="High Contrast" isChecked={highContrast} onToggle={() => handleToggle('highContrastMode', !highContrast, setHighContrast)} />
                 </Section>
                 

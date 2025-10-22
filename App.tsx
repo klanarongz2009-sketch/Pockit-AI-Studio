@@ -1,4 +1,5 @@
 
+
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import * as audioService from './services/audioService';
 import { preloadAllAssets } from './services/assetLoader';
@@ -21,9 +22,10 @@ import { ArticlePage } from './components/ArticlePage';
 import { OfflineAiPage } from './components/OfflineAiPage';
 import { CreditCenterPage } from './components/CreditCenterPage';
 import { LoadingSpinner } from './components/LoadingSpinner';
+import { HuggingFaceStudioPage } from './components/HuggingFaceStudioPage';
 
 
-export type CurrentPage = 'home' | 'minigameHub' | 'aiChat' | 'article' | 'offlineAi';
+export type CurrentPage = 'home' | 'minigameHub' | 'aiChat' | 'article' | 'offlineAi' | 'huggingfaceStudio';
 type AppState = 'intro' | 'startScreen' | 'mainApp';
 
 const MainApp: React.FC = () => {
@@ -249,6 +251,12 @@ const MainApp: React.FC = () => {
                   )}
                   {currentPage === 'offlineAi' && (
                       <OfflineAiPage
+                          playSound={playSound}
+                      />
+                  )}
+                   {currentPage === 'huggingfaceStudio' && (
+                      <HuggingFaceStudioPage
+                          isOnline={isOnline}
                           playSound={playSound}
                       />
                   )}

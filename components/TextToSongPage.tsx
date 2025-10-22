@@ -1,4 +1,5 @@
 
+
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { Song } from '../services/geminiService';
 import { generateSongFromText } from '../services/geminiService';
@@ -46,12 +47,24 @@ export const TextToSongPage: React.FC<TextToSongPageProps> = ({
     const [isLoading, setIsLoading] = useState<boolean>(false);
     const [error, setError] = useState<string | null>(null);
     const [isDownloading, setIsDownloading] = useState<boolean>(false);
-    const [modelVersion, setModelVersion] = useState<ModelVersion>(() => preferenceService.getPreference('textToSongModel', 'v1'));
+    // FIX: Initialize with a default value. The value from preference will be loaded in useEffect.
+    const [modelVersion, setModelVersion] = useState<ModelVersion>('v1');
     const [thinkingMessage, setThinkingMessage] = useState<string>(thinkingMessages[0]);
     
-    const [history, setHistory] = useState<HistoryItem[]>(() => preferenceService.getPreference('songHistory', []));
+    // FIX: Initialize with a default value. The value from preference will be loaded in useEffect.
+    const [history, setHistory] = useState<HistoryItem[]>([]);
     const [currentlyPlayingId, setCurrentlyPlayingId] = useState<string | null>(null);
     const cancellationRequested = useRef(false);
+
+    useEffect(() => {
+        const loadPrefs = async () => {
+            const savedModel = await preferenceService.getPreference('textToSongModel', 'v1');
+            const savedHistory = await preferenceService.getPreference('songHistory', []);
+            setModelVersion(savedModel);
+            setHistory(savedHistory);
+        };
+        loadPrefs();
+    }, []);
 
     useEffect(() => {
         preferenceService.setPreference('textToSongModel', modelVersion);

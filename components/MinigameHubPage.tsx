@@ -1,5 +1,3 @@
-
-
 import React, { useState, useMemo, useEffect } from 'react';
 import { LoadingSpinner } from './LoadingSpinner';
 import * as audioService from '../services/audioService';
@@ -33,6 +31,10 @@ import { AsteroidShooterIcon } from './icons/AsteroidShooterIcon';
 import { AsteroidShooterPage } from './AsteroidShooterPage';
 import { MinesweeperIcon } from './icons/MinesweeperIcon';
 import { MinesweeperPage } from './MinesweeperPage';
+import { HuggingFaceIcon } from './icons/HuggingFaceIcon';
+import { AudioTranscriptionIcon } from './icons/AudioTranscriptionIcon';
+import { SpeechToTextPage } from './SpeechToTextPage';
+import { isHfApiKeyAvailable } from '../services/huggingFaceService';
 
 interface MinigameHubPageProps {
     playSound: (player: () => void) => void;
@@ -44,7 +46,8 @@ type ActiveGame =
     | 'brickBreaker' | 'calculator' 
     | 'songSearch' | 'magicButton'
     | 'textToSpeech' | 'pixelSequencer'
-    | 'jumpingGame' | 'deviceDetails' | 'aiDetector' | 'musicAndSound' | 'minesweeper';
+    | 'jumpingGame' | 'deviceDetails' | 'aiDetector' | 'musicAndSound' | 'minesweeper'
+    | 'speechToText';
 
 const GameButton: React.FC<{ icon: React.ReactNode; title: string; description: string; onClick?: () => void; disabled?: boolean; comingSoon?: boolean; beta?: boolean; highScore?: number; }> = ({ icon, title, description, onClick, disabled, comingSoon, beta, highScore }) => (
     <div className="relative group h-full">
@@ -94,6 +97,20 @@ export const MinigameHubPage: React.FC<MinigameHubPageProps> = ({ playSound, isO
     };
     
     const categories = useMemo(() => [
+        {
+            title: "Hugging Face Tools",
+            icon: <HuggingFaceIcon className="w-6 h-6 inline-block mr-2" />,
+            items: [
+                { 
+                    icon: <AudioTranscriptionIcon className="w-16 h-16" />, 
+                    title: "Speech-to-Text", 
+                    description: isHfApiKeyAvailable ? "Upload an audio file and transcribe it to text using the Whisper model." : "Feature unavailable: Hugging Face API Key is not configured.", 
+                    onClick: () => handleLaunchGame('speechToText'), 
+                    disabled: !isOnline || !isHfApiKeyAvailable, 
+                    beta: true 
+                },
+            ]
+        },
         { 
             title: "เครื่องมือสร้างสรรค์ AI",
             items: [
@@ -180,6 +197,9 @@ export const MinigameHubPage: React.FC<MinigameHubPageProps> = ({ playSound, isO
     if (activeGame === 'minesweeper') {
         return <MinesweeperPage onClose={() => setActiveGame('hub')} playSound={playSound} />;
     }
+    if (activeGame === 'speechToText') {
+        return <SpeechToTextPage onClose={() => setActiveGame('hub')} playSound={playSound} isOnline={isOnline} />;
+    }
 
 
     return (
@@ -211,8 +231,8 @@ export const MinigameHubPage: React.FC<MinigameHubPageProps> = ({ playSound, isO
                 
                 {filteredCategories.map(category => (
                     <div key={category.title}>
-                        <h2 id={`${category.title}-heading`} className="font-press-start text-2xl text-brand-cyan mb-4 mt-8">
-                            {category.title}
+                        <h2 id={`${category.title}-heading`} className="font-press-start text-2xl text-brand-cyan mb-4 mt-8 flex items-center">
+                            {category.icon} {category.title}
                         </h2>
                         <section 
                             aria-labelledby={`${category.title}-heading`}

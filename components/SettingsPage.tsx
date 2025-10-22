@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { PageHeader, PageWrapper } from './PageComponents';
 import * as audioService from '../services/audioService';
 import * as preferenceService from '../services/preferenceService';
@@ -57,21 +57,19 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({
     const [isLoading, setIsLoading] = useState(true);
 
     // --- State for all new preferences ---
-    // FIX: Initialize all states with default non-promise values.
     const [highContrast, setHighContrast] = useState(false);
-    const [chatFontSize, setChatFontSize] = useState<preferenceService.Preferences['chatFontSize']>('medium');
+    const [chatFontSize, setChatFontSize] = useState('medium');
     const [autoPlaySounds, setAutoPlaySounds] = useState(true);
-    const [defaultImageMode, setDefaultImageMode] = useState<preferenceService.Preferences['imageGeneratorMode']>('image');
-    const [imageQuality, setImageQuality] = useState<preferenceService.Preferences['imageGenerationQuality']>('quality');
+    const [defaultImageMode, setDefaultImageMode] = useState('image');
+    const [imageQuality, setImageQuality] = useState('quality');
     const [autoSaveToGallery, setAutoSaveToGallery] = useState(false);
-    const [defaultChatModelName, setDefaultChatModelName] = useState(aiModels[0]?.name || '');
+    const [defaultChatModelName, setDefaultChatModelName] = useState('');
     const [saveChatHistory, setSaveChatHistory] = useState(true);
     const [defaultWebSearch, setDefaultWebSearch] = useState(false);
-    const [defaultMinigameDifficulty, setDefaultMinigameDifficulty] = useState<preferenceService.Preferences['defaultMinigameDifficulty']>('normal');
+    const [defaultMinigameDifficulty, setDefaultMinigameDifficulty] = useState('normal');
     const [confirmCreditSpend, setConfirmCreditSpend] = useState(false);
-    const [defaultTtsVoice, setDefaultTtsVoice] = useState<preferenceService.Preferences['textToSpeechVoiceName']>('Zephyr');
+    const [defaultTtsVoice, setDefaultTtsVoice] = useState('Zephyr');
 
-    // FIX: Load all preferences asynchronously in a useEffect.
     useEffect(() => {
         const loadSettings = async () => {
             setIsLoading(true);
@@ -92,36 +90,35 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({
                 preferenceService.getPreference('confirmCreditSpend', false),
                 preferenceService.getPreference('textToSpeechVoiceName', 'Zephyr')
             ]);
-            setHighContrast(hc); setChatFontSize(font); setAutoPlaySounds(autoPlay);
-            setDefaultImageMode(imgMode); setImageQuality(imgQual); setAutoSaveToGallery(autoSave);
+            setHighContrast(hc); setChatFontSize(font as any); setAutoPlaySounds(autoPlay);
+            setDefaultImageMode(imgMode as any); setImageQuality(imgQual as any); setAutoSaveToGallery(autoSave);
             setDefaultChatModelName(chatModel); setSaveChatHistory(saveHistory); setDefaultWebSearch(webSearch);
-            setDefaultMinigameDifficulty(difficulty); setConfirmCreditSpend(confirmSpend); setDefaultTtsVoice(ttsVoice);
+            setDefaultMinigameDifficulty(difficulty as any); setConfirmCreditSpend(confirmSpend); setDefaultTtsVoice(ttsVoice as any);
             setIsLoading(false);
         };
         loadSettings();
     }, [aiModels]);
-    
+
     // --- Handlers to save preferences ---
-    const handleToggle = async (
-        key: keyof preferenceService.Preferences,
-        setter: React.Dispatch<React.SetStateAction<boolean>>,
-        currentValue: boolean
+    const handleToggle = useCallback(async <K extends keyof preferenceService.Preferences>(
+        key: K, 
+        value: preferenceService.Preferences[K], 
+        setter: React.Dispatch<React.SetStateAction<preferenceService.Preferences[K]>>
     ) => {
         playSound(audioService.playToggle);
-        const newValue = !currentValue;
-        setter(newValue);
-        await preferenceService.setPreference(key as any, newValue);
-    };
-
-    const handleSelect = async (
-        key: keyof preferenceService.Preferences,
-        value: any,
+        setter(value);
+        await preferenceService.setPreference(key, value);
+    }, [playSound]);
+    
+    const handleSelect = useCallback(async <K extends keyof preferenceService.Preferences>(
+        key: K, 
+        value: preferenceService.Preferences[K], 
         setter: React.Dispatch<React.SetStateAction<any>>
     ) => {
         playSound(audioService.playClick);
         setter(value);
-        await preferenceService.setPreference(key as any, value);
-    };
+        await preferenceService.setPreference(key, value);
+    }, [playSound]);
     
     useEffect(() => {
         document.body.classList.toggle('theme-high-contrast', highContrast);
@@ -199,14 +196,14 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({
                             {t('settings.langEn')} (auto-detected)
                         </div>
                     </div>
-                    {/* FIX: Correctly call onUiAnimationsChange with the new value */}
+                    {/* FIX: The onToggle prop expects a function with no arguments. Wrapped onUiAnimationsChange in an arrow function to match the expected signature, invert the current value, and play a sound. */}
                     <SettingToggle label={t('settings.uiAnimations')} isChecked={uiAnimations} onToggle={() => { playSound(audioService.playToggle); onUiAnimationsChange(!uiAnimations); }} />
-                    <SettingToggle label="High Contrast" isChecked={highContrast} onToggle={() => handleToggle('highContrastMode', !highContrast, setHighContrast as any)} />
+                    <SettingToggle label="High Contrast" isChecked={highContrast} onToggle={() => handleToggle('highContrastMode', !highContrast, setHighContrast)} />
                 </Section>
                 
                 <Section title={t('settings.sound')}>
                     <SettingToggle label={t('settings.soundEffects')} isChecked={isSoundOn} onToggle={onToggleSound} />
-                    <SettingToggle label="Autoplay Sounds" description="Automatically play generated sounds and music." isChecked={autoPlaySounds} onToggle={() => handleToggle('autoPlaySounds', !autoPlaySounds, setAutoPlaySounds as any)} />
+                    <SettingToggle label="Autoplay Sounds" description="Automatically play generated sounds and music." isChecked={autoPlaySounds} onToggle={() => handleToggle('autoPlaySounds', !autoPlaySounds, setAutoPlaySounds)} />
                     <div>
                         <label htmlFor="tts-voice-select" className="font-press-start">AI Voice for Read Aloud</label>
                         <select
@@ -235,4 +232,78 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({
                         >
                             <option value="image">Image</option>
                             <option value="gif">GIF</option>
-                            <option value="video">Video
+                            <option value="video">Video</option>
+                            <option value="spritesheet">Spritesheet</option>
+                        </select>
+                    </div>
+                     <div>
+                        <label className="font-press-start">{t('settings.imageQuality')}</label>
+                        <div className="flex gap-4 mt-2">
+                            <label className="flex items-center gap-2">
+                                <input type="radio" name="image-quality" value="fast" checked={imageQuality === 'fast'} onChange={() => handleSelect('imageGenerationQuality', 'fast', setImageQuality)} className="w-5 h-5 accent-brand-magenta" />
+                                <span>{t('settings.qualityFast')}</span>
+                            </label>
+                             <label className="flex items-center gap-2">
+                                <input type="radio" name="image-quality" value="quality" checked={imageQuality === 'quality'} onChange={() => handleSelect('imageGenerationQuality', 'quality', setImageQuality)} className="w-5 h-5 accent-brand-magenta" />
+                                <span>{t('settings.qualityHigh')}</span>
+                            </label>
+                        </div>
+                    </div>
+                    <SettingToggle label="Auto-save to Gallery" description="Automatically save generated images to your gallery." isChecked={autoSaveToGallery} onToggle={() => handleToggle('autoSaveToGallery', !autoSaveToGallery, setAutoSaveToGallery)} />
+                </Section>
+
+                <Section title={t('aiChat.title')}>
+                     <div>
+                        <label htmlFor="default-model-select" className="font-press-start">{t('settings.defaultAiChat')}</label>
+                        <select
+                            id="default-model-select"
+                            value={defaultChatModelName}
+                            onChange={(e) => handleSelect('defaultChatModelName', e.target.value, setDefaultChatModelName)}
+                            className="w-full mt-2 p-2 bg-brand-light text-black border-2 border-black"
+                        >
+                            {aiModels.map(model => (
+                                <option key={model.name} value={model.name}>
+                                    {model.name}
+                                </option>
+                            ))}
+                        </select>
+                        <button onClick={() => setIsModelInfoOpen(true)} className="text-xs text-brand-cyan underline mt-2">Learn more about models</button>
+                    </div>
+                    <SettingToggle label={t('settings.saveChatHistory')} description="Save chat history to the cloud." isChecked={saveChatHistory} onToggle={() => handleToggle('saveChatHistory', !saveChatHistory, setSaveChatHistory)} />
+                    <SettingToggle label="Enable Web Search" description="Enable web search by default for compatible models." isChecked={defaultWebSearch} onToggle={() => handleToggle('defaultWebSearch', !defaultWebSearch, setDefaultWebSearch)} />
+                </Section>
+                
+                 <Section title={t('settings.minigames')}>
+                     <div>
+                        <label htmlFor="default-minigame-difficulty" className="font-press-start">{t('settings.defaultDifficulty')}</label>
+                        <select
+                            id="default-minigame-difficulty"
+                            value={defaultMinigameDifficulty}
+                            onChange={(e) => handleSelect('defaultMinigameDifficulty', e.target.value as any, setDefaultMinigameDifficulty)}
+                            className="w-full mt-2 p-2 bg-brand-light text-black border-2 border-black"
+                        >
+                            <option value="easy">{t('settings.difficultyEasy')}</option>
+                            <option value="normal">{t('settings.difficultyNormal')}</option>
+                            <option value="hard">{t('settings.difficultyHard')}</option>
+                        </select>
+                         <p className="text-xs text-brand-light/70 mt-1">Applies to games that support difficulty levels.</p>
+                    </div>
+                </Section>
+                
+                <Section title="Data Management">
+                    <SettingToggle label="Confirm Credit Spend" description="Show a confirmation dialog before spending credits." isChecked={confirmCreditSpend} onToggle={() => handleToggle('confirmCreditSpend', !confirmCreditSpend, setConfirmCreditSpend)} />
+                    <button onClick={handleClearData} className="w-full p-3 bg-brand-magenta text-white border-4 border-brand-light shadow-pixel font-press-start text-sm hover:bg-red-500">
+                        Reset App & Clear Cloud Data
+                    </button>
+                    <p className="text-xs text-brand-light/70 text-center">
+                        This clears all data saved in the cloud and reloads the app to its original state.
+                    </p>
+                </Section>
+
+                <footer className="text-center text-xs text-brand-light/50 py-4 font-sans">
+                    Version: 3.0.0 (Cloud Edition)
+                </footer>
+            </main>
+        </PageWrapper>
+    );
+};

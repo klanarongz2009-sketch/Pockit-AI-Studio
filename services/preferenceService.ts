@@ -1,7 +1,3 @@
-
-
-
-
 import type { Song } from './geminiService';
 import * as cloudService from './cloudService';
 
@@ -44,6 +40,7 @@ export interface Preferences {
 
     // Creation
     imageGeneratorMode: 'image' | 'gif' | 'video' | 'spritesheet';
+    imageGeneratorEngine: 'gemini' | 'huggingface';
     imageGeneratorFps: number;
     imageGeneratorFrameCount: number;
     imageGenerationQuality: 'fast' | 'quality';

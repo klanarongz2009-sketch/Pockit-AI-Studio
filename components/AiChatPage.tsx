@@ -188,18 +188,16 @@ export const AiChatPage: React.FC<AiChatPageProps> = ({ isOnline, playSound }) =
     const [isModelInfoOpen, setIsModelInfoOpen] = useState(false);
     const { t } = useLanguage();
     
-    const [selectedModel, setSelectedModel] = useState<AiModel>(() => {
-        const savedName = preferenceService.getPreference('defaultChatModelName', ALL_AI_MODELS[0]?.name || '');
-        return ALL_AI_MODELS.find(m => m.name === savedName) || ALL_AI_MODELS[0];
-    });
+    // FIX: Initialize state with default values and load preferences asynchronously in useEffect hooks.
+    const [selectedModel, setSelectedModel] = useState<AiModel>(ALL_AI_MODELS[0]);
     
     const [fileData, setFileData] = useState<FileData | null>(null);
 
     const canUseWebSearch = useMemo(() => selectedModel.id !== 'local-robot' && !fileData, [selectedModel, fileData]);
-    const [webSearchEnabled, setWebSearchEnabled] = useState(() => preferenceService.getPreference('defaultWebSearch', false) && canUseWebSearch);
+    const [webSearchEnabled, setWebSearchEnabled] = useState(false);
     
     const [messages, setMessages] = useState<Message[]>([]);
-    const [saveChatHistory, setSaveChatHistory] = useState(() => preferenceService.getPreference('saveChatHistory', true));
+    const [saveChatHistory, setSaveChatHistory] = useState(true);
     
     // --- Voice Assistant State ---
     const [liveConnectionState, setLiveConnectionState] = useState<'idle' | 'connecting' | 'connected' | 'error'>('idle');
@@ -219,34 +217,64 @@ export const AiChatPage: React.FC<AiChatPageProps> = ({ isOnline, playSound }) =
     const messagesEndRef = useRef<HTMLDivElement>(null);
     const fileInputRef = useRef<HTMLInputElement>(null);
 
+    // FIX: Load preferences asynchronously on mount.
+    useEffect(() => {
+        const loadPrefs = async () => {
+            const savedModelName = await preferenceService.getPreference('defaultChatModelName', ALL_AI_MODELS[0]?.name || '');
+            setSelectedModel(ALL_AI_MODELS.find(m => m.name === savedModelName) || ALL_AI_MODELS[0]);
+
+            const savedHistoryPref = await preferenceService.getPreference('saveChatHistory', true);
+            setSaveChatHistory(savedHistoryPref);
+        };
+        loadPrefs();
+    }, []);
+
+    useEffect(() => {
+        const loadWebSearchPref = async () => {
+            const savedPref = await preferenceService.getPreference('defaultWebSearch', false);
+            setWebSearchEnabled(savedPref && canUseWebSearch);
+        };
+        loadWebSearchPref();
+    }, [canUseWebSearch]);
+
+
     useEffect(() => {
         messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
     }, [messages, isLoading, currentMicInput, currentModelOutput]);
 
+    // FIX: Make useEffect async to handle promise from getPreference.
     useEffect(() => {
-        if (saveChatHistory) {
-            const savedHistory = preferenceService.getPreference('chatHistory', {})[selectedModel.id];
-            // FIX: Ensure that savedHistory is an array before setting it to state.
-            // This prevents runtime errors if localStorage data is corrupted or in an old format.
-            if (savedHistory && Array.isArray(savedHistory)) {
-                setMessages(savedHistory);
+        const loadHistory = async () => {
+            if (saveChatHistory) {
+                const allHistory = await preferenceService.getPreference('chatHistory', {});
+                const savedHistory = allHistory[selectedModel.id];
+                // FIX: Ensure that savedHistory is an array before setting it to state.
+                // This prevents runtime errors if localStorage data is corrupted or in an old format.
+                if (savedHistory && Array.isArray(savedHistory)) {
+                    setMessages(savedHistory);
+                } else {
+                    setMessages([]);
+                }
             } else {
                 setMessages([]);
             }
-        } else {
-            setMessages([]);
-        }
+        };
+        loadHistory();
     }, [selectedModel, saveChatHistory]);
 
+    // FIX: Make useEffect async to handle promises from getPreference and setPreference.
     useEffect(() => {
-        if (saveChatHistory && messages.length > 0) {
-            const allHistory = preferenceService.getPreference('chatHistory', {});
-            allHistory[selectedModel.id] = messages;
-            preferenceService.setPreference('chatHistory', allHistory);
-        }
+        const saveHistory = async () => {
+            if (saveChatHistory && messages.length > 0) {
+                const allHistory = await preferenceService.getPreference('chatHistory', {});
+                allHistory[selectedModel.id] = messages;
+                await preferenceService.setPreference('chatHistory', allHistory);
+            }
+        };
+        saveHistory();
     }, [messages, selectedModel, saveChatHistory]);
 
-    const handleNewChat = useCallback(() => {
+    const handleNewChat = useCallback(async () => {
         playSound(audioService.playTrash);
         geminiService.resetChatSession();
         setMessages([]);
@@ -254,9 +282,9 @@ export const AiChatPage: React.FC<AiChatPageProps> = ({ isOnline, playSound }) =
         setError(null);
         setFileData(null);
         if (saveChatHistory) {
-            const allHistory = preferenceService.getPreference('chatHistory', {});
+            const allHistory = await preferenceService.getPreference('chatHistory', {});
             delete allHistory[selectedModel.id];
-            preferenceService.setPreference('chatHistory', allHistory);
+            await preferenceService.setPreference('chatHistory', allHistory);
         }
     }, [playSound, saveChatHistory, selectedModel.id]);
     
@@ -384,7 +412,7 @@ export const AiChatPage: React.FC<AiChatPageProps> = ({ isOnline, playSound }) =
         if (!file) return;
 
         playSound(audioService.playSelection);
-        handleNewChat();
+        await handleNewChat();
         
         try {
             const toBase64 = (f: File): Promise<string> => new Promise((resolve, reject) => {
@@ -425,7 +453,7 @@ export const AiChatPage: React.FC<AiChatPageProps> = ({ isOnline, playSound }) =
         if (!ai || !isOnline || (liveConnectionState !== 'idle' && liveConnectionState !== 'error')) return;
 
         playSound(audioService.playClick);
-        handleNewChat();
+        await handleNewChat();
         setLiveConnectionState('connecting');
         setError(null);
 

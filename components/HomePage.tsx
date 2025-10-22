@@ -1,6 +1,7 @@
 
 
 
+
 import React from 'react';
 import { useLanguage } from '../contexts/LanguageContext';
 import type { CurrentPage } from '../App';
@@ -11,6 +12,7 @@ import { ChatIcon } from './icons/ChatIcon';
 import { OfflineAiIcon } from './icons/OfflineAiIcon';
 import { ArticleIcon } from './ArticleIcon';
 import { SettingsIcon } from './icons/SettingsIcon';
+import { HuggingFaceStudioIcon } from './icons/HuggingFaceStudioIcon';
 
 interface HomePageProps {
   onSetPage: (page: CurrentPage) => void;
@@ -37,8 +39,9 @@ export const HomePage: React.FC<HomePageProps> = ({ onSetPage, onOpenSettings })
     const { t } = useLanguage();
 
     const apps = [
-        { page: 'minigameHub', label: t('sidebar.aiZone'), icon: <GamepadIcon className="w-full h-full" /> },
         { page: 'aiChat', label: t('sidebar.aiChat'), icon: <ChatIcon className="w-full h-full" /> },
+        { page: 'minigameHub', label: t('sidebar.aiZone'), icon: <GamepadIcon className="w-full h-full" /> },
+        { page: 'huggingfaceStudio', label: 'HF Studio', icon: <HuggingFaceStudioIcon className="w-full h-full" /> },
         { page: 'offlineAi', label: t('sidebar.offlineAi'), icon: <OfflineAiIcon className="w-full h-full" /> },
         { page: 'article', label: t('sidebar.article'), icon: <ArticleIcon className="w-full h-full" /> },
     ];

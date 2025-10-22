@@ -19,6 +19,15 @@ export interface Article {
 
 const articlesData: Article[] = [
     {
+        id: 'huggingface-intro',
+        titleKey: 'articles.huggingFaceIntro.title',
+        summaryKey: 'articles.huggingFaceIntro.summary',
+        contentKey: 'articles.huggingFaceIntro.content',
+        author: 'AI APPS Team',
+        category: 'article',
+        voice: 'Zephyr',
+    },
+    {
         id: 'veo31-status-update',
         titleKey: 'articles.veo31StatusUpdate.title',
         summaryKey: 'articles.veo31StatusUpdate.summary',
