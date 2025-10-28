@@ -1,7 +1,3 @@
-
-
-
-
 import React from 'react';
 import { useLanguage } from '../contexts/LanguageContext';
 import type { CurrentPage } from '../App';
@@ -13,6 +9,7 @@ import { OfflineAiIcon } from './icons/OfflineAiIcon';
 import { ArticleIcon } from './ArticleIcon';
 import { SettingsIcon } from './icons/SettingsIcon';
 import { HuggingFaceStudioIcon } from './icons/HuggingFaceStudioIcon';
+import { GemAiIcon } from './icons/GemAiIcon';
 
 interface HomePageProps {
   onSetPage: (page: CurrentPage) => void;
@@ -39,6 +36,7 @@ export const HomePage: React.FC<HomePageProps> = ({ onSetPage, onOpenSettings })
     const { t } = useLanguage();
 
     const apps = [
+        { page: 'gemAiApps', label: 'GEM AI Apps', icon: <GemAiIcon className="w-full h-full" /> },
         { page: 'aiChat', label: t('sidebar.aiChat'), icon: <ChatIcon className="w-full h-full" /> },
         { page: 'minigameHub', label: t('sidebar.aiZone'), icon: <GamepadIcon className="w-full h-full" /> },
         { page: 'huggingfaceStudio', label: 'HF Studio', icon: <HuggingFaceStudioIcon className="w-full h-full" /> },
@@ -59,9 +57,13 @@ export const HomePage: React.FC<HomePageProps> = ({ onSetPage, onOpenSettings })
                 </button>
             </div>
 
-             <h1 className="text-3xl sm:text-5xl text-brand-primary font-press-start text-center mb-10">
-                {t('header.title')} {t('sidebar.home')}
-            </h1>
+            <div className="text-center mb-10">
+                <h1 className="text-3xl sm:text-5xl text-brand-primary font-press-start inline-block">
+                    {t('header.title')}
+                </h1>
+                <span className="ml-4 text-lg font-sans bg-brand-accent text-white px-2 py-1 rounded-md transform -rotate-6 inline-block align-middle">BETA</span>
+            </div>
+            
             <div className="w-full max-w-4xl grid grid-cols-2 sm:grid-cols-3 gap-4 sm:gap-6">
                 {apps.map(app => (
                      <AppLauncherButton

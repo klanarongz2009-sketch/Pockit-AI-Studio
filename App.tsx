@@ -1,5 +1,3 @@
-
-
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import * as audioService from './services/audioService';
 import { preloadAllAssets } from './services/assetLoader';
@@ -10,7 +8,6 @@ import { CreditProvider } from './contexts/CreditContext';
 
 // Component Imports
 import { Intro } from './components/Intro';
-import { StartScreen } from './components/StartScreen';
 import { GlobalLayout } from './components/GlobalLayout';
 import { HomePage } from './components/HomePage';
 import { MinigameHubPage } from './components/MinigameHubPage';
@@ -23,10 +20,12 @@ import { OfflineAiPage } from './components/OfflineAiPage';
 import { CreditCenterPage } from './components/CreditCenterPage';
 import { LoadingSpinner } from './components/LoadingSpinner';
 import { HuggingFaceStudioPage } from './components/HuggingFaceStudioPage';
+import { StartScreen } from './components/StartScreen';
+import { GemAiAppsPage } from './components/GemAiAppsPage';
 
 
-export type CurrentPage = 'home' | 'minigameHub' | 'aiChat' | 'article' | 'offlineAi' | 'huggingfaceStudio';
-type AppState = 'intro' | 'startScreen' | 'mainApp';
+export type CurrentPage = 'home' | 'minigameHub' | 'aiChat' | 'article' | 'offlineAi' | 'huggingfaceStudio' | 'gemAiApps';
+type AppState = 'start' | 'intro' | 'mainApp';
 
 const MainApp: React.FC = () => {
     const { isThemeLoaded } = useTheme();
@@ -38,7 +37,7 @@ const MainApp: React.FC = () => {
     
     const [currentPage, setCurrentPage] = useState<CurrentPage>('home');
     const [isOnline, setIsOnline] = useState(navigator.onLine);
-    const [appState, setAppState] = useState<AppState>('intro');
+    const [appState, setAppState] = useState<AppState>('start');
     const [isSettingsOpen, setIsSettingsOpen] = useState(false);
     const [isCreditCenterOpen, setIsCreditCenterOpen] = useState(false);
     
@@ -55,6 +54,7 @@ const MainApp: React.FC = () => {
             setIsLoadingPrefs(false);
         };
         loadPrefs();
+        preloadAllAssets();
     }, []);
 
     // Effect for online/offline status
@@ -68,28 +68,6 @@ const MainApp: React.FC = () => {
             window.removeEventListener('offline', handleOffline);
         };
     }, []);
-    
-    // Effect for preloading assets and initializing audio
-    useEffect(() => {
-        preloadAllAssets();
-        const initAudioOnce = async () => {
-            if (!audioInitialized.current) {
-                audioInitialized.current = true;
-                if (await audioService.initAudio()) {
-                    audioService.startBackgroundMusic(currentPage);
-                    audioService.setMusicVolume(isSoundOn ? 0.5 : 0);
-                }
-                window.removeEventListener('click', initAudioOnce);
-                window.removeEventListener('keydown', initAudioOnce);
-            }
-        };
-        window.addEventListener('click', initAudioOnce);
-        window.addEventListener('keydown', initAudioOnce);
-        return () => {
-            window.removeEventListener('click', initAudioOnce);
-            window.removeEventListener('keydown', initAudioOnce);
-        };
-    }, [isSoundOn, currentPage]);
     
     // Effect to toggle body class for modal pages
     useEffect(() => {
@@ -120,6 +98,19 @@ const MainApp: React.FC = () => {
             player();
         }
     }, [isSoundOn]);
+    
+    const handleStartApp = useCallback(async () => {
+        if (appState !== 'start') return; // Prevent multiple calls
+        if (!audioInitialized.current) {
+            audioInitialized.current = true;
+            if (await audioService.initAudio()) {
+                const soundPref = await preferenceService.getPreference('isSoundOn', true);
+                audioService.startBackgroundMusic(currentPage);
+                audioService.setMusicVolume(soundPref ? 0.5 : 0);
+            }
+        }
+        setAppState('intro');
+    }, [appState, currentPage]);
 
     const handleSetPage = useCallback((page: CurrentPage): void => {
         playSound(audioService.playClick);
@@ -140,13 +131,8 @@ const MainApp: React.FC = () => {
     }, []);
 
     const handleIntroSequenceComplete = useCallback((): void => {
-        setAppState('startScreen');
-    }, []);
-
-    const handleStartApp = useCallback((): void => {
-        playSound(audioService.playSuccess);
         setAppState('mainApp');
-    }, [playSound]);
+    }, []);
 
     const openSettingsPage = useCallback((): void => {
         playSound(audioService.playClick);
@@ -176,27 +162,12 @@ const MainApp: React.FC = () => {
         );
     }
 
-    if (appState === 'intro') {
-        return <Intro onSequenceComplete={handleIntroSequenceComplete} />;
+    if (appState === 'start') {
+        return <StartScreen onStartApp={handleStartApp} />;
     }
 
-    if (appState === 'startScreen') {
-        return (
-            <div className="h-screen w-screen flex flex-col bg-background text-text-primary">
-                {isSettingsOpen && (
-                    <SettingsPage
-                        onClose={closeSettingsPage}
-                        playSound={playSound}
-                        isSoundOn={isSoundOn}
-                        onToggleSound={handleToggleSound}
-                        uiAnimations={uiAnimations}
-                        onUiAnimationsChange={handleUiAnimationsChange}
-                        aiModels={ALL_AI_MODELS}
-                    />
-                )}
-                <StartScreen onStartApp={handleStartApp} />
-            </div>
-        );
+    if (appState === 'intro') {
+        return <Intro onSequenceComplete={handleIntroSequenceComplete} />;
     }
     
 
@@ -237,6 +208,13 @@ const MainApp: React.FC = () => {
                       onOpenSettings={openSettingsPage}
                     />
                   )}
+                  {currentPage === 'gemAiApps' && (
+                    <GemAiAppsPage
+                      onClose={() => handleSetPage('home')}
+                      playSound={playSound}
+                      isOnline={isOnline}
+                    />
+                  )}
                   {currentPage === 'minigameHub' && (
                     <MinigameHubPage
                       isOnline={isOnline}
@@ -250,8 +228,10 @@ const MainApp: React.FC = () => {
                       />
                   )}
                   {currentPage === 'offlineAi' && (
+// FIX: Add missing 'onClose' prop to OfflineAiPage component.
                       <OfflineAiPage
                           playSound={playSound}
+                          onClose={() => handleSetPage('home')}
                       />
                   )}
                    {currentPage === 'huggingfaceStudio' && (

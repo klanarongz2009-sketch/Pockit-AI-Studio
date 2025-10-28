@@ -29,7 +29,7 @@ export const StartScreen: React.FC<StartScreenProps> = ({ onStartApp }) => {
     return (
         <div className="fixed inset-0 bg-background z-[90] flex flex-col items-center justify-center font-press-start text-text-primary cursor-pointer">
             <div className="text-center animate-pulse">
-                <h1 className="text-3xl sm:text-5xl text-brand-primary">AI APPS</h1>
+                <h1 className="text-3xl sm:text-5xl text-brand-primary">AI APPS 2.0</h1>
                 <p className="text-lg text-text-secondary mt-8">PRESS ANY KEY TO START</p>
             </div>
         </div>

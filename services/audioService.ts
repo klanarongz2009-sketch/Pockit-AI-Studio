@@ -209,11 +209,11 @@ export const exportSoundEffectToWav = async (params: SoundEffectParameters): Pro
 
 
 export const playHover = () => playSoundInternal('sine', 2000, 2000, 0.05, 0.04);
-export const playClick = () => playSoundInternal('sine', 1200, 400, 0.1, 0.2);
+export const playClick = () => playSoundInternal('triangle', 1000, 300, 0.1, 0.15);
 export const playToggle = () => playNoteSequence([{ freq: 800, duration: 0.05, type: 'sine', volume: 0.15, delay: 0 }, { freq: 1200, duration: 0.05, type: 'sine', volume: 0.15, delay: 0.06 }]);
 export const playCloseModal = () => playSoundInternal('sine', 300, 50, 0.25, 0.15);
-export const playGenerate = () => playNoteSequence([{ freq: NOTE_FREQUENCIES['C5'], duration: 0.07, type: 'sine', volume: 0.2, delay: 0 }, { freq: NOTE_FREQUENCIES['E5'], duration: 0.07, type: 'sine', volume: 0.2, delay: 0.08 }, { freq: NOTE_FREQUENCIES['G5'], duration: 0.07, type: 'sine', volume: 0.2, delay: 0.16 }]);
-export const playSuccess = () => playNoteSequence([{ freq: NOTE_FREQUENCIES['C5'], duration: 0.08, type: 'sine', volume: 0.2, delay: 0 }, { freq: NOTE_FREQUENCIES['G5'], duration: 0.08, type: 'sine', volume: 0.2, delay: 0.1 }, { freq: NOTE_FREQUENCIES['C6'], duration: 0.15, type: 'sine', volume: 0.2, delay: 0.2 }]);
+export const playGenerate = () => playNoteSequence([{ freq: NOTE_FREQUENCIES['C5'], duration: 0.05, type: 'triangle', volume: 0.2, delay: 0 }, { freq: NOTE_FREQUENCIES['E5'], duration: 0.05, type: 'triangle', volume: 0.2, delay: 0.06 }, { freq: NOTE_FREQUENCIES['G5'], duration: 0.05, type: 'triangle', volume: 0.2, delay: 0.12 }]);
+export const playSuccess = () => playNoteSequence([{ freq: NOTE_FREQUENCIES['C5'], duration: 0.07, type: 'sine', volume: 0.2, delay: 0 }, { freq: NOTE_FREQUENCIES['E5'], duration: 0.07, type: 'sine', volume: 0.2, delay: 0.1 }, { freq: NOTE_FREQUENCIES['G5'], duration: 0.07, type: 'sine', volume: 0.2, delay: 0.2 }, { freq: NOTE_FREQUENCIES['C6'], duration: 0.1, type: 'sine', volume: 0.2, delay: 0.3 }]);
 export const playError = () => playSoundInternal('sawtooth', 150, 80, 0.3, 0.25);
 export const playSwoosh = () => playSoundInternal('sine', 1500, 200, 0.2, 0.1);
 export const playSelection = () => playSoundInternal('sine', 1000, 1000, 0.05, 0.1);
@@ -226,12 +226,9 @@ export const playGameOver = () => playNoteSequence([{ freq: NOTE_FREQUENCIES['G3
 export const playTrash = () => playSoundInternal('sine', 200, 100, 0.15, 0.2);
 export const playCreditAdd = () => playSoundInternal('sine', 1000, 1500, 0.1, 0.3);
 export const playCreditSpend = () => playSoundInternal('sine', 800, 500, 0.1, 0.2);
-export const playIntro1 = () => playSoundInternal('sine', 220, 220, 0.2, 0.3);
-export const playIntro2 = () => playNoteSequence([{ freq: 440, duration: 0.05, type: 'sine', volume: 0.1, delay: 0 }, { freq: 550, duration: 0.05, type: 'sine', volume: 0.1, delay: 0.06 }, { freq: 660, duration: 0.05, type: 'sine', volume: 0.1, delay: 0.12 }, { freq: 880, duration: 0.05, type: 'sine', volume: 0.1, delay: 0.18 }]);
-export const playIntro3 = () => playNoteSequence([{ freq: NOTE_FREQUENCIES['A4'], duration: 0.2, type: 'sine', volume: 0.15, delay: 0 }, { freq: NOTE_FREQUENCIES['E5'], duration: 0.2, type: 'sine', volume: 0.15, delay: 0.02 }]);
-export const playBootSound1 = () => playSoundInternal('sine', 220, 220, 0.2, 0.3);
-export const playBootSound2 = () => playNoteSequence([{ freq: 440, duration: 0.05, type: 'sine', volume: 0.1, delay: 0 }, { freq: 550, duration: 0.05, type: 'sine', volume: 0.1, delay: 0.06 }, { freq: 660, duration: 0.05, type: 'sine', volume: 0.1, delay: 0.12 }, { freq: 880, duration: 0.05, type: 'sine', volume: 0.1, delay: 0.18 }]);
-export const playBootSound3 = () => playNoteSequence([{ freq: NOTE_FREQUENCIES['A4'], duration: 0.2, type: 'sine', volume: 0.15, delay: 0 }, { freq: NOTE_FREQUENCIES['E5'], duration: 0.2, type: 'sine', volume: 0.15, delay: 0.02 }]);
+export const playBootSound1 = () => playSoundInternal('sine', 110, 110, 0.3, 0.2);
+export const playBootSound2 = () => playSoundInternal('sawtooth', 220, 880, 1.5, 0.15);
+export const playBootSound3 = () => playNoteSequence([{ freq: NOTE_FREQUENCIES['A5'], duration: 0.1, type: 'sine', volume: 0.2, delay: 0 }, { freq: NOTE_FREQUENCIES['E6'], duration: 0.3, type: 'sine', volume: 0.2, delay: 0.02 }]);
 export const playBootSound4 = () => playNoteSequence([{ freq: NOTE_FREQUENCIES['C4'], duration: 0.1, type: 'sine', volume: 0.2, delay: 0 }, { freq: NOTE_FREQUENCIES['E4'], duration: 0.1, type: 'sine', volume: 0.2, delay: 0.1 }, { freq: NOTE_FREQUENCIES['G4'], duration: 0.1, type: 'sine', volume: 0.2, delay: 0.2 }, { freq: NOTE_FREQUENCIES['C5'], duration: 0.2, type: 'sine', volume: 0.2, delay: 0.3 }]);
 export const playBrickHit = () => playSoundInternal('sine', 1500, 1500, 0.05, 0.2);
 export const playPaddleHit = () => playSoundInternal('sine', 500, 500, 0.05, 0.3);
@@ -853,6 +850,41 @@ export const extractAndReverseAudioFromFile = async (file: File): Promise<AudioB
     const decodedBuffer = await audioContext.decodeAudioData(arrayBuffer);
     return reverseAudioBuffer(decodedBuffer);
 };
+
+export const createWaveformImage = async (buffer: AudioBuffer): Promise<string> => {
+    const canvas = document.createElement('canvas');
+    canvas.width = 1024;
+    canvas.height = 256;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) throw new Error("Could not get canvas context");
+
+    const data = buffer.getChannelData(0);
+    const step = Math.ceil(data.length / canvas.width);
+    const amp = canvas.height / 2;
+
+    ctx.fillStyle = '#111827';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    ctx.lineWidth = 2;
+    ctx.strokeStyle = '#38bdf8';
+    ctx.beginPath();
+    ctx.moveTo(0, amp);
+
+    for (let i = 0; i < canvas.width; i++) {
+        let min = 1.0;
+        let max = -1.0;
+        for (let j = 0; j < step; j++) {
+            const datum = data[(i * step) + j];
+            if (datum < min) min = datum;
+            if (datum > max) max = datum;
+        }
+        ctx.moveTo(i, (1 + min) * amp);
+        ctx.lineTo(i, (1 + max) * amp);
+    }
+    ctx.stroke();
+
+    return canvas.toDataURL('image/png');
+};
+
 
 // --- New Polyphonic Offline Audio to MIDI conversion ---
 

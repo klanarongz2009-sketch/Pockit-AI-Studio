@@ -263,13 +263,47 @@ export const AboutPage: React.FC<AboutPageProps> = ({ onClose, playSound, isOnli
             if (combinedContent.trim() === '') {
                 throw new Error("No file content could be fetched.");
             }
-            await navigator.clipboard.writeText(combinedContent);
-            setCopySuccess(true);
-            playSound(audioService.playSuccess);
-            setTimeout(() => setCopySuccess(false), 3000);
+            
+            try {
+                // Attempt 1: Modern Clipboard API
+                await navigator.clipboard.writeText(combinedContent);
+                setCopySuccess(true);
+                playSound(audioService.playSuccess);
+                setTimeout(() => setCopySuccess(false), 3000);
+            } catch (clipboardApiError) {
+                console.warn("navigator.clipboard.writeText failed, trying fallback.", clipboardApiError);
+                
+                // Attempt 2: Fallback to document.execCommand
+                const textArea = document.createElement("textarea");
+                textArea.value = combinedContent;
+                textArea.style.position = "fixed";
+                textArea.style.top = "-9999px";
+                textArea.style.left = "-9999px";
+                document.body.appendChild(textArea);
+                textArea.focus();
+                textArea.select();
+                
+                try {
+                    const successful = document.execCommand('copy');
+                    if (!successful) {
+                        throw new Error('Fallback copy command failed.');
+                    }
+                    setCopySuccess(true);
+                    playSound(audioService.playSuccess);
+                    setTimeout(() => setCopySuccess(false), 3000);
+                } catch (execCommandError) {
+                    // Final Fallback: Re-throw to trigger the outer catch block
+                    throw execCommandError;
+                } finally {
+                    document.body.removeChild(textArea);
+                }
+            }
+
         } catch (error) {
+            // This outer catch now handles fetch errors AND final copy failures
             console.error("Automatic copy failed:", error);
             playSound(audioService.playError);
+            // Show the manual copy modal
             setFallbackContent(combinedContent || "Could not fetch file content.");
         } finally {
             setIsCopying(false);

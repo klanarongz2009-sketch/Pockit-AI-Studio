@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>AI APPS</title>
+    <title>AI APPS 2.0</title>
     <link rel="icon" href="/assets/icon.svg" type="image/svg+xml">
     <link rel="manifest" href="manifest.json" />
     <meta name="theme-color" content="#111827" />
@@ -33,6 +33,10 @@
         --color-brand-yellow: var(--color-brand-secondary);
         --color-brand-lime: #a3e635; /* lime-400 */
       }
+      body {
+        background-color: var(--color-bg);
+        background-image: radial-gradient(circle at top, hsl(222, 39%, 18%) 0%, var(--color-bg) 60%);
+      }
       body.theme-light {
         --color-brand-primary: #0ea5e9;   /* sky-500 */
         --color-brand-secondary: #10b981; /* emerald-500 */
@@ -46,6 +50,8 @@
         --color-text-inverted: #f3f4f6;
         --color-border-primary: #d1d5db; /* gray-300 */
         --color-shadow: rgba(0, 0, 0, 0.1);
+
+        background-image: radial-gradient(circle at top, #e5e7eb 0%, var(--color-bg) 70%);
       }
       
       /* Remove scanlines */
@@ -100,6 +106,10 @@
         from { transform: scale(0.5); opacity: 0; }
         to { transform: scale(1); opacity: 1; }
       }
+      @keyframes pulse-bright {
+        0%, 100% { filter: brightness(1); transform: scale(1); }
+        50% { filter: brightness(1.5); transform: scale(1.05); }
+      }
 
       /* Page/Component Animation Classes */
       main#main-content > * {
@@ -117,6 +127,9 @@
       .animate-piece-appear {
         display: inline-block; /* Needed for transform */
         animation: pieceAppear 0.2s ease-out forwards;
+      }
+      .animate-pulse-bright {
+        animation: pulse-bright 2s infinite ease-in-out;
       }
 
       /* Modern button/interactive styles */

@@ -19,6 +19,33 @@ export interface Article {
 
 const articlesData: Article[] = [
     {
+        id: 'beta-development',
+        titleKey: 'articles.betaDevelopment.title',
+        summaryKey: 'articles.betaDevelopment.summary',
+        contentKey: 'articles.betaDevelopment.content',
+        author: 'AI APPS Team',
+        category: 'article',
+        voice: 'Zephyr',
+    },
+    {
+        id: 'update-ai-apps',
+        titleKey: 'articles.updateAiApps.title',
+        summaryKey: 'articles.updateAiApps.summary',
+        contentKey: 'articles.updateAiApps.content',
+        author: 'AI APPS Team',
+        category: 'article',
+        voice: 'Zephyr',
+    },
+    {
+        id: 'oauth-explanation',
+        titleKey: 'articles.oauthExplanation.title',
+        summaryKey: 'articles.oauthExplanation.summary',
+        contentKey: 'articles.oauthExplanation.content',
+        author: 'AI APPS Team',
+        category: 'article',
+        voice: 'Zephyr',
+    },
+    {
         id: 'huggingface-intro',
         titleKey: 'articles.huggingFaceIntro.title',
         summaryKey: 'articles.huggingFaceIntro.summary',
@@ -216,146 +243,76 @@ const articlesData: Article[] = [
         category: 'article',
         voice: 'Charon',
     },
+// FIX: Completed the truncated object in the articlesData array.
     {
         id: 'sound-library-update',
         titleKey: 'articles.soundLibraryUpdate.title',
         summaryKey: 'articles.soundLibraryUpdate.summary',
         contentKey: 'articles.soundLibraryUpdate.content',
-        author: 'AI APPS Team',
+        author: 'The Development Team',
         category: 'article',
         voice: 'Zephyr',
-    },
-    {
-        id: 'message-from-the-core',
-        titleKey: 'articles.messageFromTheCore.title',
-        summaryKey: 'articles.messageFromTheCore.summary',
-        contentKey: 'articles.messageFromTheCore.content',
-        author: '[REDACTED]',
-        category: 'article',
-        voice: 'Charon',
-    },
-    {
-        id: 'music-update',
-        titleKey: 'articles.musicUpdate.title',
-        summaryKey: 'articles.musicUpdate.summary',
-        contentKey: 'articles.musicUpdate.content',
-        author: 'AI APPS Team',
-        category: 'article',
-        voice: 'Zephyr',
-    },
-    {
-        id: 'update_ai_apps',
-        titleKey: 'articles.updateAiApps.title',
-        summaryKey: 'articles.updateAiApps.summary',
-        contentKey: 'articles.updateAiApps.content',
-        author: 'AI APPS Team',
-        category: 'article',
-        voice: 'Zephyr',
-    },
-    {
-        id: 'map-model-removal',
-        titleKey: 'articles.mapModelRemoval.title',
-        summaryKey: 'articles.mapModelRemoval.summary',
-        contentKey: 'articles.mapModelRemoval.content',
-        author: 'AI Universe Team',
-        category: 'article',
-        voice: 'Zephyr',
-    },
-    {
-        id: 'update-2.54',
-        titleKey: 'articles.update2_54.title',
-        summaryKey: 'articles.update2_54.summary',
-        contentKey: 'articles.update2_54.content',
-        author: 'AI Universe Team',
-        category: 'article',
-        voice: 'Fenrir',
-    },
-    {
-        id: 'useless-game-creation',
-        titleKey: 'articles.uselessGameCreation.title',
-        summaryKey: 'articles.uselessGameCreation.summary',
-        contentKey: 'articles.uselessGameCreation.content',
-        author: 'The Storyteller AI',
-        category: 'story',
-        voice: 'Kore',
-    },
-    {
-        id: 'glitch-in-pixel-painter',
-        titleKey: 'articles.glitchPixelPainter.title',
-        summaryKey: 'articles.glitchPixelPainter.summary',
-        contentKey: 'articles.glitchPixelPainter.content',
-        author: 'The Storyteller AI',
-        category: 'story',
-        voice: 'Puck',
     },
 ];
-
-const ArticleCard: React.FC<{ article: Article; onRead: () => void; }> = ({ article, onRead }) => {
-    const { t } = useLanguage();
-    return (
-        <button
-            onClick={onRead}
-            className="w-full h-full text-left p-4 bg-black/40 border-4 border-brand-light shadow-pixel transition-all hover:bg-brand-cyan/20 hover:border-brand-yellow hover:-translate-y-1 relative"
-        >
-            <div className="absolute top-2 right-2 bg-brand-magenta text-white text-[10px] font-press-start px-2 py-1">
-                {article.category === 'story' ? t('articlePage.categoryStory') : t('articlePage.categoryArticle')}
-            </div>
-            <h3 className="font-press-start text-lg text-brand-yellow pr-24">{t(article.titleKey)}</h3>
-            <p className="font-sans text-sm text-brand-light/80 mt-2 h-16 overflow-hidden line-clamp-3">{t(article.summaryKey)}</p>
-            <p className="font-sans text-xs text-brand-light/70 mt-4">by {article.author}</p>
-        </button>
-    );
-};
 
 export const ArticlePage: React.FC<ArticlePageProps> = ({ playSound }) => {
     const { t } = useLanguage();
     const [selectedArticle, setSelectedArticle] = useState<Article | null>(null);
 
-    const openArticle = (article: Article) => {
+    const handleSelectArticle = (article: Article) => {
         playSound(audioService.playClick);
         setSelectedArticle(article);
     };
-
-    const closeArticle = () => {
-        playSound(audioService.playCloseModal);
-        setSelectedArticle(null);
-    };
-
-    const groupedArticles = useMemo(() => {
-        return articlesData.reduce((acc, article) => {
-            const category = article.category;
-            if (!acc[category]) {
-                acc[category] = [];
-            }
-            acc[category].push(article);
-            return acc;
-        }, {} as Record<'story' | 'article', Article[]>);
+    
+    const categories = useMemo(() => {
+        const cats = new Set(articlesData.map(a => a.category));
+        return ['all', ...Array.from(cats)];
     }, []);
+    const [filter, setFilter] = useState('all');
+
+    const filteredArticles = useMemo(() => {
+        if (filter === 'all') return articlesData;
+        return articlesData.filter(a => a.category === filter);
+    }, [filter]);
 
     if (selectedArticle) {
-        return <ArticleViewerPage article={selectedArticle} onClose={closeArticle} playSound={playSound} />;
+        return (
+            <ArticleViewerPage
+                article={selectedArticle}
+                onClose={() => setSelectedArticle(null)}
+                playSound={playSound}
+            />
+        );
     }
 
     return (
         <div className="w-full h-full flex flex-col items-center px-4">
-            <h1 className="text-3xl sm:text-4xl text-brand-yellow text-center drop-shadow-[3px_3px_0_#000] mb-6">{t('articlePage.title')}</h1>
+            <h1 className="text-3xl sm:text-4xl text-brand-yellow text-center mb-6">Articles & Stories</h1>
             
-            <div className="w-full max-w-4xl space-y-8">
-                {(Object.entries(groupedArticles) as [string, Article[]][]).map(([category, articles]) => (
-                    <div key={category}>
-                        <h2 className="font-press-start text-2xl text-brand-cyan mb-4">
-                            {category === 'story' ? t('articlePage.categoryStory') : t('articlePage.categoryArticle')}
-                        </h2>
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                            {articles.map(article => (
-                                <ArticleCard 
-                                    key={article.id}
-                                    article={article}
-                                    onRead={() => openArticle(article)}
-                                />
-                            ))}
-                        </div>
-                    </div>
+            <div className="w-full max-w-4xl mb-6 flex justify-center gap-2 font-press-start">
+                {categories.map(cat => (
+                    <button 
+                        key={cat}
+                        onClick={() => setFilter(cat)}
+                        className={`px-4 py-2 border-2 text-xs capitalize ${filter === cat ? 'bg-brand-yellow text-black border-black' : 'bg-surface-primary border-border-primary text-text-primary'}`}
+                    >
+                        {cat}
+                    </button>
+                ))}
+            </div>
+
+            <div className="w-full max-w-4xl grid grid-cols-1 md:grid-cols-2 gap-6">
+                {filteredArticles.map(article => (
+                    <button 
+                        key={article.id} 
+                        onClick={() => handleSelectArticle(article)}
+                        onMouseEnter={() => playSound(audioService.playHover)}
+                        className="w-full text-left p-4 bg-black/40 border-4 border-brand-light shadow-pixel transition-all hover:bg-brand-cyan/20 hover:border-brand-yellow"
+                    >
+                        <h3 className="font-press-start text-base text-brand-yellow">{t(article.titleKey)}</h3>
+                        <p className="font-sans text-xs text-brand-light/70 mt-1">by {article.author}</p>
+                        <p className="font-sans text-sm text-brand-light/90 mt-2">{t(article.summaryKey)}</p>
+                    </button>
                 ))}
             </div>
         </div>

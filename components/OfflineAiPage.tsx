@@ -20,8 +20,14 @@ import { PageWrapper, PageHeader } from './PageComponents';
 import { AiDetectorIcon } from './AiDetectorIcon';
 import { VoiceChangerIcon } from './icons/VoiceChangerIcon';
 import { useCredits } from '../contexts/CreditContext';
+import { AudioToImageIcon } from './icons/AudioToImageIcon';
+import { TextToSpeechIcon } from './icons/TextToSpeechIcon';
+import { MicrophoneIcon } from './icons/MicrophoneIcon';
+import { AudioToImagePage } from './AudioToImagePage';
+import { LocalTextToSpeechPage } from './LocalTextToSpeechPage';
+import { LocalSpeechToTextPage } from './LocalSpeechToTextPage';
 
-// --- Helper Functions for ImageTransformer ---
+// --- Helper Functions for ImageLab ---
 function rgbToHsl(r: number, g: number, b: number): [number, number, number] {
     r /= 255; g /= 255; b /= 255;
     const max = Math.max(r, g, b), min = Math.min(r, g, b);
@@ -175,7 +181,8 @@ interface OfflineToolProps {
     playSound: (player: () => void) => void;
     t: (key: string) => string;
     onClose: () => void;
-    addCredits: (amount: number) => void;
+// FIX: Update addCredits to return a Promise.
+    addCredits: (amount: number) => Promise<void>;
 }
 
 const ChiptuneCreator = ({ playSound, t, onClose, addCredits }: OfflineToolProps) => {
@@ -208,7 +215,9 @@ const ChiptuneCreator = ({ playSound, t, onClose, addCredits }: OfflineToolProps
     const handleTransform = useCallback(async () => {
         if (!uploadedFile || isLoading) return;
         resetState(); playSound(audioService.playGenerate); setIsLoading(true);
-        try { const audioBuffer = await audioService.applyBitcrusherEffect(uploadedFile, bitDepth, sampleRate); setProcessedAudio(audioBuffer); playSound(audioService.playSuccess); addCredits(25); } catch (err) { setError(err instanceof Error ? err.message : "Failed to transform audio."); playSound(audioService.playError); } finally { setIsLoading(false); }
+        try { const audioBuffer = await audioService.applyBitcrusherEffect(uploadedFile, bitDepth, sampleRate); setProcessedAudio(audioBuffer); playSound(audioService.playSuccess); 
+// FIX: Await the async addCredits call.
+        await addCredits(25); } catch (err) { setError(err instanceof Error ? err.message : "Failed to transform audio."); playSound(audioService.playError); } finally { setIsLoading(false); }
     }, [uploadedFile, isLoading, bitDepth, sampleRate, playSound, resetState, addCredits]);
     
     const handlePlaybackToggle = useCallback(() => {
@@ -296,7 +305,9 @@ const AudioReverserTool = ({ playSound, t, onClose, addCredits }: OfflineToolPro
     const handleReverse = useCallback(async () => {
         if (!uploadedFile || isLoading) return;
         resetState(); playSound(audioService.playGenerate); setIsLoading(true);
-        try { const audioBuffer = await audioService.extractAndReverseAudioFromFile(uploadedFile); setReversedAudio(audioBuffer); playSound(audioService.playSuccess); addCredits(15); } catch (err) { setError(err instanceof Error ? err.message : "Failed to reverse audio."); playSound(audioService.playError); } finally { setIsLoading(false); }
+        try { const audioBuffer = await audioService.extractAndReverseAudioFromFile(uploadedFile); setReversedAudio(audioBuffer); playSound(audioService.playSuccess); 
+// FIX: Await the async addCredits call.
+        await addCredits(15); } catch (err) { setError(err instanceof Error ? err.message : "Failed to reverse audio."); playSound(audioService.playError); } finally { setIsLoading(false); }
     }, [uploadedFile, isLoading, playSound, resetState, addCredits]);
 
     const handlePlaybackToggle = useCallback(() => {
@@ -375,7 +386,9 @@ const AudioToMidiTool = ({ playSound, t, onClose, addCredits }: OfflineToolProps
             const arrayBuffer = await uploadedFile.arrayBuffer(); const audioCtx = new (window.AudioContext || (window as any).webkitAudioContext)();
             const audioBuffer = await audioCtx.decodeAudioData(arrayBuffer); const midiNotes = await audioService.analyzeAudioBufferToMidi(audioBuffer);
             if (midiNotes.length === 0) { throw new Error("Could not detect any distinct notes in the audio."); }
-            setProcessedMidi(midiNotes); playSound(audioService.playSuccess); addCredits(30);
+            setProcessedMidi(midiNotes); playSound(audioService.playSuccess); 
+// FIX: Await the async addCredits call.
+        await addCredits(30);
         } catch (err) { setError(err instanceof Error ? err.message : "Failed to convert audio to MIDI."); playSound(audioService.playError); } finally { setIsLoading(false); }
     }, [uploadedFile, isLoading, playSound, resetState, addCredits]);
 
@@ -453,7 +466,9 @@ const AudioAnalyzerTool = ({ playSound, t, onClose, addCredits }: OfflineToolPro
         try {
             const arrayBuffer = await uploadedFile.arrayBuffer(); const audioCtx = new (window.AudioContext || (window as any).webkitAudioContext)();
             const audioBuffer = await audioCtx.decodeAudioData(arrayBuffer); const result = await audioService.analyzeAudioLocally(audioBuffer);
-            setAnalysisResult(result); playSound(audioService.playSuccess); addCredits(10);
+            setAnalysisResult(result); playSound(audioService.playSuccess); 
+// FIX: Await the async addCredits call.
+        await addCredits(10);
         } catch (err) { setError(err instanceof Error ? err.message : "Failed to analyze audio."); playSound(audioService.playError); } finally { setIsLoading(false); }
     }, [uploadedFile, isLoading, playSound, resetState, addCredits]);
     
@@ -498,9 +513,9 @@ const AudioAnalyzerTool = ({ playSound, t, onClose, addCredits }: OfflineToolPro
     );
 };
 
-const ImageTransformer = ({ playSound, t, onClose, addCredits }: OfflineToolProps) => {
+const ImageLab = ({ playSound, t, onClose, addCredits }: OfflineToolProps) => {
     type Mode = 'sound' | 'song' | 'glyph' | 'color' | 'emoji';
-    const [mode, setMode] = useState<Mode>('sound');
+    const [mode, setMode] = useState<Mode>('color');
     const [uploadedFile, setUploadedFile] = useState<File | null>(null);
     const [previewUrl, setPreviewUrl] = useState<string | null>(null);
     const [isLoading, setIsLoading] = useState(false);
@@ -545,11 +560,21 @@ const ImageTransformer = ({ playSound, t, onClose, addCredits }: OfflineToolProp
         resetState(); playSound(audioService.playGenerate); setIsLoading(true);
         try {
             switch (mode) {
-                case 'sound': const soundParams = await analyzeImageToSound(previewUrl); setGeneratedSound(soundParams); audioService.playSoundFromParams(soundParams); addCredits(10); break;
-                case 'song': const songData = await analyzeImageToSongEnhanced(previewUrl); setGeneratedSong(songData); addCredits(20); break;
-                case 'glyph': const code = await transformImageToGlyphCode(previewUrl); setGeneratedCode(code); addCredits(5); break;
-                case 'color': const colors = await analyzeImageLocally(previewUrl); setLocalPalette(colors); addCredits(5); break;
-                case 'emoji': const art = await transformImageToEmoji(previewUrl, 24); setGeneratedEmojiArt(art); addCredits(5); break;
+                case 'sound': const soundParams = await analyzeImageToSound(previewUrl); setGeneratedSound(soundParams); audioService.playSoundFromParams(soundParams); 
+// FIX: Await the async addCredits call.
+                await addCredits(10); break;
+                case 'song': const songData = await analyzeImageToSongEnhanced(previewUrl); setGeneratedSong(songData); 
+// FIX: Await the async addCredits call.
+                await addCredits(20); break;
+                case 'glyph': const code = await transformImageToGlyphCode(previewUrl); setGeneratedCode(code); 
+// FIX: Await the async addCredits call.
+                await addCredits(5); break;
+                case 'color': const colors = await analyzeImageLocally(previewUrl); setLocalPalette(colors); 
+// FIX: Await the async addCredits call.
+                await addCredits(5); break;
+                case 'emoji': const art = await transformImageToEmoji(previewUrl, 24); setGeneratedEmojiArt(art); 
+// FIX: Await the async addCredits call.
+                await addCredits(5); break;
             }
             playSound(audioService.playSuccess);
         } catch (err) { playSound(audioService.playError); setError(err instanceof Error ? err.message : 'An unknown error occurred'); } finally { setIsLoading(false); }
@@ -567,12 +592,12 @@ const ImageTransformer = ({ playSound, t, onClose, addCredits }: OfflineToolProp
     
     return (
         <PageWrapper>
-            <PageHeader title={t('offlineAiPage.hub.image.name')} onBack={onClose} />
+            <PageHeader title={t('offlineAiPage.imageLab.title')} onBack={onClose} />
             <main id="main-content" className="w-full max-w-lg flex flex-col items-center gap-6 font-sans">
                  <input type="file" ref={fileInputRef} onChange={handleFileChange} accept="image/*" className="hidden" aria-hidden="true" />
-                 <p className="text-sm text-center text-brand-light/80">{t('offlineAiPage.imageTransformer.description')}</p>
+                 <p className="text-sm text-center text-brand-light/80">{t('offlineAiPage.imageLab.description')}</p>
                  <div className="w-full flex justify-center gap-1 p-1 bg-black/50 flex-wrap">
-                    {(['sound', 'song', 'glyph', 'color', 'emoji'] as Mode[]).map(m => (
+                    {(['color', 'sound', 'song', 'glyph', 'emoji'] as Mode[]).map(m => (
                         <button key={m} onClick={() => { playSound(audioService.playToggle); setMode(m); resetState(); }} className={`flex-1 min-w-[90px] py-2 px-1 text-xs font-press-start border-2 transition-colors ${mode === m ? 'bg-brand-yellow text-black border-black' : 'bg-surface-primary border-transparent text-text-primary hover:bg-brand-cyan/20'}`}>
                             {t(`offlineAiPage.imageTransformer.mode${m.charAt(0).toUpperCase() + m.slice(1)}`)}
                         </button>
@@ -620,7 +645,7 @@ const ContentDetectorTool = ({ playSound, t, onClose, addCredits }: OfflineToolP
     const handleAnalyze = () => {
         if (!inputText && !file) return;
         setIsLoading(true); playSound(audioService.playGenerate); setResult(null);
-        setTimeout(() => {
+        setTimeout(async () => {
             let aiLikelihood = 0; let humanLikeness = 100; const details: { label: string, value: string }[] = [];
             if (inputText) {
                 const words = inputText.trim().split(/\s+/).filter(w => w.length > 0);
@@ -647,7 +672,9 @@ const ContentDetectorTool = ({ playSound, t, onClose, addCredits }: OfflineToolP
                  }
             }
             setResult({ aiLikelihood: Math.min(99, aiLikelihood), humanLikeness: Math.max(1, humanLikeness), details });
-            setIsLoading(false); playSound(audioService.playSuccess); addCredits(5);
+            setIsLoading(false); playSound(audioService.playSuccess); 
+// FIX: Await the async addCredits call.
+        await addCredits(5);
         }, 1500);
     };
 
@@ -689,7 +716,7 @@ const TextToArtTool = ({ playSound, t, onClose, addCredits }: OfflineToolProps) 
     const handleGenerate = () => {
         if (!text.trim()) return;
         setIsLoading(true); playSound(audioService.playGenerate); setGeneratedImage(null);
-        setTimeout(() => {
+        setTimeout(async () => {
             const canvas = canvasRef.current;
             if (!canvas) { setIsLoading(false); return; }
             const ctx = canvas.getContext('2d');
@@ -715,7 +742,9 @@ const TextToArtTool = ({ playSound, t, onClose, addCredits }: OfflineToolProps) 
                 }
             }
             setGeneratedImage(canvas.toDataURL('image/png'));
-            setIsLoading(false); playSound(audioService.playSuccess); addCredits(5);
+            setIsLoading(false); playSound(audioService.playSuccess); 
+// FIX: Await the async addCredits call.
+        await addCredits(5);
         }, 500);
     };
 
@@ -779,7 +808,9 @@ const AiVoiceAdjuster = ({ playSound, t, onClose, addCredits }: OfflineToolProps
             const audioBuffer = await audioService.applyAiVoiceEffect(uploadedFile, intensity / 100);
             setProcessedAudio(audioBuffer);
             playSound(audioService.playSuccess);
-            addCredits(15);
+            
+// FIX: Await the async addCredits call.
+        await addCredits(15);
         } catch (err) { setError(err instanceof Error ? err.message : "Failed to transform audio."); playSound(audioService.playError); } finally { setIsLoading(false); }
     }, [uploadedFile, isLoading, intensity, playSound, resetState, addCredits]);
 
@@ -808,29 +839,27 @@ const AiVoiceAdjuster = ({ playSound, t, onClose, addCredits }: OfflineToolProps
                     <div className="w-full space-y-4">
                         <div className="bg-black/40 p-4 border-2 border-brand-light/50">
                             <h3 className="font-press-start text-brand-cyan">{t('offlineAiPage.aiVoiceAdjuster.sourceMedia')}:</h3>
-                            {uploadedFile.type.startsWith('video/') ? ( <video src={previewUrl!} controls className="w-full max-h-60 border-2 border-brand-light object-contain bg-black mt-2" /> ) : ( <audio src={previewUrl!} controls className="w-full mt-2" /> )}
+                            {uploadedFile.type.startsWith('video/') ? ( <video src={previewUrl!} controls className="w-full max-h-60 border-2 border-brand-light object-contain bg-black mt-2" />
+                            ) : ( <audio src={previewUrl!} controls className="w-full mt-2" /> )}
                             <button onClick={() => fileInputRef.current?.click()} className="text-sm underline hover:text-brand-yellow mt-2">{t('offlineAiPage.aiVoiceAdjuster.changeFile')}</button>
                         </div>
                         <div className="bg-black/40 p-4 border-2 border-brand-light/50 space-y-4">
-                            <h3 className="font-press-start text-brand-cyan">{t('offlineAiPage.aiVoiceAdjuster.intensity')}</h3>
+                            <h3 className="font-press-start text-brand-cyan">{t('offlineAiPage.aiVoiceAdjuster.controlsTitle')}</h3>
                             <div>
-                                <label htmlFor="intensity-slider" className="text-xs font-press-start text-brand-light/80 flex justify-between">
-                                    <span>Original</span><span>AI</span>
-                                </label>
+                                <label htmlFor="intensity-slider" className="text-xs font-press-start text-brand-light/80 flex justify-between"><span>{t('offlineAiPage.aiVoiceAdjuster.intensity')}</span><span>{intensity}%</span></label>
                                 <input id="intensity-slider" type="range" min="0" max="100" value={intensity} onChange={e => setIntensity(Number(e.target.value))} className="w-full" disabled={isLoading} />
-                                <div className="text-center font-press-start text-brand-yellow">{intensity}%</div>
                             </div>
                         </div>
                         <button onClick={handleTransform} disabled={isLoading} className="w-full flex items-center justify-center gap-3 p-4 bg-brand-magenta text-white border-4 border-brand-light shadow-pixel disabled:bg-gray-500"><SparklesIcon className="w-6 h-6" /> {isLoading ? t('offlineAiPage.aiVoiceAdjuster.transforming') : t('offlineAiPage.aiVoiceAdjuster.transform')}</button>
                     </div>
                 )}
-                <div className="w-full min-h-[8rem] p-4 bg-black/50 border-4 border-brand-light flex flex-col items-center justify-center">
+                 <div className="w-full min-h-[8rem] p-4 bg-black/50 border-4 border-brand-light flex flex-col items-center justify-center">
                     {isLoading && <LoadingSpinner text={t('offlineAiPage.aiVoiceAdjuster.transforming')} />}
-                    {error && <div role="alert" className="text-center text-brand-magenta"><p className="font-press-start">{t('offlineAiPage.error')}</p><p className="text-sm mt-2">{error}</p></div>}
+                    {error && <div role="alert" className="text-center text-brand-magenta"><p className="font-press-start">Error</p><p className="text-sm mt-2">{error}</p></div>}
                     {processedAudio && !isLoading && (
                         <div className="w-full space-y-4">
-                            <h3 className="font-press-start text-lg text-brand-cyan text-center">{t('offlineAiPage.resultTitle')}:</h3>
-                            <div className="flex gap-4">
+                             <h3 className="font-press-start text-lg text-brand-cyan text-center">{t('offlineAiPage.aiVoiceAdjuster.resultTitle')}</h3>
+                             <div className="flex gap-4">
                                 <button onClick={handlePlaybackToggle} className="w-full flex items-center justify-center gap-2 p-3 bg-brand-cyan text-black border-2 border-brand-light shadow-sm">{isPlaying ? <StopIcon className="w-5 h-5"/> : <PlayIcon className="w-5 h-5"/>} {isPlaying ? t('offlineAiPage.stop') : t('offlineAiPage.play')}</button>
                                 <button onClick={handleDownload} disabled={isDownloading} className="w-full flex items-center justify-center gap-2 p-3 bg-brand-yellow text-black border-2 border-brand-light shadow-sm disabled:bg-gray-500"><DownloadIcon className="w-5 h-5"/> {isDownloading ? '...' : t('offlineAiPage.download')}</button>
                             </div>
@@ -842,63 +871,96 @@ const AiVoiceAdjuster = ({ playSound, t, onClose, addCredits }: OfflineToolProps
     );
 };
 
-
-const offlineTools = [
-    { id: 'image', nameKey: 'offlineAiPage.hub.image.name', descriptionKey: 'offlineAiPage.hub.image.description', icon: <ImageSoundIcon className="w-16 h-16" />, component: ImageTransformer },
-    { id: 'chiptune', nameKey: 'offlineAiPage.hub.chiptune.name', descriptionKey: 'offlineAiPage.hub.chiptune.description', icon: <AudioTransformIcon className="w-16 h-16" />, component: ChiptuneCreator },
-    { id: 'reverser', nameKey: 'offlineAiPage.hub.reverser.name', descriptionKey: 'offlineAiPage.hub.reverser.description', icon: <ReverseIcon className="w-16 h-16" />, component: AudioReverserTool },
-    { id: 'midi', nameKey: 'offlineAiPage.hub.midi.name', descriptionKey: 'offlineAiPage.hub.midi.description', icon: <MusicKeyboardIcon className="w-16 h-16" />, component: AudioToMidiTool },
-    { id: 'analyzer', nameKey: 'offlineAiPage.hub.analyzer.name', descriptionKey: 'offlineAiPage.hub.analyzer.description', icon: <SoundWaveIcon className="w-16 h-16" />, component: AudioAnalyzerTool },
-    { id: 'detector', nameKey: 'offlineAiPage.hub.detector.name', descriptionKey: 'offlineAiPage.hub.detector.description', icon: <AiDetectorIcon className="w-16 h-16" />, component: ContentDetectorTool },
-    { id: 'textToImage', nameKey: 'offlineAiPage.hub.textToImage.name', descriptionKey: 'offlineAiPage.hub.textToImage.description', icon: <SparklesIcon className="w-16 h-16" />, component: TextToArtTool },
-    { id: 'aiVoice', nameKey: 'offlineAiPage.hub.aiVoice.name', descriptionKey: 'offlineAiPage.hub.aiVoice.description', icon: <VoiceChangerIcon className="w-16 h-16" />, component: AiVoiceAdjuster },
-];
-
+// FIX: Add and export the OfflineAiPage component.
 interface OfflineAiPageProps {
+    onClose: () => void;
     playSound: (player: () => void) => void;
 }
 
-export const OfflineAiPage: React.FC<OfflineAiPageProps> = ({ playSound }) => {
+type ActiveTool = 'hub' | 'chiptune' | 'reverser' | 'midi' | 'analyzer' | 'imagelab' | 'detector' | 'texttoart' | 'voiceadjuster' | 'audioToImage' | 'localtts' | 'localsst';
+
+const ToolButton: React.FC<{ icon: React.ReactNode; title: string; description: string; onClick?: () => void; disabled?: boolean; beta?: boolean; }> = ({ icon, title, description, onClick, disabled, beta }) => (
+    <div className="relative group h-full">
+        <button
+            onClick={onClick}
+            disabled={disabled}
+            className="w-full h-full flex items-start text-left gap-4 p-4 bg-black/40 border-4 border-brand-light shadow-pixel transition-all hover:bg-brand-cyan/20 hover:border-brand-yellow hover:-translate-y-1 hover:-translate-x-1 hover:shadow-[6px_6px_0_#f0f0f0] active:shadow-pixel-active active:translate-y-[2px] active:translate-x-[2px] disabled:opacity-50 disabled:cursor-not-allowed"
+            aria-label={`Open ${title}`}
+        >
+            <div className="flex-shrink-0 w-16 h-16 text-brand-cyan">{icon}</div>
+            <div className="font-sans">
+                <h3 className="font-press-start text-base md:text-lg text-brand-yellow">{title}</h3>
+                <p className="text-xs text-brand-light/80 mt-1">{description}</p>
+            </div>
+        </button>
+         {beta && (
+            <div className="absolute top-2 right-2 bg-brand-magenta text-white text-[8px] font-press-start px-1 border border-black pointer-events-none" aria-hidden="true">BETA</div>
+        )}
+    </div>
+);
+
+export const OfflineAiPage: React.FC<OfflineAiPageProps> = ({ onClose, playSound }) => {
     const { t } = useLanguage();
+    const [activeTool, setActiveTool] = useState<ActiveTool>('hub');
     const { addCredits } = useCredits();
-    const [activeToolId, setActiveToolId] = useState<string | null>(null);
 
-    const handleSelectTool = (toolId: string) => {
+    const handleLaunch = (tool: ActiveTool) => {
         playSound(audioService.playClick);
-        setActiveToolId(toolId);
-    };
-
-    const handleCloseTool = () => {
-        playSound(audioService.playCloseModal);
-        setActiveToolId(null);
+        setActiveTool(tool);
     };
     
-    const activeTool = offlineTools.find(tool => tool.id === activeToolId);
+    const commonProps = {
+        playSound,
+        t,
+        onClose: () => setActiveTool('hub'),
+        addCredits,
+    };
 
-    if (activeTool) {
-        const ToolComponent = activeTool.component;
-        return <ToolComponent onClose={handleCloseTool} playSound={playSound} t={t} addCredits={addCredits} />;
-    }
+    if (activeTool === 'chiptune') return <ChiptuneCreator {...commonProps} />;
+    if (activeTool === 'reverser') return <AudioReverserTool {...commonProps} />;
+    if (activeTool === 'midi') return <AudioToMidiTool {...commonProps} />;
+    if (activeTool === 'analyzer') return <AudioAnalyzerTool {...commonProps} />;
+    if (activeTool === 'imagelab') return <ImageLab {...commonProps} />;
+    if (activeTool === 'detector') return <ContentDetectorTool {...commonProps} />;
+    if (activeTool === 'texttoart') return <TextToArtTool {...commonProps} />;
+    if (activeTool === 'voiceadjuster') return <AiVoiceAdjuster {...commonProps} />;
+    if (activeTool === 'audioToImage') return <AudioToImagePage onClose={() => setActiveTool('hub')} playSound={playSound} />;
+    if (activeTool === 'localtts') return <LocalTextToSpeechPage onClose={() => setActiveTool('hub')} playSound={playSound} />;
+    if (activeTool === 'localsst') return <LocalSpeechToTextPage onClose={() => setActiveTool('hub')} playSound={playSound} />;
+
+
+    const tools = [
+        { id: 'chiptune', icon: <AudioTransformIcon />, nameKey: 'offlineAiPage.hub.chiptune.name', descKey: 'offlineAiPage.hub.chiptune.description' },
+        { id: 'reverser', icon: <ReverseIcon />, nameKey: 'offlineAiPage.hub.reverser.name', descKey: 'offlineAiPage.hub.reverser.description' },
+        { id: 'midi', icon: <MusicKeyboardIcon />, nameKey: 'offlineAiPage.hub.midi.name', descKey: 'offlineAiPage.hub.midi.description', beta: true },
+        { id: 'analyzer', icon: <SoundWaveIcon />, nameKey: 'offlineAiPage.hub.analyzer.name', descKey: 'offlineAiPage.hub.analyzer.description' },
+        { id: 'imagelab', icon: <ImageSoundIcon />, nameKey: 'offlineAiPage.imageLab.title', descKey: 'offlineAiPage.imageLab.description' },
+        { id: 'detector', icon: <AiDetectorIcon />, nameKey: 'offlineAiPage.hub.detector.name', descKey: 'offlineAiPage.hub.detector.description' },
+        { id: 'texttoart', icon: <SparklesIcon />, nameKey: 'offlineAiPage.hub.textToImage.name', descKey: 'offlineAiPage.hub.textToImage.description' },
+        { id: 'voiceadjuster', icon: <VoiceChangerIcon />, nameKey: 'offlineAiPage.aiVoiceAdjuster.title', descKey: 'offlineAiPage.aiVoiceAdjuster.description', beta: true },
+        { id: 'audioToImage', icon: <AudioToImageIcon />, nameKey: 'offlineAiPage.hub.audioToImage.name', descKey: 'offlineAiPage.hub.audioToImage.description' },
+        { id: 'localtts', icon: <TextToSpeechIcon />, nameKey: 'offlineAiPage.hub.localtts.name', descKey: 'offlineAiPage.hub.localtts.description' },
+        { id: 'localsst', icon: <MicrophoneIcon />, nameKey: 'offlineAiPage.hub.localsst.name', descKey: 'offlineAiPage.hub.localsst.description' },
+    ];
 
     return (
-        <div className="w-full h-full flex flex-col items-center px-4">
-            <h1 className="text-3xl sm:text-4xl text-brand-yellow text-center mb-2">{t('offlineAiPage.title')}</h1>
-            <p className="text-sm text-center text-brand-light/80 mb-6">{t('offlineAiPage.description')}</p>
-            <div className="w-full max-w-4xl grid grid-cols-1 md:grid-cols-2 gap-6">
-                {offlineTools.map(tool => (
-                    <button 
-                        key={tool.id} 
-                        onClick={() => handleSelectTool(tool.id)}
-                        className="w-full h-full flex items-start text-left gap-4 p-4 bg-black/40 border-4 border-brand-light shadow-pixel transition-all hover:bg-brand-cyan/20 hover:border-brand-yellow hover:-translate-y-1"
-                    >
-                        <div className="flex-shrink-0 w-16 h-16 text-brand-cyan">{tool.icon}</div>
-                        <div className="font-sans">
-                            <h3 className="font-press-start text-base md:text-lg text-brand-yellow">{t(tool.nameKey)}</h3>
-                            <p className="text-xs text-brand-light/80 mt-1">{t(tool.descriptionKey)}</p>
-                        </div>
-                    </button>
-                ))}
-            </div>
-        </div>
+        <PageWrapper>
+            <PageHeader title={t('offlineAiPage.title')} onBack={onClose} />
+            <main id="main-content" className="w-full max-w-4xl flex-grow overflow-y-auto px-2 pb-8 space-y-6">
+                <p className="text-center font-sans text-sm text-text-secondary">{t('offlineAiPage.hub.description')}</p>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {tools.map(tool => (
+                        <ToolButton 
+                            key={tool.id}
+                            icon={tool.icon}
+                            title={t(tool.nameKey)}
+                            description={t(tool.descKey)}
+                            onClick={() => handleLaunch(tool.id as ActiveTool)}
+                            beta={tool.beta}
+                        />
+                    ))}
+                </div>
+            </main>
+        </PageWrapper>
     );
 };

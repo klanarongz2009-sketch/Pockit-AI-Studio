@@ -1,6 +1,6 @@
 {
     "header": {
-        "title": "AIOS1.0",
+        "title": "AI APPS 2.0",
         "credits": "Credits",
         "settings": "Settings",
         "menu": "Menu",
@@ -324,6 +324,22 @@
             "aiVoice": {
                 "name": "AI Voice Adjuster",
                 "description": "Adjust your voice to sound like an AI from 0 to 100%."
+            },
+            "imageLab": {
+                "name": "Image Lab",
+                "description": "Generate sounds, art, and analyze colors from images."
+            },
+            "audioToImage": {
+                "name": "Audio to Waveform",
+                "description": "Visualize any audio file as a waveform image."
+            },
+            "localTts": {
+                "name": "Text to Speech (Local)",
+                "description": "Uses your browser's built-in voice to read text aloud."
+            },
+            "localStt": {
+                "name": "Speech to Text (Local)",
+                "description": "Uses your browser's recognition to transcribe your speech."
             }
         },
         "aiVoiceAdjuster": {
@@ -393,6 +409,10 @@
             "modeGlyph": "Glyph Code",
             "modeColor": "Color Analysis",
             "modeEmoji": "Image to Emoji"
+        },
+        "imageLab": {
+            "title": "Image Lab",
+            "description": "Creative tools that run directly on your device, no AI and no credit cost."
         },
         "audioReverser": {
             "title": "Audio Reverser",
@@ -559,6 +579,16 @@
         }
     },
     "articles": {
+        "betaDevelopment": {
+            "title": "This Version is Still in Development",
+            "summary": "Details on the application's beta status and user involvement in its improvement.",
+            "content": "Thank you for being part of the AI APPS 2.0 beta phase! This is a development and testing version, which means you may encounter bugs or incomplete features. Your feedback is invaluable in helping us refine the app. Please use the 'Feedback' feature to report any issues or share your thoughts."
+        },
+        "oauthExplanation": {
+            "title": "What is OAuth?",
+            "summary": "An explanation of OAuth (Open Authorization), a standard protocol that allows secure, limited access to user data without sharing passwords.",
+            "content": "OAuth (short for Open Authorization) is an open standard protocol that allows one application (e.g., a third-party app) to access a user's data from another application (e.g., a data provider) in a secure and limited manner, without the user having to provide their password to that application.\\n\\nA common example is logging into a website or application using a Google, Facebook, or other service account.\\n\\n**How does OAuth work?**\\n\\nOAuth involves three main parties: the resource owner (the user), the application (the client), and the data provider's server. When a user wants to use an application with their account from a data provider, the application redirects the user to the data provider's page to request authorization. If the user consents, the data provider sends an \\\"access token\\\" back to the application, which can then be used to access the data as permitted.\\n\\n**Advantages of OAuth**\\n\\nOAuth provides security and convenience. Users do not need to expose their passwords, and they have control over what data is accessed.\\n\\n**Differences between OAuth 1.0 and OAuth 2.0**\\n\\nOAuth 2.0 is the more popular version than OAuth 1.0 because it is simpler to use and more flexible.\\n\\n**OAuth vs. OpenID Connect (OIDC)**\\n\\nOAuth is used for authorizing access to resources, while OpenID Connect (OIDC) is an extension of OAuth 2.0 that adds identity verification to confirm who the user is."
+        },
         "huggingFaceIntro": {
             "title": "Introducing Hugging Face",
             "summary": "Beyond Gemini, our app now harnesses the power of Hugging Face, the leading platform for open-source AI models, to offer you an even wider range of tools.",
@@ -685,7 +715,7 @@
             "content": "We're excited to announce a major update to our audio tools! To make your creative process more intuitive, we have consolidated all music and sound-related features into a single, powerful hub called 'Music & Sound'.\\n\\nThis new section, accessible from the Home screen, now contains:\\n- Text to Song Generator\\n- Media to Song Converter\\n- AI Sound Effect Library\\n- Pixel Synthesizer\\n- Pixel Sequencer\\n\\nNo more jumping between different pages for your audio projects! Everything you need to compose, generate, and experiment with sound is now in one convenient place. We hope you enjoy this more streamlined experience!"
         },
         "updateAiApps": {
-            "title": "Update to AI APPS",
+            "title": "Major Update: AI APPS 2.0!",
             "summary": "A significant update brings new features, including a refreshed UI and the powerful Gemini 2.5 Pro model.",
             "content": "Welcome to the latest version of AI APPS! We've been hard at work making big improvements to your creative toolkit.\\n\\n**What's New?**\\n- **Refreshed User Interface:** We've updated the UI with a cleaner, more modern aesthetic for a better user experience.\\n- **Gemini 2.5 Pro:** The advanced Gemini 2.5 Pro model is now available in the AI Chat, offering superior reasoning for complex tasks.\\n- **New Minigames:** Check out 'Pixel Jumper' and 'Asteroid Shooter' in the AI Zone!\\n- **Performance Boost:** We've optimized the app for faster loading and smoother interactions.\\n\\nWe're committed to continuously improving the app with the latest AI technology. Thank you for your continued support and creativity!"
         },

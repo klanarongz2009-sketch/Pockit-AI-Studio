@@ -79,13 +79,11 @@ const ModelSelectionModal: React.FC<{
     const [searchQuery, setSearchQuery] = useState('');
     const { t } = useLanguage();
 
-    // FIX: Explicitly type 'categories' as string[] to resolve a type inference issue where it was being inferred as 'unknown'.
     const categories: string[] = useMemo(() => {
-        // FIX: Add guard to ensure 'models' is an array before calling .map()
         if (!Array.isArray(models)) {
             return ['All'];
         }
-        // FIX: Add a type assertion to `models` to prevent potential type inference issues with `.map`.
+        // FIX: Resolve "Property 'map' does not exist on type 'unknown'" by adding a type assertion, as type inference is failing within the hook.
         const uniqueCategories = new Set((models as AiModel[]).map(m => m.category));
         return ['All', ...Array.from(uniqueCategories)];
     }, [models]);
@@ -96,7 +94,7 @@ const ModelSelectionModal: React.FC<{
         if (!Array.isArray(models)) {
             return [];
         }
-        // FIX: Add type assertion to resolve potential type inference issue.
+        // FIX: Resolve potential "Property 'filter' does not exist on type 'unknown'" error by adding a type assertion.
         return (models as AiModel[])
             .filter(model => activeCategory === 'All' || model.category === activeCategory)
             .filter(model => 

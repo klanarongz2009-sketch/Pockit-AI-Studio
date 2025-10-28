@@ -29,13 +29,13 @@ const HfModelSelectionModal: React.FC<{
 }> = ({ isOpen, onClose, onSelect, models }) => {
     const [searchQuery, setSearchQuery] = useState('');
 
-    // FIX: Explicitly type 'categories' as string[] to resolve a type inference issue where it was being inferred as 'unknown'.
     const categories: string[] = useMemo(() => {
         // FIX: Add guard to ensure 'models' is an array before calling .map()
         if (!Array.isArray(models)) {
             return ['All'];
         }
-        const uniqueCategories = new Set(models.map(m => m.category));
+        // FIX: Resolve "Property 'map' does not exist on type 'unknown'" by adding a type assertion, as type inference is failing within the hook.
+        const uniqueCategories = new Set((models as HfModel[]).map(m => m.category));
         return ['All', ...Array.from(uniqueCategories)];
     }, [models]);
     const [activeCategory, setActiveCategory] = useState<'All' | HfModel['category']>('All');
@@ -45,7 +45,8 @@ const HfModelSelectionModal: React.FC<{
         if (!Array.isArray(models)) {
             return [];
         }
-        return models
+        // FIX: Resolve potential "Property 'filter' does not exist on type 'unknown'" error by adding a type assertion.
+        return (models as HfModel[])
             .filter(model => activeCategory === 'All' || model.category === activeCategory)
             .filter(model => 
                 model.name.toLowerCase().includes(searchQuery.toLowerCase()) ||

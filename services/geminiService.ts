@@ -1,5 +1,7 @@
 
 
+
+
 import { GoogleGenAI, Type, Chat, Modality, Content, GenerateContentResponse } from "@google/genai";
 import * as preferenceService from './preferenceService';
 import { AiModel } from './aiModels';
@@ -979,6 +981,144 @@ export async function extractColorPalette(base64Data: string, mimeType: string):
             }
         });
         return safeJsonParse<ColorResult[]>(response.text);
+    } catch (error) {
+        throw new Error(parseApiError(error));
+    }
+}
+
+// FIX: Added missing function generateContentWithTools
+export async function generateContentWithTools(prompt: string, model: string, config: any): Promise<GenerateContentResponse> {
+    const ai = checkApi();
+    try {
+        const response = await ai.models.generateContent({
+            model,
+            contents: prompt,
+            config,
+        });
+        return response;
+    } catch (error) {
+        throw new Error(parseApiError(error));
+    }
+}
+
+// FIX: Added missing function generateImageImagen
+export async function generateImageImagen(prompt: string, aspectRatio: string): Promise<string> {
+    const ai = checkApi();
+    await throttleImageGeneration();
+    try {
+        const response = await ai.models.generateImages({
+            model: 'imagen-4.0-generate-001',
+            prompt: prompt,
+            config: {
+              numberOfImages: 1,
+              aspectRatio: aspectRatio as "1:1" | "16:9" | "9:16" | "4:3" | "3:4",
+            },
+        });
+        const base64ImageBytes = response.generatedImages[0].image.imageBytes;
+        return `data:image/png;base64,${base64ImageBytes}`;
+    } catch (error) {
+        throw new Error(parseApiError(error));
+    }
+}
+
+// FIX: Added missing function editImage
+export async function editImage(base64Data: string, mimeType: string, prompt: string): Promise<string> {
+    const ai = checkApi();
+    try {
+        const response = await ai.models.generateContent({
+            model: 'gemini-2.5-flash-image',
+            contents: {
+                parts: [
+                    { inlineData: { data: base64Data, mimeType: mimeType } },
+                    { text: prompt },
+                ],
+            },
+            config: {
+                responseModalities: [Modality.IMAGE],
+            },
+        });
+
+        for (const part of response.candidates[0].content.parts) {
+            if (part.inlineData) {
+                const base64ImageBytes: string = part.inlineData.data;
+                return `data:${part.inlineData.mimeType};base64,${base64ImageBytes}`;
+            }
+        }
+        throw new Error("AI did not return an edited image.");
+    } catch (error) {
+        throw new Error(parseApiError(error));
+    }
+}
+
+// FIX: Added missing function analyzeImage
+export async function analyzeImage(base64Data: string, mimeType: string, prompt: string): Promise<string> {
+    const ai = checkApi();
+    try {
+        const response = await ai.models.generateContent({
+            model: 'gemini-2.5-flash',
+            contents: {
+                parts: [
+                    { inlineData: { data: base64Data, mimeType: mimeType } },
+                    { text: prompt }
+                ]
+            },
+        });
+        return response.text.trim();
+    } catch (error) {
+        throw new Error(parseApiError(error));
+    }
+}
+
+// FIX: Added missing function generateVideoVeo
+export async function generateVideoVeo(prompt: string, aspectRatio: '16:9' | '9:16', image?: { imageBytes: string; mimeType: string }): Promise<string> {
+    const ai = checkApi();
+    await throttleVideoGeneration();
+    try {
+        let operation = await ai.models.generateVideos({
+            model: 'veo-3.1-fast-generate-preview',
+            prompt,
+            image,
+            config: {
+                numberOfVideos: 1,
+                resolution: '720p',
+                aspectRatio: aspectRatio
+            }
+        });
+
+        while (!operation.done) {
+            await new Promise(resolve => setTimeout(resolve, 10000));
+            operation = await getVideosOperation(operation);
+        }
+
+        const downloadLink = operation.response?.generatedVideos?.[0]?.video?.uri;
+        if (downloadLink) {
+            return downloadLink;
+        } else {
+            if (operation.error) {
+                 // FIX: Argument of type 'unknown' is not assignable to parameter of type 'string'.
+                 throw new Error(String(operation.error.message) || 'Video generation failed without a specific error.');
+            }
+            throw new Error('Video generation failed to produce a download link.');
+        }
+    } catch (error) {
+        throw new Error(parseApiError(error));
+    }
+}
+
+// FIX: Added missing function analyzeVideoPro
+export async function analyzeVideoPro(base64Data: string, mimeType: string, prompt: string): Promise<string> {
+    const ai = checkApi();
+    try {
+        const response = await ai.models.generateContent({
+            model: 'gemini-2.5-pro',
+            contents: {
+                parts: [
+                    { inlineData: { data: base64Data, mimeType: mimeType } },
+                    { text: prompt }
+                ]
+            },
+        });
+        return response.text.trim();
     } catch (error) {
         throw new Error(parseApiError(error));
     }

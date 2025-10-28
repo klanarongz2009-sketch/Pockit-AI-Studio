@@ -1,6 +1,6 @@
-# AI APPS: A Portable AI Universe
+# AI APPS 2.0: A Portable AI Universe
 
-Welcome to AI APPS, a creative suite and digital playground packed with AI-powered tools, mini-games, and utilities. This application is a demonstration of the versatile capabilities of the Google Gemini API, wrapped in a retro-inspired, pixel-art user interface.
+Welcome to AI APPS 2.0, a creative suite and digital playground packed with AI-powered tools, mini-games, and utilities. This application is a demonstration of the versatile capabilities of the Google Gemini API, wrapped in a sleek, modern user interface.
 
 This project is designed as a Progressive Web App (PWA), offering a fast, installable, and reliable experience with offline capabilities for non-AI features.
 
