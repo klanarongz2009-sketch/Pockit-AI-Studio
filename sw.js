@@ -1,10 +1,17 @@
-const CACHE_NAME = 'pixel-art-generator-cache-v6'; // Incremented cache version
+const CACHE_NAME = 'pixel-art-generator-cache-v8'; // Incremented cache version
 const urlsToCache = [
   // Core App Shell
   '/',
   '/index.html',
   '/index.tsx',
   '/manifest.json',
+  '/App.tsx',
+
+  // Key Services
+  '/services/huggingFaceService.ts',
+  '/services/geminiService.ts',
+  '/services/audioService.ts',
+
   // Icons & Manifest
   '/assets/icon.svg',
   // External Dependencies

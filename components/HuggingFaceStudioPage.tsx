@@ -98,7 +98,7 @@ export const HuggingFaceStudioPage: React.FC<HuggingFaceStudioPageProps> = ({ pl
             </h1>
             
             <p className="text-sm text-center text-brand-light/80 mb-6 max-w-2xl">
-                Explore a suite of tools powered by popular open-source models from the Hugging Face community. An API Key is required.
+                Explore a suite of tools powered by popular open-source models from the Hugging Face community.
             </p>
 
             <div className="w-full max-w-4xl flex-grow font-sans">

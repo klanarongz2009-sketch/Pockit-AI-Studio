@@ -19,6 +19,15 @@ export interface Article {
 
 const articlesData: Article[] = [
     {
+        id: 'huggingface-outage',
+        titleKey: 'articles.huggingfaceOutage.title',
+        summaryKey: 'articles.huggingfaceOutage.summary',
+        contentKey: 'articles.huggingfaceOutage.content',
+        author: 'AI APPS Team',
+        category: 'article',
+        voice: 'Fenrir',
+    },
+    {
         id: 'beta-development',
         titleKey: 'articles.betaDevelopment.title',
         summaryKey: 'articles.betaDevelopment.summary',
@@ -287,7 +296,7 @@ export const ArticlePage: React.FC<ArticlePageProps> = ({ playSound }) => {
 
     return (
         <div className="w-full h-full flex flex-col items-center px-4">
-            <h1 className="text-3xl sm:text-4xl text-brand-yellow text-center mb-6">Articles & Stories</h1>
+            <h1 className="text-3xl sm:text-4xl text-brand-yellow text-center drop-shadow-[3px_3px_0_#000] mb-6">Articles & Stories</h1>
             
             <div className="w-full max-w-4xl mb-6 flex justify-center gap-2 font-press-start">
                 {categories.map(cat => (

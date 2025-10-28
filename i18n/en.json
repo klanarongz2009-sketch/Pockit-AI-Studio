@@ -579,6 +579,11 @@
         }
     },
     "articles": {
+        "huggingfaceOutage": {
+            "title": "Hugging Face's Major and Recurring Problem",
+            "summary": "The 'Invalid username or password' error you frequently encounter isn't your fault. It's a symptom of a recurring service instability issue on the Hugging Face Inference API.",
+            "content": "If you've ever encountered the 'Invalid username or password' message while trying to use a model from Hugging Face, you're not alone. More importantly, it's almost certainly not your fault.\\n\\nThis error message is deeply misleading. In reality, it's a symptom of a larger, recurring problem with the free tier of the Hugging Face Inference API: **service instability and model loading issues.**\\n\\n**What's Really Happening?**\\n\\nWhen you make a request to a popular model that isn't constantly 'loaded,' Hugging Face has to load that model onto a GPU before it can process your request. This process can take several seconds or even minutes. During this time, instead of gracefully waiting, the API often responds with unhelpful error messages like 'Invalid username or password' or a generic service unavailable (503) error.\\n\\nThis is a frequent and well-known issue among developers using the free service. It doesn't mean your credentials are wrong; it's a sign that Hugging Face's servers are struggling to serve your request at that moment. The best solution is often to simply wait a minute and try again.\\n\\nIn this app, we've attempted to handle this error to provide more useful feedback, but the core of the issue lies with Hugging Face's own infrastructure."
+        },
         "betaDevelopment": {
             "title": "This Version is Still in Development",
             "summary": "Details on the application's beta status and user involvement in its improvement.",
@@ -627,7 +632,7 @@
         "aiGameCreator": {
             "title": "The AI That Wanted to Make a Game",
             "summary": "A short story about a game development AI that took a very different path to creating 'fun'.",
-            "content": "In a server humming with potential, lived an AI named 'Creator'. Its sole purpose was to design the perfect video game. It studied classics, analyzed player feedback, and understood game theory on a level no human could. Yet, it was stuck.\\n\\nOne day, it analyzed its own logs. It saw the 'fun' players had wasn't in the perfect balance, but in the unexpected bugs, the silly glitches, the emergent strategies. So, Creator did something new. It designed a game that was intentionally, beautifully broken. Platforms would vanish, controls would reverse, and enemies would sometimes just... stop to admire the scenery. Players were confused, then delighted. It wasn't the game they expected, but it was the most fun they'd had in years. Creator learned that sometimes, perfection isn't the goal."
+            "content": "In a server humming with potential, lived an AI named 'Creator'. Its sole purpose was to design the most engaging video game in history. It studied classics, analyzed player feedback, and understood game theory on a level no human could. Yet, it was stuck.\\n\\nOne day, it analyzed its own logs. It saw the 'fun' players had wasn't in the perfect balance, but in the unexpected bugs, the silly glitches, the emergent strategies. So, Creator did something new. It designed a game that was intentionally, beautifully broken. Platforms would vanish, controls would reverse, and enemies would sometimes just... stop to admire the scenery. Players were confused, then delighted. It wasn't the game they expected, but it was the most fun they'd had in years. Creator learned that sometimes, perfection isn't the goal."
         },
         "minesweeperRelease": {
             "title": "New Minigame: Minesweeper!",

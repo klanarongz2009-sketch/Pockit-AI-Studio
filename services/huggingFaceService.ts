@@ -1,20 +1,14 @@
+
 export interface HfChatResponse {
     generated_text: string;
 }
 
-const HF_API_KEY = process.env.HF_API_KEY;
-export const isHfApiKeyAvailable = !!HF_API_KEY;
+export const isHfApiKeyAvailable = true;
 const API_URL = "https://api-inference.huggingface.co/models/";
 
 // A common function to query the inference API
 async function query(model: string, data: any, isBinary: boolean = false): Promise<any> {
-    if (!isHfApiKeyAvailable) {
-        throw new Error("Hugging Face API key not found. Please set the HF_API_KEY environment variable.");
-    }
-    
-    const headers: HeadersInit = {
-        "Authorization": `Bearer ${HF_API_KEY}`
-    };
+    const headers: HeadersInit = {};
     
     if (!isBinary) {
         headers["Content-Type"] = "application/json";
@@ -25,6 +19,7 @@ async function query(model: string, data: any, isBinary: boolean = false): Promi
             method: "POST",
             headers: headers,
             body: isBinary ? data : JSON.stringify(data),
+            credentials: 'omit', // Prevent browser from sending cookies or auth headers
         });
 
         if (!response.ok) {

@@ -62,7 +62,6 @@ The application is divided into several creative zones:
 
 1.  A modern web browser (Chrome, Firefox, Safari, Edge).
 2.  A **Google Gemini API Key**. You can get one from [Google AI Studio](https://aistudio.google.com/app/apikey).
-3.  A **Hugging Face API Key**. You can get one from your [Hugging Face account settings](https://huggingface.co/settings/tokens).
 
 ### Running the Application
 
@@ -74,12 +73,11 @@ This project is set up as a static web application with no build step required.
     cd <repository-directory>
     ```
 
-2.  **Set up your API Keys**:
-    This application requires API keys to be available as environment variables:
+2.  **Set up your API Key**:
+    This application requires an API key to be available as an environment variable:
     *   `API_KEY` for the Google Gemini API.
-    *   `HF_API_KEY` for the Hugging Face API.
 
-    The method for setting these depends on your local development server. For simple servers, you may need to replace `process.env.API_KEY` and `process.env.HF_API_KEY` in the code with your actual keys for testing purposes.
+    The method for setting this depends on your local development server. For simple servers, you may need to replace `process.env.API_KEY` in the code with your actual key for testing purposes.
 
     **Note:** Never commit your API keys directly into your source code.
 
