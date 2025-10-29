@@ -31,14 +31,14 @@ export const PixelSequencerPage: React.FC<{
     const notesRef = useRef(notes);
     notesRef.current = notes;
 
-    const toggleNote = (pitch: string, step: number) => {
+    const toggleNote = async (pitch: string, step: number) => {
         const noteId = `${pitch}:${step}`;
         const newNotes = new Set(notes);
         if (newNotes.has(noteId)) {
             newNotes.delete(noteId);
         } else {
             newNotes.add(noteId);
-            addCredits(1);
+            await addCredits(1);
             const freq = audioService.NOTE_FREQUENCIES[pitch];
             if (freq || instrument === 'noise') {
                 audioService.playMusicalNote(freq, instrument, 0.1);
@@ -99,7 +99,7 @@ export const PixelSequencerPage: React.FC<{
         try {
             const wavBlob = await audioService.exportSequencerToWav(notes, bpm, instrument, pitches, numSteps);
             if (wavBlob) {
-                addCredits(1);
+                await addCredits(1);
                 const url = URL.createObjectURL(wavBlob);
                 const a = document.createElement('a');
                 a.href = url;

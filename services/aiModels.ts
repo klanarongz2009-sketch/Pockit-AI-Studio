@@ -1,5 +1,3 @@
-
-
 export interface AiModel {
     id: string; // The Gemini model ID
     name: string; // Display name for the model

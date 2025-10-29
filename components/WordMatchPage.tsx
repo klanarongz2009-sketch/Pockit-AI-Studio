@@ -1,4 +1,5 @@
 
+
 import React, { useState, useCallback, useEffect } from 'react';
 import * as audioService from '../services/audioService';
 import { generateWordMatches, WordMatch } from '../services/geminiService';
@@ -34,7 +35,6 @@ export const WordMatchPage: React.FC<WordMatchPageProps> = ({ onClose, playSound
         try {
             const result = await generateWordMatches(topic);
             setMatches(result);
-            // FIX: addCredits is now async
             await addCredits(10000);
             setSuccessMessage("จับคู่สำเร็จ! คุณได้รับ 10,000 เครดิต!");
             playSound(audioService.playSuccess);

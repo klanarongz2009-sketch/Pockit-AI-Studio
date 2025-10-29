@@ -16,15 +16,15 @@ import { ArtGalleryPage } from './components/ArtGalleryPage';
 import { SettingsPage } from './components/SettingsPage';
 import { ALL_AI_MODELS } from './services/aiModels';
 import { ArticlePage } from './components/ArticlePage';
-import { OfflineAiPage } from './components/OfflineAiPage';
+import { OnlineOfflineToolsPage } from './components/OnlineOfflineToolsPage';
 import { CreditCenterPage } from './components/CreditCenterPage';
 import { LoadingSpinner } from './components/LoadingSpinner';
-import { HuggingFaceStudioPage } from './components/HuggingFaceStudioPage';
 import { StartScreen } from './components/StartScreen';
 import { GemAiAppsPage } from './components/GemAiAppsPage';
+import { ThirdPartyZonePage } from './components/ThirdPartyZonePage';
 
 
-export type CurrentPage = 'home' | 'minigameHub' | 'aiChat' | 'article' | 'offlineAi' | 'huggingfaceStudio' | 'gemAiApps';
+export type CurrentPage = 'home' | 'minigameHub' | 'aiChat' | 'article' | 'onlineOfflineTools' | 'thirdPartyZone' | 'gemAiApps';
 type AppState = 'start' | 'intro' | 'mainApp';
 
 const MainApp: React.FC = () => {
@@ -227,17 +227,17 @@ const MainApp: React.FC = () => {
                           playSound={playSound}
                       />
                   )}
-                  {currentPage === 'offlineAi' && (
-// FIX: Add missing 'onClose' prop to OfflineAiPage component.
-                      <OfflineAiPage
+                  {currentPage === 'onlineOfflineTools' && (
+                      <OnlineOfflineToolsPage
                           playSound={playSound}
                           onClose={() => handleSetPage('home')}
                       />
                   )}
-                   {currentPage === 'huggingfaceStudio' && (
-                      <HuggingFaceStudioPage
+                   {currentPage === 'thirdPartyZone' && (
+                      <ThirdPartyZonePage
                           isOnline={isOnline}
                           playSound={playSound}
+                          onClose={() => handleSetPage('home')}
                       />
                   )}
                   {currentPage === 'article' && (

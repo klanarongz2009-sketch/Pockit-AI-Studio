@@ -5,11 +5,11 @@ import type { CurrentPage } from '../App';
 // Icons
 import { GamepadIcon } from './icons/GamepadIcon';
 import { ChatIcon } from './icons/ChatIcon';
-import { OfflineAiIcon } from './icons/OfflineAiIcon';
+import { OnlineOfflineIcon } from './icons/OnlineOfflineIcon';
 import { ArticleIcon } from './ArticleIcon';
 import { SettingsIcon } from './icons/SettingsIcon';
-import { HuggingFaceStudioIcon } from './icons/HuggingFaceStudioIcon';
 import { GemAiIcon } from './icons/GemAiIcon';
+import { ApiIcon } from './icons/ApiIcon';
 
 interface HomePageProps {
   onSetPage: (page: CurrentPage) => void;
@@ -39,15 +39,14 @@ export const HomePage: React.FC<HomePageProps> = ({ onSetPage, onOpenSettings })
         { page: 'gemAiApps', label: 'GEM AI Apps', icon: <GemAiIcon className="w-full h-full" /> },
         { page: 'aiChat', label: t('sidebar.aiChat'), icon: <ChatIcon className="w-full h-full" /> },
         { page: 'minigameHub', label: t('sidebar.aiZone'), icon: <GamepadIcon className="w-full h-full" /> },
-        { page: 'huggingfaceStudio', label: 'HF Studio', icon: <HuggingFaceStudioIcon className="w-full h-full" /> },
-        { page: 'offlineAi', label: t('sidebar.offlineAi'), icon: <OfflineAiIcon className="w-full h-full" /> },
+        { page: 'thirdPartyZone', label: '3rd Party Zone', icon: <ApiIcon className="w-full h-full" /> },
+        { page: 'onlineOfflineTools', label: 'Online/Offline Tools', icon: <OnlineOfflineIcon className="w-full h-full" /> },
         { page: 'article', label: t('sidebar.article'), icon: <ArticleIcon className="w-full h-full" /> },
     ];
 
     return (
         <div className="w-full h-full flex flex-col items-center justify-center px-4 animate-page-enter relative">
             <div className="absolute top-4 right-4 flex gap-2">
-                 {/* FIX: Language is now auto-detected, so setLanguage is not available. Removed toggle button. */}
                 <button
                     onClick={onOpenSettings}
                     aria-label={t('header.settings')}

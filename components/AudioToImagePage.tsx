@@ -19,8 +19,8 @@ export const AudioToImagePage: React.FC<AudioToImagePageProps> = ({ onClose, pla
 
     const processFile = useCallback(async (selectedFile: File | undefined) => {
         if (!selectedFile) return;
-        if (!selectedFile.type.startsWith('audio/')) {
-            setError('Please select an audio file.');
+        if (!selectedFile.type.startsWith('audio/') && !selectedFile.type.startsWith('video/')) {
+            setError('Please select an audio or video file.');
             playSound(audioService.playError);
             return;
         }
@@ -32,14 +32,26 @@ export const AudioToImagePage: React.FC<AudioToImagePageProps> = ({ onClose, pla
         playSound(audioService.playGenerate);
 
         try {
+            // This is the most direct approach. It works for all standard audio files
+            // and modern browsers can often extract audio from mp4 containers this way.
             const arrayBuffer = await selectedFile.arrayBuffer();
             const audioCtx = new (window.AudioContext || (window as any).webkitAudioContext)();
             const audioBuffer = await audioCtx.decodeAudioData(arrayBuffer);
+            
+            // Check if the decoded audio is just silence.
+            const audioData = audioBuffer.getChannelData(0);
+            const isSilent = audioData.every(sample => sample === 0);
+            if (isSilent) {
+                throw new Error("The selected file does not appear to contain a valid audio track.");
+            }
+
             const imageUrl = await audioService.createWaveformImage(audioBuffer);
             setWaveformImage(imageUrl);
             playSound(audioService.playSuccess);
+            audioCtx.close();
         } catch (err) {
-            setError(err instanceof Error ? err.message : 'Failed to process audio file.');
+            const errorMessage = `Could not decode audio from the file. The video may not have an audio track or its format is unsupported.`;
+            setError(errorMessage);
             playSound(audioService.playError);
         } finally {
             setIsLoading(false);
@@ -61,14 +73,14 @@ export const AudioToImagePage: React.FC<AudioToImagePageProps> = ({ onClose, pla
         <PageWrapper>
             <PageHeader title="Audio to Waveform" onBack={onClose} />
             <main id="main-content" className="w-full max-w-lg flex flex-col items-center gap-6 font-sans">
-                <input type="file" ref={fileInputRef} onChange={(e) => processFile(e.target.files?.[0])} accept="audio/*" className="hidden" />
-                <p className="text-sm text-center text-text-secondary">Upload an audio file to generate a visual waveform image. This process happens entirely in your browser.</p>
+                <input type="file" ref={fileInputRef} onChange={(e) => processFile(e.target.files?.[0])} accept="audio/*,video/*" className="hidden" />
+                <p className="text-sm text-center text-text-secondary">Upload an audio or video file to generate a visual waveform of its sound. This process happens entirely in your browser.</p>
                 
                 <button 
                     onClick={() => fileInputRef.current?.click()}
                     className="w-full flex items-center justify-center gap-3 p-4 bg-brand-magenta text-white border-4 border-border-primary shadow-pixel text-base"
                 >
-                    <UploadIcon className="w-6 h-6" /> {file ? 'Change Audio File' : 'Upload Audio File'}
+                    <UploadIcon className="w-6 h-6" /> {file ? 'Change File' : 'Upload Audio/Video File'}
                 </button>
 
                 {file && <p className="text-sm text-brand-cyan">Selected: {file.name}</p>}

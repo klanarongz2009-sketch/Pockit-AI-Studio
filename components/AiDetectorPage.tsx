@@ -93,7 +93,7 @@ export const AiDetectorPage: React.FC<AiDetectorPageProps> = ({ onClose, playSou
             setResult(analysisResult);
             
             if (creditsToAdd > 0) {
-                addCredits(creditsToAdd);
+                await addCredits(creditsToAdd);
             }
 
             playSound(audioService.playSuccess);

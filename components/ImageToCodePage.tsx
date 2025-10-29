@@ -73,7 +73,8 @@ export const ImageToCodePage: React.FC<ImageToCodePageProps> = ({ onClose, playS
     const handleGenerate = useCallback(async () => {
         if (!uploadedFile || isLoading || !isOnline) return;
 
-        if (!spendCredits(GENERATION_COST)) {
+        const canSpend = await spendCredits(GENERATION_COST);
+        if (!canSpend) {
             setError(`Not enough credits! This action requires ${GENERATION_COST} credits.`);
             playSound(audioService.playError);
             return;
@@ -93,7 +94,7 @@ export const ImageToCodePage: React.FC<ImageToCodePageProps> = ({ onClose, playS
         } finally {
             setIsLoading(false);
         }
-    }, [uploadedFile, isLoading, isOnline, playSound, spendCredits, credits]);
+    }, [uploadedFile, isLoading, isOnline, playSound, spendCredits]);
 
     const handleDragEnter = (e: React.DragEvent<HTMLElement>) => { e.preventDefault(); e.stopPropagation(); setIsDragging(true); };
     const handleDragLeave = (e: React.DragEvent<HTMLElement>) => { e.preventDefault(); e.stopPropagation(); setIsDragging(false); };

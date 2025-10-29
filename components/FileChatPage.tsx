@@ -79,7 +79,6 @@ export const FileChatPage: React.FC<FileChatPageProps> = ({ onClose, playSound, 
         if (!trimmedInput || !fileData || isLoading || !isOnline) return;
 
         const cost = 5; // Example cost per message
-        // FIX: spendCredits is async and needs to be awaited
         const canSpend = await spendCredits(cost);
         if (!canSpend) {
             setError(`เครดิตไม่เพียงพอ! ต้องการ ${cost} เครดิต`);
@@ -97,7 +96,6 @@ export const FileChatPage: React.FC<FileChatPageProps> = ({ onClose, playSound, 
         try {
             const responseText = await geminiService.chatWithFile(
                 { base64: fileData.base64, mimeType: fileData.file.type },
-                // FIX: Pass only the previous messages. `messages` from the closure is correct as it doesn't include the new `userMessage` yet.
                 messages,
                 trimmedInput
             );
@@ -109,7 +107,7 @@ export const FileChatPage: React.FC<FileChatPageProps> = ({ onClose, playSound, 
         } finally {
             setIsLoading(false);
         }
-    }, [userInput, fileData, messages, isLoading, isOnline, playSound, spendCredits, credits]);
+    }, [userInput, fileData, messages, isLoading, isOnline, playSound, spendCredits]);
 
     const handleDragEnter = (e: React.DragEvent<HTMLElement>) => { e.preventDefault(); e.stopPropagation(); setIsDragging(true); };
     const handleDragLeave = (e: React.DragEvent<HTMLElement>) => { e.preventDefault(); e.stopPropagation(); setIsDragging(false); };

@@ -157,7 +157,8 @@ export const GemAiAppsPage: React.FC<GemAiAppsPageProps> = ({ onClose, playSound
             const response = await geminiService.generateContentWithTools(chatInput, model, config);
             // FIX: The type 'GroundingChunk[]' is not assignable to type '{ uri: string; title: string; }[]'.
             // Map the grounding chunks to the format expected by the Message interface.
-            const sources = response.candidates?.[0]?.groundingMetadata?.groundingChunks?.map((chunk: any) => ({
+            // FIX: Add a nullish coalescing operator to prevent calling .map on a potentially undefined value.
+            const sources = (response.candidates?.[0]?.groundingMetadata?.groundingChunks ?? []).map((chunk: any) => ({
                 uri: chunk.web?.uri || chunk.maps?.uri || '',
                 title: chunk.web?.title || chunk.maps?.title || ''
             })).filter(s => s.uri);

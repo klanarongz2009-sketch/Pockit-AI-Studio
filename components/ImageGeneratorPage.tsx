@@ -1,6 +1,5 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import * as geminiService from '../services/geminiService';
-import * as huggingFaceService from '../services/huggingFaceService';
 import * as audioService from '../services/audioService';
 import * as preferenceService from '../services/preferenceService';
 import { OutputDisplay } from './ImageDisplay';
@@ -15,10 +14,8 @@ import { ShareIcon } from './icons/ShareIcon';
 import * as galleryService from '../services/galleryService';
 import { GalleryIcon } from './icons/GalleryIcon';
 import { useLanguage } from '../contexts/LanguageContext';
-import { HuggingFaceIcon } from './icons/HuggingFaceIcon';
 
 type GenerationMode = 'image' | 'gif' | 'video' | 'spritesheet';
-type GenerationEngine = 'gemini' | 'huggingface';
 type GameAssetState = { player: string | null; obstacle: string | null; };
 type UploadedImageData = { base64: string; mimeType: string; };
 
@@ -48,7 +45,6 @@ export const ImageGeneratorPage: React.FC<{
 
     // Preferences with async loading
     const [generationMode, setGenerationMode] = useState<GenerationMode>('image');
-    const [engine, setEngine] = useState<GenerationEngine>('gemini');
     const [fps, setFps] = useState(12);
     const [frameCount, setFrameCount] = useState(8);
 
@@ -62,16 +58,14 @@ export const ImageGeneratorPage: React.FC<{
 
     useEffect(() => {
         const loadPrefs = async () => {
-            const [mode, savedFps, savedFrameCount, savedEngine] = await Promise.all([
+            const [mode, savedFps, savedFrameCount] = await Promise.all([
                 preferenceService.getPreference('imageGeneratorMode', 'image'),
                 preferenceService.getPreference('imageGeneratorFps', 12),
                 preferenceService.getPreference('imageGeneratorFrameCount', 8),
-                preferenceService.getPreference('imageGeneratorEngine', 'gemini'),
             ]);
             setGenerationMode(mode);
             setFps(savedFps);
             setFrameCount(savedFrameCount);
-            setEngine(savedEngine as GenerationEngine);
         };
         loadPrefs();
     }, []);
@@ -79,10 +73,6 @@ export const ImageGeneratorPage: React.FC<{
     const handleSetGenerationMode = (mode: GenerationMode) => {
         setGenerationMode(mode);
         preferenceService.setPreference('imageGeneratorMode', mode);
-    };
-    const handleSetEngine = (newEngine: GenerationEngine) => {
-        setEngine(newEngine);
-        preferenceService.setPreference('imageGeneratorEngine', newEngine);
     };
     const handleSetFps = (newFps: number) => {
         setFps(newFps);
@@ -306,41 +296,32 @@ export const ImageGeneratorPage: React.FC<{
         setIsSaved(false);
 
         try {
-            if (engine === 'huggingface') {
-                if (generationMode !== 'image') {
-                    throw new Error("Hugging Face engine currently only supports 'Image' mode.");
-                }
-                setLoadingText('Generating with Stable Diffusion...');
-                const image = await huggingFaceService.generateStableDiffusionImage(prompt);
+            if (generationMode === 'gif') {
+                setLoadingText('Generating frame descriptions...');
+                const frames = await geminiService.generateGifFrames(prompt, frameCount);
+                setGeneratedFrames(frames);
+            } else if (generationMode === 'video') {
+                 setLoadingText(videoLoadingMessages[0]);
+                 let operation = await geminiService.generateVideo(prompt);
+                 while (!operation.done) {
+                    await new Promise(resolve => setTimeout(resolve, 10000));
+                    operation = await geminiService.getVideosOperation(operation);
+                 }
+                 const downloadLink = operation.response?.generatedVideos?.[0]?.video?.uri;
+                 if (downloadLink) {
+                    setGeneratedVideoUrl(downloadLink);
+                 } else {
+                    throw new Error("Video generation succeeded but no download link was provided.");
+                 }
+            } else if (generationMode === 'spritesheet') {
+                setLoadingText('Generating spritesheet...');
+                const spriteSheetPrompt = `Create a 4x4 spritesheet for a video game character based on: "${prompt}". The background must be transparent.`;
+                const image = await geminiService.generatePixelArt(spriteSheetPrompt);
                 setGeneratedImage(image);
-            } else { // Gemini Engine
-                if (generationMode === 'gif') {
-                    setLoadingText('Generating frame descriptions...');
-                    const frames = await geminiService.generateGifFrames(prompt, frameCount);
-                    setGeneratedFrames(frames);
-                } else if (generationMode === 'video') {
-                     setLoadingText(videoLoadingMessages[0]);
-                     let operation = await geminiService.generateVideo(prompt);
-                     while (!operation.done) {
-                        await new Promise(resolve => setTimeout(resolve, 10000));
-                        operation = await geminiService.getVideosOperation(operation);
-                     }
-                     const downloadLink = operation.response?.generatedVideos?.[0]?.video?.uri;
-                     if (downloadLink) {
-                        setGeneratedVideoUrl(downloadLink);
-                     } else {
-                        throw new Error("Video generation succeeded but no download link was provided.");
-                     }
-                } else if (generationMode === 'spritesheet') {
-                    setLoadingText('Generating spritesheet...');
-                    const spriteSheetPrompt = `Create a 4x4 spritesheet for a video game character based on: "${prompt}". The background must be transparent.`;
-                    const image = await geminiService.generatePixelArt(spriteSheetPrompt);
-                    setGeneratedImage(image);
-                } else {
-                    setLoadingText('Generating image...');
-                    const image = await geminiService.generatePixelArt(prompt);
-                    setGeneratedImage(image);
-                }
+            } else {
+                setLoadingText('Generating image...');
+                const image = await geminiService.generatePixelArt(prompt);
+                setGeneratedImage(image);
             }
             playSound(audioService.playSuccess);
         } catch (err) {
@@ -350,7 +331,7 @@ export const ImageGeneratorPage: React.FC<{
         } finally {
             setIsLoading(false);
         }
-    }, [prompt, isLoading, isOnline, playSound, generationMode, frameCount, engine]);
+    }, [prompt, isLoading, isOnline, playSound, generationMode, frameCount]);
     
     const handleGameAssetGeneration = useCallback(async () => {
         if (isLoading || !isOnline) return;
@@ -403,8 +384,6 @@ export const ImageGeneratorPage: React.FC<{
             />
         );
     }
-
-    const isHfDisabled = engine === 'huggingface' && generationMode !== 'image';
 
     return (
         <div className="w-full h-full flex flex-col items-center px-4">
@@ -469,7 +448,7 @@ export const ImageGeneratorPage: React.FC<{
                         />
                          <button
                             onClick={handleGenerate}
-                            disabled={!prompt.trim() || isLoading || !isOnline || isHfDisabled}
+                            disabled={!prompt.trim() || isLoading || !isOnline}
                             className="w-24 h-24 flex-shrink-0 flex flex-col items-center justify-center gap-1 p-2 bg-brand-magenta text-white border-4 border-brand-light shadow-pixel text-base transition-all hover:bg-brand-yellow hover:text-black active:shadow-pixel-active active:translate-y-[2px] active:translate-x-[2px] disabled:bg-gray-500 disabled:cursor-not-allowed font-press-start"
                         >
                             <SparklesIcon className="w-8 h-8"/>
@@ -484,10 +463,10 @@ export const ImageGeneratorPage: React.FC<{
                          <button onClick={handleUrlClick} disabled={isLoading || !isOnline} className="flex items-center justify-center gap-1 p-2 bg-brand-cyan/80 text-black border-2 border-brand-light shadow-sm hover:bg-brand-cyan disabled:bg-gray-400">
                             <LinkIcon className="w-4 h-4"/> {t('imageGenerator.fromUrl')}
                         </button>
-                        <button onClick={handleGetSuggestions} disabled={!prompt.trim() || isLoading || !isOnline || engine === 'huggingface'} className="flex items-center justify-center gap-1 p-2 bg-brand-cyan/80 text-black border-2 border-brand-light shadow-sm hover:bg-brand-cyan disabled:bg-gray-400">
+                        <button onClick={handleGetSuggestions} disabled={!prompt.trim() || isLoading || !isOnline} className="flex items-center justify-center gap-1 p-2 bg-brand-cyan/80 text-black border-2 border-brand-light shadow-sm hover:bg-brand-cyan disabled:bg-gray-400">
                             <SparklesIcon className="w-4 h-4"/> {t('imageGenerator.suggestions')}
                         </button>
-                        <button onClick={handleGameAssetGeneration} disabled={isLoading || !isOnline || engine === 'huggingface'} className="flex items-center justify-center gap-1 p-2 bg-brand-cyan/80 text-black border-2 border-brand-light shadow-sm hover:bg-brand-cyan disabled:bg-gray-400">
+                        <button onClick={handleGameAssetGeneration} disabled={isLoading || !isOnline} className="flex items-center justify-center gap-1 p-2 bg-brand-cyan/80 text-black border-2 border-brand-light shadow-sm hover:bg-brand-cyan disabled:bg-gray-400">
                             <PlusSquareIcon className="w-4 h-4"/> {t('imageGenerator.createAssets')}
                         </button>
                     </div>
@@ -513,25 +492,11 @@ export const ImageGeneratorPage: React.FC<{
 
                  <div className="w-full flex flex-col gap-4 bg-black/40 p-4 border-4 border-brand-light shadow-pixel">
                     <div className="flex justify-center gap-1 p-1 bg-black/50">
-                        {(['gemini', 'huggingface'] as GenerationEngine[]).map(e => (
-                             <button
-                                key={e}
-                                onClick={() => handleSetEngine(e)}
-                                className={`w-full py-2 text-xs font-press-start border-2 transition-colors flex items-center justify-center gap-2 ${engine === e ? 'bg-brand-yellow text-black border-black' : 'bg-surface-primary border-transparent text-text-primary hover:bg-brand-cyan/20'}`}
-                            >
-                                {e === 'gemini' ? <SparklesIcon className="w-4 h-4" /> : <HuggingFaceIcon className="w-4 h-4" />}
-                                <span>{e === 'gemini' ? 'Gemini' : 'Stable Diffusion'}</span>
-                            </button>
-                        ))}
-                    </div>
-                    <div className="flex justify-center gap-1 p-1 bg-black/50">
                         {(['image', 'gif', 'video', 'spritesheet'] as GenerationMode[]).map(mode => (
                              <button
                                 key={mode}
                                 onClick={() => handleSetGenerationMode(mode)}
-                                className={`w-full py-2 text-xs font-press-start border-2 transition-colors ${generationMode === mode ? 'bg-brand-yellow text-black border-black' : 'bg-surface-primary border-transparent text-text-primary hover:bg-brand-cyan/20'} ${engine === 'huggingface' && mode !== 'image' ? 'opacity-50 cursor-not-allowed' : ''}`}
-                                disabled={engine === 'huggingface' && mode !== 'image'}
-                                title={engine === 'huggingface' && mode !== 'image' ? 'Only available with Gemini engine' : ''}
+                                className={`w-full py-2 text-xs font-press-start border-2 transition-colors ${generationMode === mode ? 'bg-brand-yellow text-black border-black' : 'bg-surface-primary border-transparent text-text-primary hover:bg-brand-cyan/20'}`}
                             >
                                 {t(`imageGenerator.modes.${mode}`)}
                             </button>

@@ -100,7 +100,8 @@ export const SongSearchPage: React.FC<SongSearchPageProps> = ({ onClose, playSou
     const handleSearch = useCallback(async () => {
         if (!uploadedFile || isLoading || !isOnline) return;
 
-        if (!spendCredits(CREDIT_COSTS.SONG_SEARCH)) {
+        const canSpend = await spendCredits(CREDIT_COSTS.SONG_SEARCH);
+        if (!canSpend) {
             setError(`เครดิตไม่เพียงพอ! ต้องการ ${CREDIT_COSTS.SONG_SEARCH} เครดิต แต่คุณมี ${Math.floor(credits)} เครดิต`);
             playSound(audioService.playError);
             return;

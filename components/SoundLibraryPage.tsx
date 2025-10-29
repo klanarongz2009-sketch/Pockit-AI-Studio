@@ -25,7 +25,8 @@ export const SoundLibraryPage: React.FC<SoundLibraryPageProps> = ({ onClose, pla
     const handleGenerate = useCallback(async () => {
         if (!prompt.trim() || isLoading || !isOnline) return;
 
-        if (!spendCredits(CREDIT_COSTS.SOUND_EFFECT_IDEAS)) {
+        const canSpend = await spendCredits(CREDIT_COSTS.SOUND_EFFECT_IDEAS);
+        if (!canSpend) {
             setError(`เครดิตไม่เพียงพอ! ต้องการ ${CREDIT_COSTS.SOUND_EFFECT_IDEAS} เครดิต แต่คุณมี ${credits.toFixed(0)} เครดิต`);
             playSound(audioService.playError);
             return;

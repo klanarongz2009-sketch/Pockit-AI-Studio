@@ -2,6 +2,10 @@
 
 
 
+
+
+
+
 import { GoogleGenAI, Type, Chat, Modality, Content, GenerateContentResponse } from "@google/genai";
 import * as preferenceService from './preferenceService';
 import { AiModel } from './aiModels';
@@ -1096,7 +1100,7 @@ export async function generateVideoVeo(prompt: string, aspectRatio: '16:9' | '9:
         } else {
             if (operation.error) {
                  // FIX: Argument of type 'unknown' is not assignable to parameter of type 'string'.
-                 throw new Error(String(operation.error.message) || 'Video generation failed without a specific error.');
+                 throw new Error(String((operation.error as any)?.message) || 'Video generation failed without a specific error.');
             }
             throw new Error('Video generation failed to produce a download link.');
         }

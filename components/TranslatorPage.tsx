@@ -44,7 +44,8 @@ export const TranslatorPage: React.FC<TranslatorPageProps> = ({ onClose, playSou
         if (!inputText.trim() || isLoading || !isOnline) return;
 
         const cost = Math.ceil(inputText.length / 10);
-        if (!spendCredits(cost)) {
+        const canSpend = await spendCredits(cost);
+        if (!canSpend) {
             setError(`${t('translator.notEnoughCredits')} ${cost} ${t('translator.credits')}`);
             playSound(audioService.playError);
             return;

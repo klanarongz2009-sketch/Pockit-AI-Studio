@@ -33,12 +33,10 @@ export const SnakeGame: React.FC<SnakeGameProps> = ({ onClose, playSound }) => {
     const [isNewHighScore, setIsNewHighScore] = useState(false);
     const [isGameOver, setIsGameOver] = useState(false);
     const [gameStarted, setGameStarted] = useState(false);
-    // FIX: `getPreference` is async. Initialize with default and load saved preference in useEffect.
     const [difficulty, setDifficulty] = useState<'easy' | 'normal' | 'hard'>('normal');
     const touchStartRef = useRef<{ x: number, y: number } | null>(null);
     const { addCredits } = useCredits();
     
-    // FIX: Asynchronously load saved preferences on mount.
     useEffect(() => {
         const loadDifficulty = async () => {
             const savedDifficulty = await preferenceService.getPreference('defaultMinigameDifficulty', 'normal');
@@ -233,7 +231,6 @@ export const SnakeGame: React.FC<SnakeGameProps> = ({ onClose, playSound }) => {
         // Food collision
         if (head.x === food.x && head.y === food.y) {
             setScore(s => s + 1);
-            // FIX: addCredits is now async
             await addCredits(1);
             playSound(audioService.playScore);
             generateFood(newSnake);

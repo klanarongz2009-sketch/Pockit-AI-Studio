@@ -21,7 +21,8 @@ import { XIcon } from './icons/XIcon';
 import { MicrophoneIcon } from './icons/MicrophoneIcon';
 import { StopIcon } from './icons/StopIcon';
 import { SpeakerOnIcon } from './icons/SpeakerOnIcon';
-import { Message } from '../services/preferenceService';
+// FIX: Added missing import for the Message type. This resolves the cascading type error that caused the 'map' issue.
+import type { Message } from '../services/preferenceService';
 
 // --- Gemini Live API Helper Functions ---
 function encode(bytes: Uint8Array) {
@@ -79,22 +80,22 @@ const ModelSelectionModal: React.FC<{
     const [searchQuery, setSearchQuery] = useState('');
     const { t } = useLanguage();
 
-    // FIX: Resolve "Property 'map' does not exist on type 'unknown'" by adding a type guard and asserting the type of the 'models' prop.
     const categories: string[] = useMemo(() => {
+        // FIX: Add type guard to ensure `models` is an array before calling `.map`.
         if (!Array.isArray(models)) {
             return ['All'];
         }
-        const uniqueCategories = new Set((models as AiModel[]).map(m => m.category));
+        const uniqueCategories = new Set(models.map(m => m.category));
         return ['All', ...Array.from(uniqueCategories)];
     }, [models]);
     const [activeCategory, setActiveCategory] = useState<'All' | AiModel['category']>('All');
 
-    // FIX: Resolve "Property 'filter' does not exist on type 'unknown'" by adding a type guard and asserting the type of the 'models' prop.
     const filteredModels = useMemo(() => {
+        // FIX: Add type guard to ensure `models` is an array before calling `.filter`.
         if (!Array.isArray(models)) {
             return [];
         }
-        return (models as AiModel[])
+        return models
             .filter(model => activeCategory === 'All' || model.category === activeCategory)
             .filter(model => 
                 model.name.toLowerCase().includes(searchQuery.toLowerCase()) ||

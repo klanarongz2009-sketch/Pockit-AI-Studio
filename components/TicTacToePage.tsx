@@ -36,14 +36,17 @@ export const TicTacToePage: React.FC<TicTacToePageProps> = ({ onClose, playSound
     const { addCredits } = useCredits();
 
     useEffect(() => {
-        if (winner) {
-            if (winner === 'X') {
-                addCredits(32);
-            } else if (winner === 'O') {
-                addCredits(20);
+        const handleWin = async () => {
+            if (winner) {
+                if (winner === 'X') {
+                    await addCredits(32);
+                } else if (winner === 'O') {
+                    await addCredits(20);
+                }
+                // No credits for a Tie
             }
-            // No credits for a Tie
-        }
+        };
+        handleWin();
     }, [winner, addCredits]);
 
     const handleCellClick = async (row: number, col: number) => {

@@ -83,7 +83,6 @@ export const CalculatorPage: React.FC<{
 
             const creditsToAdd = Math.floor(Math.abs(calculatedValue));
             if (creditsToAdd > 0) {
-                // FIX: addCredits is now async
                 await addCredits(creditsToAdd);
                 playSound(audioService.playCreditAdd);
             } else {
