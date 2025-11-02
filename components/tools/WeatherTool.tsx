@@ -62,10 +62,9 @@ export const WeatherTool: React.FC<WeatherToolProps> = ({ onClose, playSound }) 
                         <div className="text-center">
                             <h2 className="text-2xl font-press-start text-brand-yellow">{weather.name}, {weather.country}</h2>
                             <div className="flex items-center justify-center my-2">
-                                <img src={`https://openweathermap.org/img/wn/${weather.icon}@2x.png`} alt={weather.description} />
                                 <span className="text-4xl font-bold">{weather.temp.toFixed(1)}°C</span>
                             </div>
-                            <p className="capitalize">{weather.description}</p>
+                            <p className="capitalize text-lg">{weather.description}</p>
                             <p className="text-sm text-text-secondary">Feels like {weather.feels_like.toFixed(1)}°C</p>
                             <p className="text-sm text-text-secondary mt-2">Humidity: {weather.humidity}%</p>
                         </div>

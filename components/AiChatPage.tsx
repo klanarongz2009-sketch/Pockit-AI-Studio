@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
-import { GoogleGenAI, LiveServerMessage, Modality, Blob } from '@google/genai';
+import { GoogleGenAI, LiveServerMessage, Modality, Blob, Content } from '@google/genai';
 import * as geminiService from '../services/geminiService';
 import * as audioService from '../services/audioService';
 import * as preferenceService from '../services/preferenceService';
@@ -21,8 +21,8 @@ import { XIcon } from './icons/XIcon';
 import { MicrophoneIcon } from './icons/MicrophoneIcon';
 import { StopIcon } from './icons/StopIcon';
 import { SpeakerOnIcon } from './icons/SpeakerOnIcon';
-// FIX: Added missing import for the Message type. This resolves the cascading type error that caused the 'map' issue.
-import type { Message } from '../services/preferenceService';
+// FIX: Changed from 'import type' to a regular import to resolve a cascading type error. This can help with some build tool configurations that might not handle type-only imports correctly across module boundaries, leading to 'unknown' types.
+import { Message } from '../services/preferenceService';
 
 // --- Gemini Live API Helper Functions ---
 function encode(bytes: Uint8Array) {

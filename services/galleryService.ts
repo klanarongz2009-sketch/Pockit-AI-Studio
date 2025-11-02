@@ -11,9 +11,10 @@ export interface Comment {
     text: string;
     timestamp: number;
 }
-  
-const ARTWORKS_KEY = 'gallery-artworks';
-const COMMENTS_KEY_PREFIX = 'gallery-comments-';
+
+const ARTWORKS_KEY = 'gallery-artworks-v1';
+const COMMENTS_KEY = 'gallery-comments-v1';
+
 
 // --- Artworks ---
 
@@ -27,9 +28,9 @@ export function getArtworks(): Artwork[] {
     }
 }
   
-function saveArtworks(artworks: Artwork[]): void {
+function saveArtworks(newArtworks: Artwork[]): void {
     try {
-        localStorage.setItem(ARTWORKS_KEY, JSON.stringify(artworks));
+        localStorage.setItem(ARTWORKS_KEY, JSON.stringify(newArtworks));
     } catch (e) {
         console.error("Failed to save artworks:", e);
     }
@@ -44,8 +45,8 @@ export function addArtwork(imageDataUrl: string, prompt: string): Artwork {
         timestamp: Date.now(),
         isFavorite: false,
     };
-    artworks.unshift(newArtwork); // Add to the beginning
-    saveArtworks(artworks);
+    const newArtworks = [newArtwork, ...artworks]; // Add to the beginning
+    saveArtworks(newArtworks);
     return newArtwork;
 }
   
@@ -54,11 +55,9 @@ export function deleteArtwork(id: string): Artwork[] {
     artworks = artworks.filter(art => art.id !== id);
     saveArtworks(artworks);
     // Also delete associated comments
-    try {
-        localStorage.removeItem(`${COMMENTS_KEY_PREFIX}${id}`);
-    } catch (e) {
-        console.error("Failed to delete comments for artwork " + id, e);
-    }
+    const allComments = get_all_comments_();
+    delete allComments[id];
+    save_all_comments_(allComments);
     return artworks;
 }
   
@@ -72,25 +71,35 @@ export function toggleFavorite(id: string): Artwork[] {
     return artworks;
 }
   
-
 // --- Comments ---
 
-export function getComments(artworkId: string): Comment[] {
+function get_all_comments_(): { [artworkId: string]: Comment[] } {
     try {
-        const stored = localStorage.getItem(`${COMMENTS_KEY_PREFIX}${artworkId}`);
-        return stored ? JSON.parse(stored) : [];
+        const stored = localStorage.getItem(COMMENTS_KEY);
+        return stored ? JSON.parse(stored) : {};
     } catch (e) {
-        console.error("Failed to load comments for artwork " + artworkId, e);
-        return [];
+        console.error("Failed to load comments:", e);
+        return {};
     }
+}
+
+function save_all_comments_(allComments: { [artworkId: string]: Comment[] }): void {
+     try {
+        localStorage.setItem(COMMENTS_KEY, JSON.stringify(allComments));
+    } catch (e) {
+        console.error("Failed to save comments:", e);
+    }
+}
+
+export function getComments(artworkId: string): Comment[] {
+    const allComments = get_all_comments_();
+    return allComments[artworkId] || [];
 }
   
 function saveComments(artworkId: string, comments: Comment[]): void {
-    try {
-        localStorage.setItem(`${COMMENTS_KEY_PREFIX}${artworkId}`, JSON.stringify(comments));
-    } catch (e) {
-        console.error("Failed to save comments for artwork " + artworkId, e);
-    }
+    const allComments = get_all_comments_();
+    allComments[artworkId] = comments;
+    save_all_comments_(allComments);
 }
   
 export function addComment(artworkId: string, text: string): Comment[] {
@@ -100,9 +109,9 @@ export function addComment(artworkId: string, text: string): Comment[] {
         text,
         timestamp: Date.now(),
     };
-    comments.push(newComment);
-    saveComments(artworkId, comments);
-    return comments;
+    const newComments = [...comments, newComment];
+    saveComments(artworkId, newComments);
+    return newComments;
 }
 
 export function deleteComment(artworkId: string, commentId: string): Comment[] {

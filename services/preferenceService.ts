@@ -14,6 +14,7 @@ export interface HistoryItem {
     modelVersion: ModelVersion;
 }
 
+// FIX: Moved the Message interface here to be globally accessible and prevent cascading type errors.
 export interface Message {
   id: string;
   role: 'user' | 'model';

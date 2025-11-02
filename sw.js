@@ -1,4 +1,4 @@
-const CACHE_NAME = 'pixel-art-generator-cache-v8'; // Incremented cache version
+const CACHE_NAME = 'pixel-art-generator-cache-v10'; // Incremented cache version
 const urlsToCache = [
   // Core App Shell
   '/',
@@ -8,7 +8,6 @@ const urlsToCache = [
   '/App.tsx',
 
   // Key Services
-  '/services/huggingFaceService.ts',
   '/services/geminiService.ts',
   '/services/audioService.ts',
 
@@ -16,7 +15,7 @@ const urlsToCache = [
   '/assets/icon.svg',
   // External Dependencies
   'https://cdn.tailwindcss.com',
-  'https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap',
+  'https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap', // Corrected font
   'https://esm.sh/zone.js@0.14.8',
   'https://esm.sh/@angular/core@18.1.0',
   'https://esm.sh/@angular/common@18.1.0',
@@ -26,7 +25,9 @@ const urlsToCache = [
   'https://esm.sh/rxjs@7.8.1',
   'https://esm.sh/rxjs@7.8.1/operators',
   'https://esm.sh/@google/genai@^1.13.0',
-  'https://aistudiocdn.com/react@^19.1.1'
+  'https://aistudiocdn.com/react@^19.1.1',
+  'https://esm.sh/jszip@^3.10.1',
+  'https://esm.sh/grapheme-to-phoneme@2.1.0?bundle'
 ];
 
 self.addEventListener('install', (event) => {
