@@ -1,5 +1,3 @@
-
-
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { PageWrapper, PageHeader } from './PageComponents';
 import * as audioService from '../services/audioService';
@@ -9,6 +7,7 @@ import { FacePlayingIcon } from './icons/FacePlayingIcon';
 import { FaceWonIcon } from './icons/FaceWonIcon';
 import { FaceLostIcon } from './icons/FaceLostIcon';
 import { useCredits } from '../contexts/CreditContext';
+import * as preferenceService from '../services/preferenceService';
 
 
 interface MinesweeperPageProps {
@@ -35,7 +34,16 @@ export const MinesweeperPage: React.FC<MinesweeperPageProps> = ({ onClose, playS
     const [gameState, setGameState] = useState<GameState>('playing');
     const [flagsUsed, setFlagsUsed] = useState(0);
     const [time, setTime] = useState(0);
+    const [bestTime, setBestTime] = useState(999);
     const { addCredits } = useCredits();
+
+    useEffect(() => {
+        const loadBestTime = async () => {
+            const savedTime = await preferenceService.getPreference('minesweeperBestTime', 999);
+            setBestTime(savedTime);
+        };
+        loadBestTime();
+    }, []);
 
     const createBoard = useCallback((): Board => {
         // 1. Create empty board
@@ -173,10 +181,14 @@ export const MinesweeperPage: React.FC<MinesweeperPageProps> = ({ onClose, playS
                 setGameState('won');
                 playSound(audioService.playSuccess);
                 await addCredits(MINES * 10);
+                if (time < bestTime) {
+                    setBestTime(time);
+                    await preferenceService.setPreference('minesweeperBestTime', time);
+                }
             }
         };
         checkWinCondition();
-    }, [board, gameState, playSound, addCredits]);
+    }, [board, gameState, playSound, addCredits, time, bestTime]);
 
     const renderCell = (cell: Cell, r: number, c: number) => {
         if (cell.isFlagged) {
@@ -237,10 +249,16 @@ export const MinesweeperPage: React.FC<MinesweeperPageProps> = ({ onClose, playS
                     )}
                 </div>
                  {gameState !== 'playing' && (
-                    <div className="font-press-start text-center text-2xl mt-4">
-                        <p className={gameState === 'won' ? 'text-brand-lime' : 'text-brand-magenta'}>
+                    <div className="font-press-start text-center mt-4">
+                        <p className={`text-2xl ${gameState === 'won' ? 'text-brand-lime' : 'text-brand-magenta'}`}>
                             {gameState === 'won' ? 'You Win!' : 'Game Over!'}
                         </p>
+                        {gameState === 'won' && (
+                            <p className="text-base mt-2">
+                                Time: <span className="text-brand-yellow">{time}s</span>
+                                {time < bestTime && time > 0 ? <span className="text-brand-lime"> (New Best!)</span> : <span className="text-xs text-text-secondary"> (Best: {bestTime}s)</span>}
+                            </p>
+                        )}
                     </div>
                 )}
             </main>

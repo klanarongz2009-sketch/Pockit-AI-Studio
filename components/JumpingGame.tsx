@@ -1,9 +1,8 @@
-
-
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { PageWrapper } from './PageComponents';
 import * as audioService from '../services/audioService';
 import { useCredits } from '../contexts/CreditContext';
+import * as preferenceService from '../services/preferenceService';
 
 interface JumpingGameProps {
     onClose: () => void;
@@ -38,8 +37,27 @@ export const JumpingGame: React.FC<JumpingGameProps> = ({ onClose, playSound }) 
     const frameCount = useRef(0);
 
     const [score, setScore] = useState(0);
+    const [highScore, setHighScore] = useState(0);
     const [gameState, setGameState] = useState<'playing' | 'gameOver'>('playing');
     const { addCredits } = useCredits();
+
+    useEffect(() => {
+        const loadHighScore = async () => {
+            const savedScore = await preferenceService.getPreference('jumpingGameHighScore', 0);
+            setHighScore(savedScore);
+        };
+        loadHighScore();
+    }, []);
+
+    useEffect(() => {
+        const saveHighScore = async () => {
+            if (gameState === 'gameOver' && score > highScore) {
+                setHighScore(score);
+                await preferenceService.setPreference('jumpingGameHighScore', score);
+            }
+        };
+        saveHighScore();
+    }, [gameState, score, highScore]);
 
     const resetGame = useCallback(() => {
         playSound(audioService.playGenerate);
@@ -173,7 +191,7 @@ export const JumpingGame: React.FC<JumpingGameProps> = ({ onClose, playSound }) 
         };
     }, [gameLoop]);
 
-    const drawGameOver = () => {
+    const drawGameOver = useCallback(() => {
         const canvas = canvasRef.current;
         const ctx = canvas?.getContext('2d');
         if (!ctx) return;
@@ -187,15 +205,23 @@ export const JumpingGame: React.FC<JumpingGameProps> = ({ onClose, playSound }) 
         ctx.fillStyle = 'white';
         ctx.font = '24px "Press Start 2P"';
         ctx.fillText(`SCORE: ${Math.floor(score)}`, GAME_WIDTH / 2, GAME_HEIGHT / 2 + 20);
+
+        if (score > highScore && score > 0) {
+            ctx.fillStyle = '#00ff00';
+            ctx.font = '16px "Press Start 2P"';
+            ctx.fillText('NEW HIGH SCORE!', GAME_WIDTH / 2, GAME_HEIGHT / 2 + 50);
+        }
+
+        ctx.fillStyle = 'white';
         ctx.font = '16px "Press Start 2P"';
-        ctx.fillText(`Tap to Restart`, GAME_WIDTH / 2, GAME_HEIGHT / 2 + 60);
-    }
+        ctx.fillText(`Tap to Restart`, GAME_WIDTH / 2, GAME_HEIGHT / 2 + 80);
+    }, [score, highScore]);
     
     useEffect(() => {
         if(gameState === 'gameOver') {
             drawGameOver();
         }
-    }, [gameState, score]);
+    }, [gameState, score, highScore, drawGameOver]);
 
 
     return (
@@ -207,6 +233,7 @@ export const JumpingGame: React.FC<JumpingGameProps> = ({ onClose, playSound }) 
                     </button>
                     <h2 className="text-xl text-brand-yellow font-press-start">Pixel Jumper</h2>
                      <div className="text-right font-press-start text-brand-light text-base">
+                        <span className="mr-4">HI: {Math.floor(highScore)}</span>
                         <span>Score: {Math.floor(score)}</span>
                      </div>
                 </header>

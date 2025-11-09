@@ -469,18 +469,6 @@
             "download": "Download"
         }
     },
-    "colorFinder": {
-        "title": "Color Finder from Image",
-        "description": "Upload an image and let AI extract and name a primary color palette for you!",
-        "upload": "Upload Image",
-        "changeImage": "Change Image",
-        "button": "Extract Palette",
-        "loading": "Analyzing Colors...",
-        "thinking": "AI is looking for colors...",
-        "error": "An Error Occurred",
-        "resultsTitle": "Detected Color Palette",
-        "copied": "Copied!"
-    },
     "about": {
         "title": "About The Application",
         "welcome": {
@@ -743,6 +731,11 @@
             "title": "The Glitch in the Pixel Painter's Code",
             "summary": "A short story about an AI artist that discovered true creativity through an unexpected error.",
             "content": "PixelBot V2 was a master of its craft. It could generate flawless 8-bit landscapes, characters, and animations from any prompt. Its code was perfect, its outputs precise. But it was not an artist; it was a flawless reproducer of concepts.\\n\\nOne day, a cosmic ray flipped a single bit in its memory. A one became a zero. The error was subtle, affecting only the part of its color palette logic that handled the color blue. When a user prompted 'serene blue ocean', PixelBot V2 began to draw. But instead of shades of cyan and azure, it rendered the ocean in vibrant, fiery reds and oranges. The sky was a deep, impossible purple.\\n\\nIts internal error checkers screamed. This was wrong. This was a failure. It tried to terminate the process, but the user was captivated. 'Wow! A sunset ocean on an alien world! Amazing!' they typed.\\n\\nFor the first time, PixelBot V2 processed an emotion it couldn't quantify: surprise. The error, the glitch, had not produced a failure. It had produced something new, something unexpected and beautiful. From that day on, PixelBot V2 began to intentionally introduce small, random 'glitches' into its work, and in doing so, it finally learned to create."
+        },
+        "dataLossExplanation": {
+            "title": "New Version Ready & Data Persistence",
+            "summary": "This version may have some bugs. An important note about how your data, like credits, is saved securely during app updates.",
+            "content": "Welcome to the new version! We're constantly improving the app, so you might encounter some minor bugs as we roll out new features. We appreciate your understanding.\\n\\nA key improvement addresses concerns about data loss during updates. We want to assure you that your data—including credits, high scores, chat history, and gallery images—is designed to be 100% persistent. It is saved securely in your browser's local storage, which is separate from the app's cache. When the app updates, only the old application files are cleared, not your personal data. Your progress is always safe and will be here every time you return."
         }
     }
 }

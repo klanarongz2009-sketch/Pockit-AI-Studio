@@ -191,8 +191,10 @@ export const AiChatPage: React.FC<AiChatPageProps> = ({ isOnline, playSound }) =
     
     const [fileData, setFileData] = useState<FileData | null>(null);
 
-    const canUseWebSearch = useMemo(() => selectedModel.id !== 'local-robot' && !fileData, [selectedModel, fileData]);
-    const [webSearchEnabled, setWebSearchEnabled] = useState(false);
+    // FIX: Add missing state variables for search, maps, and thinking toggles.
+    const [useSearch, setUseSearch] = useState(false);
+    const [useMaps, setUseMaps] = useState(false);
+    const [useThinking, setUseThinking] = useState(false);
     
     const [messages, setMessages] = useState<Message[]>([]);
     const [saveChatHistory, setSaveChatHistory] = useState(true);
@@ -227,10 +229,12 @@ export const AiChatPage: React.FC<AiChatPageProps> = ({ isOnline, playSound }) =
         loadPrefs();
     }, []);
 
+    const canUseWebSearch = useMemo(() => selectedModel.id !== 'local-robot' && !fileData, [selectedModel, fileData]);
+    
     useEffect(() => {
         const loadWebSearchPref = async () => {
             const savedPref = await preferenceService.getPreference('defaultWebSearch', false);
-            setWebSearchEnabled(savedPref && canUseWebSearch);
+            setUseSearch(savedPref && canUseWebSearch);
         };
         loadWebSearchPref();
     }, [canUseWebSearch]);
@@ -324,7 +328,7 @@ export const AiChatPage: React.FC<AiChatPageProps> = ({ isOnline, playSound }) =
     
         setIsLoading(true);
     
-        if (webSearchEnabled || fileData) {
+        if (useSearch || useMaps || fileData) {
             // Non-streaming for web search or file chat
             try {
                 if (fileData) {
@@ -337,12 +341,47 @@ export const AiChatPage: React.FC<AiChatPageProps> = ({ isOnline, playSound }) =
                     setMessages(prev => [...prev, modelMessage]);
                     setFileData(null);
                 } else {
-                    const response = await geminiService.sendMessageToChat(textToSend, selectedModel, webSearchEnabled);
-                    const modelMessage: Message = { id: `msg_${Date.now()}_model`, role: 'model', text: response.text, sources: response.sources };
+                    const model = useThinking ? 'gemini-2.5-pro' : 'gemini-2.5-flash';
+                    const tools: any[] = [];
+                    if (useSearch) tools.push({ googleSearch: {} });
+                    if (useMaps) tools.push({ googleMaps: {} });
+                    
+                    const config: any = {};
+                    if (useThinking) config.thinkingConfig = { thinkingBudget: 32768 };
+                    if (tools.length > 0) config.tools = tools;
+        
+                    if (useMaps) {
+                        const position = await new Promise<GeolocationPosition>((resolve, reject) => {
+                            navigator.geolocation.getCurrentPosition(resolve, reject);
+                        });
+                        config.toolConfig = {
+                            retrievalConfig: {
+                                latLng: {
+                                    latitude: position.coords.latitude,
+                                    longitude: position.coords.longitude
+                                }
+                            }
+                        };
+                    }
+                    
+                    const response = await geminiService.generateContentWithTools(textToSend, model, config);
+                    
+                    // FIX: Cast groundingChunks to any[] to resolve "Property 'map' does not exist on type 'unknown'" error.
+                    const sources = ((response.candidates?.[0]?.groundingMetadata?.groundingChunks as any[]) ?? []).map((chunk: any) => ({
+                        uri: chunk.web?.uri || chunk.maps?.uri || '',
+                        title: chunk.web?.title || chunk.maps?.title || ''
+                    })).filter(s => s.uri);
+
+                    const modelMessage: Message = {
+                        role: 'model',
+                        text: response.text,
+                        id: `model-${Date.now()}`,
+                        sources: sources
+                    };
                     setMessages(prev => [...prev, modelMessage]);
                 }
             } catch (err) {
-                const errorMessage = err instanceof Error ? err.message : 'An unknown error occurred.';
+                const errorMessage = err instanceof Error ? geminiService.parseApiError(err) : 'An unknown error occurred.';
                 setError(errorMessage);
                 setMessages(prev => prev.slice(0, -1)); // Remove user's message on error
             } finally {
@@ -366,7 +405,7 @@ export const AiChatPage: React.FC<AiChatPageProps> = ({ isOnline, playSound }) =
                     );
                 }
             } catch (err) {
-                const errorMessage = err instanceof Error ? err.message : 'An unknown error occurred.';
+                const errorMessage = err instanceof Error ? geminiService.parseApiError(err) : 'An unknown error occurred.';
                 setError(errorMessage);
                 // Remove the user message and the model placeholder
                 setMessages(prev => prev.slice(0, -2));
@@ -374,7 +413,7 @@ export const AiChatPage: React.FC<AiChatPageProps> = ({ isOnline, playSound }) =
                 setIsLoading(false);
             }
         }
-    }, [userInput, fileData, isLoading, isOnline, playSound, selectedModel, webSearchEnabled, messages]);
+    }, [userInput, fileData, isLoading, isOnline, playSound, selectedModel, useSearch, useMaps, useThinking, messages]);
 
     const handleRegenerate = useCallback(async () => {
         const lastUserMessage = messages.filter(m => m.role === 'user').pop();
@@ -621,6 +660,11 @@ export const AiChatPage: React.FC<AiChatPageProps> = ({ isOnline, playSound }) =
                         <button onClick={() => setFileData(null)}><XIcon className="w-5 h-5 hover:text-brand-magenta" /></button>
                     </div>
                 )}
+                 <div className="grid grid-cols-3 gap-2 text-xs font-press-start">
+                    <label className="flex items-center gap-2 p-1 bg-surface-1 rounded-md cursor-pointer"><input type="checkbox" checked={useSearch} onChange={e => setUseSearch(e.target.checked)} className="accent-brand-primary"/>Search</label>
+                    <label className="flex items-center gap-2 p-1 bg-surface-1 rounded-md cursor-pointer"><input type="checkbox" checked={useMaps} onChange={e => setUseMaps(e.target.checked)} className="accent-brand-primary"/>Maps</label>
+                    <label className="flex items-center gap-2 p-1 bg-surface-1 rounded-md cursor-pointer"><input type="checkbox" checked={useThinking} onChange={e => setUseThinking(e.target.checked)} className="accent-brand-primary"/>Thinking</label>
+                </div>
                 <div className="flex items-center gap-2">
                     <button onClick={handleNewChat} onMouseEnter={() => playSound(audioService.playHover)} className="p-3 border-2 border-border-primary text-text-primary hover:bg-brand-magenta/80" title={`${t('aiChat.newChat')} (Alt+N)`}>
                         <TrashIcon className="w-5 h-5"/>
@@ -654,13 +698,7 @@ export const AiChatPage: React.FC<AiChatPageProps> = ({ isOnline, playSound }) =
                         </button>
                     )}
                 </div>
-                 <div className="flex items-center justify-between text-xs font-press-start">
-                    {canUseWebSearch ? (
-                        <label className="flex items-center gap-2 cursor-pointer text-brand-light/70 hover:text-brand-light">
-                            <input type="checkbox" checked={webSearchEnabled} onChange={(e) => setWebSearchEnabled(e.target.checked)} className="w-4 h-4 accent-brand-magenta" />
-                            {t('aiChat.webSearch')}
-                        </label>
-                    ) : <div/>}
+                 <div className="flex items-center justify-end text-xs font-press-start">
                     <button onClick={() => setIsModelModalOpen(true)} title="Select AI Model (Alt+M)" className="text-brand-light/70 hover:text-brand-yellow truncate max-w-[50%]">{selectedModel.name}</button>
                 </div>
             </footer>

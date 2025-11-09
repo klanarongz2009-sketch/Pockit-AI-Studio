@@ -1,5 +1,3 @@
-
-
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { Song } from '../services/geminiService';
 import { generateSongFromText } from '../services/geminiService';
@@ -47,11 +45,9 @@ export const TextToSongPage: React.FC<TextToSongPageProps> = ({
     const [isLoading, setIsLoading] = useState<boolean>(false);
     const [error, setError] = useState<string | null>(null);
     const [isDownloading, setIsDownloading] = useState<boolean>(false);
-    // FIX: Initialize with a default value. The value from preference will be loaded in useEffect.
     const [modelVersion, setModelVersion] = useState<ModelVersion>('v1');
     const [thinkingMessage, setThinkingMessage] = useState<string>(thinkingMessages[0]);
     
-    // FIX: Initialize with a default value. The value from preference will be loaded in useEffect.
     const [history, setHistory] = useState<HistoryItem[]>([]);
     const [currentlyPlayingId, setCurrentlyPlayingId] = useState<string | null>(null);
     const cancellationRequested = useRef(false);
@@ -115,11 +111,10 @@ export const TextToSongPage: React.FC<TextToSongPageProps> = ({
                 timestamp: Date.now(),
                 modelVersion: modelVersion,
             };
-            setHistory(prev => {
-                const newHistory = [newHistoryItem, ...prev];
-                preferenceService.setPreference('songHistory', newHistory);
-                return newHistory;
-            });
+            const newHistory = [newHistoryItem, ...history];
+            setHistory(newHistory);
+            await preferenceService.setPreference('songHistory', newHistory);
+
 
             playSound(audioService.playSuccess);
             
@@ -135,7 +130,7 @@ export const TextToSongPage: React.FC<TextToSongPageProps> = ({
         } finally {
             setIsLoading(false);
         }
-    }, [inputText, isLoading, playSound, isOnline, modelVersion]);
+    }, [inputText, isLoading, playSound, isOnline, modelVersion, history]);
 
     const handlePlaybackToggle = useCallback((song: Song | null, songId: string) => {
         if (currentlyPlayingId === songId) {
@@ -184,18 +179,16 @@ export const TextToSongPage: React.FC<TextToSongPageProps> = ({
         }
     }, [isDownloading, playSound]);
     
-    const handleDeleteHistoryItem = (idToDelete: string) => {
+    const handleDeleteHistoryItem = async (idToDelete: string) => {
         playSound(audioService.playTrash);
         if (currentlyPlayingId === idToDelete) {
             audioService.stopSong();
             setIsPlayingSong(false);
             setCurrentlyPlayingId(null);
         }
-        setHistory(prev => {
-            const newHistory = prev.filter(item => item.id !== idToDelete);
-            preferenceService.setPreference('songHistory', newHistory);
-            return newHistory;
-        });
+        const newHistory = history.filter(item => item.id !== idToDelete);
+        setHistory(newHistory);
+        await preferenceService.setPreference('songHistory', newHistory);
     };
 
     const handleClose = () => {

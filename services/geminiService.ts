@@ -682,8 +682,8 @@ Please provide the response ONLY as a JSON object with this structure: { "identi
         });
 
         const result = safeJsonParse<Omit<SearchResult, 'sources'>>(response.text);
-        // FIX: Safely handle optional chaining to prevent runtime errors when grounding chunks are not available.
-        const sources = (response.candidates?.[0]?.groundingMetadata?.groundingChunks ?? []).map((chunk: any) => ({
+        // FIX: Safely handle optional chaining and cast to prevent type errors when grounding chunks are not available or have an 'unknown' type.
+        const sources = ((response.candidates?.[0]?.groundingMetadata?.groundingChunks as any[]) ?? []).map((chunk: any) => ({
             uri: chunk.web?.uri || '',
             title: chunk.web?.title || ''
         })).filter(s => s.uri);
@@ -760,8 +760,8 @@ export async function sendMessageToChat(prompt: string, model: AiModel, webSearc
                 contents: prompt,
                 config: webSearchConfig,
             });
-            // FIX: Safely handle optional chaining to prevent runtime errors when grounding chunks are not available.
-            const sources = (response.candidates?.[0]?.groundingMetadata?.groundingChunks ?? []).map((chunk: any) => ({
+            // FIX: Safely handle optional chaining and cast to prevent type errors when grounding chunks are not available or have an 'unknown' type.
+            const sources = ((response.candidates?.[0]?.groundingMetadata?.groundingChunks as any[]) ?? []).map((chunk: any) => ({
                 uri: chunk.web?.uri || '',
                 title: chunk.web?.title || ''
             })).filter(s => s.uri);

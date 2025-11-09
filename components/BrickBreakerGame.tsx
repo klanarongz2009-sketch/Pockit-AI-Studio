@@ -1,9 +1,8 @@
-
-
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { PageWrapper } from './PageComponents';
 import * as audioService from '../services/audioService';
 import { useCredits } from '../contexts/CreditContext';
+import * as preferenceService from '../services/preferenceService';
 
 interface BrickBreakerGameProps {
     onClose: () => void;
@@ -52,19 +51,28 @@ export const BrickBreakerGame: React.FC<BrickBreakerGameProps> = ({ onClose, pla
     }, []);
 
     useEffect(() => {
+        const loadHighScore = async () => {
+            const savedScore = await preferenceService.getPreference('brickBreakerHighScore', 0);
+            setHighScore(savedScore);
+        };
+        loadHighScore();
         createBricks();
     }, [createBricks]);
     
     useEffect(() => {
-        if (gameState === 'gameOver' || gameState === 'win') {
-            if (score > highScore) {
-                setHighScore(score);
-                setIsNewHighScore(true);
-                playSound(audioService.playSuccess);
-            } else {
-                setIsNewHighScore(false);
+        const handleEndGame = async () => {
+            if (gameState === 'gameOver' || gameState === 'win') {
+                if (score > highScore) {
+                    setHighScore(score);
+                    setIsNewHighScore(true);
+                    await preferenceService.setPreference('brickBreakerHighScore', score);
+                    playSound(audioService.playSuccess);
+                } else {
+                    setIsNewHighScore(false);
+                }
             }
-        }
+        };
+        handleEndGame();
     }, [gameState, score, highScore, playSound]);
 
     const resetBall = useCallback(() => {
@@ -159,7 +167,7 @@ export const BrickBreakerGame: React.FC<BrickBreakerGameProps> = ({ onClose, pla
 
     }, [ball, paddleX, bricks, gameState, isNewHighScore, score]);
 
-    const gameLoop = useCallback(() => {
+    const gameLoop = useCallback(async () => {
         if (gameState !== 'playing') {
              draw();
              return;
@@ -191,7 +199,9 @@ export const BrickBreakerGame: React.FC<BrickBreakerGameProps> = ({ onClose, pla
 
         // Brick collision
         let allBricksBroken = true;
-        const newBricks = bricks.map(brick => {
+        const newBricks = [...bricks];
+        for (let i = 0; i < newBricks.length; i++) {
+            const brick = newBricks[i];
             if (brick.visible) {
                  allBricksBroken = false;
                 if (
@@ -203,15 +213,15 @@ export const BrickBreakerGame: React.FC<BrickBreakerGameProps> = ({ onClose, pla
                     newBall.dy *= -1;
                     playSound(audioService.playBrickHit);
                     setScore(s => s + 1);
-                    addCredits(1);
-                    return { ...brick, visible: false };
+                    await addCredits(1);
+                    newBricks[i] = { ...brick, visible: false };
+                    break; 
                 }
             }
-            return brick;
-        });
+        }
         setBricks(newBricks);
 
-        if (allBricksBroken) {
+        if (allBricksBroken && bricks.length > 0) {
             playSound(audioService.playSuccess);
             setGameState('win');
         }

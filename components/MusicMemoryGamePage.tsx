@@ -2,6 +2,7 @@ import React, { useState, useCallback, useEffect, useRef } from 'react';
 import { PageWrapper, PageHeader } from './PageComponents';
 import * as audioService from '../services/audioService';
 import { useCredits } from '../contexts/CreditContext';
+import * as preferenceService from '../services/preferenceService';
 
 const notes = ['C4', 'D4', 'E4', 'F4', 'G4', 'A4', 'B4', 'C5'];
 
@@ -46,6 +47,14 @@ export const MusicMemoryGamePage: React.FC<{
     
     const timeoutRef = useRef<number | null>(null);
 
+    useEffect(() => {
+        const loadHighScore = async () => {
+            const savedScore = await preferenceService.getPreference('musicMemoryHighScore', 0);
+            setHighScore(savedScore);
+        };
+        loadHighScore();
+    }, []);
+
     const playNote = (note: string, duration = 300) => {
         const freq = audioService.NOTE_FREQUENCIES[note];
         if (freq) {
@@ -83,7 +92,7 @@ export const MusicMemoryGamePage: React.FC<{
         }
     }, [sequence, gameState, showSequence]);
     
-    const handlePlayerNotePress = (note: string) => {
+    const handlePlayerNotePress = async (note: string) => {
         if (gameState !== 'playerTurn') return;
 
         playNote(note);
@@ -95,6 +104,7 @@ export const MusicMemoryGamePage: React.FC<{
             setGameState('gameOver');
             if (score > highScore) {
                 setHighScore(score);
+                await preferenceService.setPreference('musicMemoryHighScore', score);
             }
             return;
         } else {
@@ -104,7 +114,7 @@ export const MusicMemoryGamePage: React.FC<{
         if (newPlayerSequence.length === sequence.length) {
             const pointsEarned = level * 10;
             setScore(prev => prev + pointsEarned);
-            addCredits(level * 5);
+            await addCredits(level * 5);
             
             setIsSuccess(true);
             setTimeout(() => setIsSuccess(false), 500);

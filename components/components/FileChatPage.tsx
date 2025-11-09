@@ -79,7 +79,7 @@ export const FileChatPage: React.FC<FileChatPageProps> = ({ onClose, playSound, 
         if (!trimmedInput || !fileData || isLoading || !isOnline) return;
 
         const cost = 5; // Example cost per message
-        // FIX: spendCredits is now async and must be awaited.
+        // FIX: `spendCredits` is an async function and must be awaited.
         const canSpend = await spendCredits(cost);
         if (!canSpend) {
             setError(`เครดิตไม่เพียงพอ! ต้องการ ${cost} เครดิต`);

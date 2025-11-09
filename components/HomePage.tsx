@@ -60,7 +60,7 @@ export const HomePage: React.FC<HomePageProps> = ({ onSetPage, onOpenSettings })
                 <h1 className="text-3xl sm:text-5xl text-brand-primary font-press-start inline-block">
                     {t('header.title')}
                 </h1>
-                <span className="ml-4 text-lg font-sans bg-brand-accent text-white px-2 py-1 rounded-md transform -rotate-6 inline-block align-middle">BETA</span>
+                <span className="ml-4 text-lg font-sans bg-brand-accent text-white px-2 py-1 rounded-md transform -rotate-6 inline-block align-middle">BETA2</span>
             </div>
             
             <div className="w-full max-w-4xl grid grid-cols-2 sm:grid-cols-3 gap-4 sm:gap-6">

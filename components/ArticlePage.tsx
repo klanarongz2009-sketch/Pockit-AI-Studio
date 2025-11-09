@@ -19,6 +19,15 @@ export interface Article {
 
 const articlesData: Article[] = [
     {
+        id: 'data-loss-explanation',
+        titleKey: 'articles.dataLossExplanation.title',
+        summaryKey: 'articles.dataLossExplanation.summary',
+        contentKey: 'articles.dataLossExplanation.content',
+        author: 'The Development Team',
+        category: 'article',
+        voice: 'Zephyr',
+    },
+    {
         id: 'huggingface-outage',
         titleKey: 'articles.huggingfaceOutage.title',
         summaryKey: 'articles.huggingfaceOutage.summary',
@@ -252,7 +261,6 @@ const articlesData: Article[] = [
         category: 'article',
         voice: 'Charon',
     },
-// FIX: Completed the truncated object in the articlesData array.
     {
         id: 'sound-library-update',
         titleKey: 'articles.soundLibraryUpdate.title',

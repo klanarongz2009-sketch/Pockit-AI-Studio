@@ -1,6 +1,3 @@
-
-
-
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import * as audioService from '../services/audioService';
 import * as preferenceService from '../services/preferenceService';
@@ -69,14 +66,20 @@ export const VideoEditorPage: React.FC<VideoEditorPageProps> = ({ onClose, playS
         loadPrefs();
     }, []);
 
+    // FIX: `setPreference` is now async. Wrap in an async function.
     useEffect(() => {
-        // FIX: `setPreference` is async.
-        preferenceService.setPreference('videoEditorSubtitleLang', subtitleLanguage);
+        const savePreference = async () => {
+            await preferenceService.setPreference('videoEditorSubtitleLang', subtitleLanguage);
+        };
+        savePreference();
     }, [subtitleLanguage]);
 
+    // FIX: `setPreference` is now async. Wrap in an async function.
     useEffect(() => {
-        // FIX: `setPreference` is async.
-        preferenceService.setPreference('videoEditorAutoDetectLang', autoDetectLanguage);
+        const savePreference = async () => {
+            await preferenceService.setPreference('videoEditorAutoDetectLang', autoDetectLanguage);
+        };
+        savePreference();
     }, [autoDetectLanguage]);
 
     const resetState = (clearFile: boolean = false) => {

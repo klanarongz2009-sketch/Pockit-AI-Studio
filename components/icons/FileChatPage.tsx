@@ -1,14 +1,14 @@
 import React, { useState, useRef, useCallback, useEffect } from 'react';
-import * as geminiService from '../services/geminiService';
-import * as audioService from '../services/audioService';
-import { PageHeader, PageWrapper } from './PageComponents';
+import * as geminiService from '../../services/geminiService';
+import * as audioService from '../../services/audioService';
+import { PageHeader, PageWrapper } from '../PageComponents';
 import { UploadIcon } from './icons/UploadIcon';
-import { LoadingSpinner } from './LoadingSpinner';
+import { LoadingSpinner } from '../LoadingSpinner';
 import { SendIcon } from './icons/SendIcon';
 import { SparklesIcon } from './icons/SparklesIcon';
 import { MusicNoteIcon } from './icons/MusicNoteIcon';
 import { TrashIcon } from './icons/TrashIcon';
-import { useCredits } from '../contexts/CreditContext';
+import { useCredits } from '../../contexts/CreditContext';
 
 interface FileChatPageProps {
     onClose: () => void;
@@ -79,7 +79,9 @@ export const FileChatPage: React.FC<FileChatPageProps> = ({ onClose, playSound, 
         if (!trimmedInput || !fileData || isLoading || !isOnline) return;
 
         const cost = 5; // Example cost per message
-        if (!spendCredits(cost)) {
+        // FIX: The `spendCredits` function is asynchronous and must be awaited.
+        const canSpend = await spendCredits(cost);
+        if (!canSpend) {
             setError(`เครดิตไม่เพียงพอ! ต้องการ ${cost} เครดิต`);
             playSound(audioService.playError);
             return;
@@ -125,7 +127,7 @@ export const FileChatPage: React.FC<FileChatPageProps> = ({ onClose, playSound, 
              <input type="file" ref={fileInputRef} onChange={handleFileChange} accept="image/*,audio/*,video/*,text/*,.pdf" className="hidden" aria-hidden="true" />
             <main 
                 id="main-content"
-                className="w-full max-w-4xl flex-grow flex flex-col items-center gap-4 font-sans"
+                className="w-full max-w-4xl flex-grow flex flex-col items-center gap-4 font-sans relative"
                 onDragEnter={handleDragEnter}
                 onDragOver={handleDragOver}
                 onDragLeave={handleDragLeave}

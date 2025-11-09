@@ -57,8 +57,12 @@ export interface Preferences {
 
     // Minigames
     defaultMinigameDifficulty: 'easy' | 'normal' | 'hard';
-    // FIX: Add missing preference for asteroid shooter high score.
     asteroidShooterHighScore: number;
+    snakeHighScore: number;
+    brickBreakerHighScore: number;
+    musicMemoryHighScore: number;
+    jumpingGameHighScore: number;
+    minesweeperBestTime: number;
     
     // Credits & Data
     confirmCreditSpend: boolean;

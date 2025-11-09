@@ -1,6 +1,3 @@
-
-
-
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { PageWrapper } from './PageComponents';
 import * as audioService from '../services/audioService';
@@ -38,11 +35,13 @@ export const SnakeGame: React.FC<SnakeGameProps> = ({ onClose, playSound }) => {
     const { addCredits } = useCredits();
     
     useEffect(() => {
-        const loadDifficulty = async () => {
+        const loadPrefs = async () => {
             const savedDifficulty = await preferenceService.getPreference('defaultMinigameDifficulty', 'normal');
             setDifficulty(savedDifficulty);
+            const savedHighScore = await preferenceService.getPreference('snakeHighScore', 0);
+            setHighScore(savedHighScore);
         };
-        loadDifficulty();
+        loadPrefs();
     }, []);
 
     const generateFood = useCallback((snakeBody: { x: number, y: number }[]) => {
@@ -136,15 +135,19 @@ export const SnakeGame: React.FC<SnakeGameProps> = ({ onClose, playSound }) => {
     }, [handleKeyDown]);
     
     useEffect(() => {
-        if (isGameOver) {
-            if (score > highScore) {
-                setHighScore(score);
-                setIsNewHighScore(true);
-                playSound(audioService.playSuccess);
-            } else {
-                setIsNewHighScore(false);
+        const handleGameOver = async () => {
+            if (isGameOver) {
+                if (score > highScore) {
+                    setHighScore(score);
+                    setIsNewHighScore(true);
+                    await preferenceService.setPreference('snakeHighScore', score);
+                    playSound(audioService.playSuccess);
+                } else {
+                    setIsNewHighScore(false);
+                }
             }
-        }
+        };
+        handleGameOver();
     }, [isGameOver, score, highScore, playSound]);
 
     const draw = useCallback(() => {
