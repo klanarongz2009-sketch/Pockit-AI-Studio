@@ -4,16 +4,22 @@ export const GemAiIcon = ({ className }: { className?: string }): React.ReactNod
     <svg 
         xmlns="http://www.w3.org/2000/svg" 
         viewBox="0 0 24 24" 
-        fill="currentColor" 
+        fill="none"
         className={className} 
-        style={{ imageRendering: 'pixelated' }} 
-        aria-hidden="true"
     >
-        <path d="M12 2L6 8V16L12 22L18 16V8L12 2Z" />
-        <path fill="var(--color-bg, black)" d="M12 4.8L16.2 8.5V15.5L12 19.2L7.8 15.5V8.5L12 4.8Z"/>
-        <path fill="#00ffff" d="M12 6.5L9.5 8.5L12 10.5L14.5 8.5L12 6.5Z"/>
-        <path fill="#ff00ff" d="M12 17.5L9.5 15.5L12 13.5L14.5 15.5L12 17.5Z"/>
-        <path fill="#ffff00" d="M8 9.5L10.5 11.5L8 13.5L5.5 11.5L8 9.5Z"/>
-        <path fill="#ffff00" d="M16 9.5L18.5 11.5L16 13.5L13.5 11.5L16 9.5Z"/>
+        <defs>
+            <linearGradient id="gem-main-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stopColor="var(--color-brand-primary)" />
+                <stop offset="100%" stopColor="var(--color-brand-secondary)" />
+            </linearGradient>
+        </defs>
+        <path d="M12 2L4 8.5V15.5L12 22L20 15.5V8.5L12 2Z" fill="url(#gem-main-grad)" />
+        <path d="M12 2V22" stroke="white" strokeOpacity="0.25" strokeWidth="1"/>
+        <path d="M4 8.5L20 15.5" stroke="white" strokeOpacity="0.25" strokeWidth="1"/>
+        <path d="M4 15.5L20 8.5" stroke="white" strokeOpacity="0.25" strokeWidth="1"/>
+        
+        {/* Top facet shine */}
+        <path d="M12 2L4 8.5L12 8.5Z" fill="white" fillOpacity="0.3" />
+        <path d="M12 2L20 8.5L12 8.5Z" fill="white" fillOpacity="0.1" />
     </svg>
 );
